@@ -8,11 +8,11 @@
     <meta name="theme-color" content="#16a34a">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Botânica">
+    <meta name="apple-mobile-web-app-title" content="Plantas da Aderson Borges">
     <!-- Ícone genérico para quando adicionado à tela inicial -->
-    <link rel="apple-touch-icon" href="https://placehold.co/180x180/16a34a/ffffff?text=BD">
+    <link rel="apple-touch-icon" href="https://placehold.co/180x180/16a34a/ffffff?text=AB">
 
-    <title>Botânica Divertida</title>
+    <title>Plantas da Aderson Borges</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -150,13 +150,13 @@
         <i class="ph-fill ph-clover text-white/20 text-5xl sm:text-6xl absolute -bottom-4 -right-4 transform rotate-12"></i>
         
         <!-- Espaço da Logo -->
-        <div class="z-10 mb-3 sm:mb-4 bg-white p-2 rounded-2xl shadow-md flex justify-center items-center w-full max-w-[150px] sm:max-w-[180px] h-16 sm:h-20">
-            <img id="school-logo" src="https://uiktphiubjmqvywbbgnf.supabase.co/storage/v1/object/public/Logo/logo%20da%20escola.png" alt="Logo da Escola" class="max-w-full max-h-full object-contain">
+        <div class="z-10 mb-3 sm:mb-4 bg-white p-3 rounded-2xl shadow-md flex justify-center items-center w-full max-w-[300px] sm:max-w-[360px] h-32 sm:h-40">
+            <img id="school-logo" src="https://uiktphiubjmqvywbbgnf.supabase.co/storage/v1/object/public/logo/logo%20da%20escola.png" alt="Logo da Escola" class="max-w-full max-h-full object-contain">
         </div>
 
         <div class="flex items-center z-10 text-center">
             <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight drop-shadow-md flex items-center flex-wrap justify-center">
-                <i class="ph-fill ph-potted-plant mr-2 text-green-200"></i> Botânica Divertida
+                <i class="ph-fill ph-potted-plant mr-2 text-green-200"></i> Plantas da Aderson Borges
             </h1>
         </div>
     </header>
@@ -184,10 +184,7 @@
                     
                     <div class="text-green-800 text-sm sm:text-base text-center space-y-3 mb-5 font-medium leading-relaxed">
                         <p>
-                            Nosso objetivo é <strong>combater a cegueira botânica</strong> incentivando a pesquisa sobre as plantas do ambiente escolar.
-                        </p>
-                        <p>
-                            Aqui, os dados ganham vida de forma lúdica, <strong>como se a própria planta estivesse se apresentando a você!</strong>
+                            Nosso objetivo é <strong>combater a cegueira botânica</strong> por meio da pesquisa científica e desconstruir mitos relativos às plantas do ambiente escolar da EEEP Aderson Borges de Carvalho.
                         </p>
                     </div>
         
@@ -312,13 +309,13 @@
                     <div>
                         <div class="relative">
                             <i class="ph-bold ph-envelope absolute left-4 top-1/2 transform -translate-y-1/2 text-green-500 text-lg"></i>
-                            <input type="email" id="input-login" required placeholder="E-mail do Professor" class="w-full pl-12 p-3 sm:p-4 rounded-xl border-2 border-green-100 bg-green-50/50 focus:outline-none focus:border-green-400 font-medium text-base">
+                            <input type="email" id="input-login" required placeholder="E-mail do Professor" class="w-full py-3 pr-3 pl-12 sm:py-4 sm:pr-4 sm:pl-12 rounded-xl border-2 border-green-100 bg-green-50/50 focus:outline-none focus:border-green-400 font-medium text-base">
                         </div>
                     </div>
                     <div>
                         <div class="relative">
                             <i class="ph-bold ph-password absolute left-4 top-1/2 transform -translate-y-1/2 text-green-500 text-lg"></i>
-                            <input type="password" id="input-password" required placeholder="Senha" class="w-full pl-12 p-3 sm:p-4 rounded-xl border-2 border-green-100 bg-green-50/50 focus:outline-none focus:border-green-400 font-medium text-base">
+                            <input type="password" id="input-password" required placeholder="Senha" class="w-full py-3 pr-3 pl-12 sm:py-4 sm:pr-4 sm:pl-12 rounded-xl border-2 border-green-100 bg-green-50/50 focus:outline-none focus:border-green-400 font-medium text-base">
                         </div>
                     </div>
                     
@@ -341,13 +338,35 @@
                 </div>
                 
                 <p class="text-xs sm:text-sm text-blue-700 mb-6 font-medium bg-blue-50 p-4 rounded-xl border border-blue-100 leading-relaxed text-justify">
-                    <i class="ph-bold ph-info float-left mr-2 text-blue-500 text-lg"></i> Preencha o link da imagem e crie 5 questões. Os dados serão salvos no aparelho e no QR Code.
+                    <i class="ph-bold ph-info float-left mr-2 text-blue-500 text-lg"></i> Preencha a identificação da planta, o link da imagem e, se desejar, crie até 5 questões (opcional). Os dados serão salvos no aparelho e no QR Code.
                 </p>
 
                 <form id="plant-form" class="space-y-6" onsubmit="generateQRCode(event)">
                     
+                    <!-- NOVO BLOCO 1: Nomes (Obrigatório) -->
                     <div class="space-y-4 bg-green-50/50 p-4 sm:p-6 rounded-2xl border border-green-100">
-                        <h3 class="font-bold text-green-800 text-base sm:text-lg border-b border-green-200 pb-2 mb-4">1. Link da Imagem</h3>
+                        <h3 class="font-bold text-green-800 text-base sm:text-lg border-b border-green-200 pb-2 mb-4 flex items-center justify-between">
+                            <span>1. Identificação da Planta</span>
+                            <span class="text-sm text-red-600 font-medium bg-red-100 px-2 py-1 rounded-lg">Obrigatório</span>
+                        </h3>
+                        <div class="flex flex-col sm:flex-row gap-4">
+                            <div class="w-full sm:w-1/2">
+                                <label class="block text-sm font-bold text-green-700 mb-2 ml-1">Nome Popular</label>
+                                <input type="text" id="input-name" required placeholder="Ex: Espada de São Jorge" class="w-full p-3 sm:p-4 rounded-xl border-2 border-green-200 bg-white focus:outline-none focus:border-green-500 font-bold text-sm sm:text-base">
+                            </div>
+                            <div class="w-full sm:w-1/2">
+                                <label class="block text-sm font-bold text-green-700 mb-2 ml-1">Nome Científico</label>
+                                <input type="text" id="input-scientific" required placeholder="Ex: Sansevieria trifasciata" class="w-full p-3 sm:p-4 rounded-xl border-2 border-green-200 bg-white focus:outline-none focus:border-green-500 font-bold italic text-sm sm:text-base">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- BLOCO 2: Imagem (Obrigatório) -->
+                    <div class="space-y-4 bg-green-50/50 p-4 sm:p-6 rounded-2xl border border-green-100">
+                        <h3 class="font-bold text-green-800 text-base sm:text-lg border-b border-green-200 pb-2 mb-4 flex items-center justify-between">
+                            <span>2. Link da Imagem</span>
+                            <span class="text-sm text-red-600 font-medium bg-red-100 px-2 py-1 rounded-lg">Obrigatório</span>
+                        </h3>
                         <div>
                             <label class="block text-sm font-bold text-green-700 mb-2 ml-1">Cole o Link (URL) Público da Imagem</label>
                             <input type="url" id="input-url" required placeholder="Ex: https://meusite.com/foto-planta.jpg" class="w-full p-3 sm:p-4 rounded-xl border-2 border-green-200 bg-white focus:outline-none focus:border-green-500 font-medium text-sm sm:text-base">
@@ -355,8 +374,12 @@
                         </div>
                     </div>
 
+                    <!-- BLOCO 3: Questões (Opcional) -->
                     <div class="space-y-6">
-                        <h3 class="font-bold text-green-800 text-base sm:text-lg border-b border-green-200 pb-2">2. Cadastro de Questões</h3>
+                        <h3 class="font-bold text-green-800 text-base sm:text-lg border-b border-green-200 pb-2 flex items-center justify-between">
+                            <span>3. Cadastro de Questões</span>
+                            <span class="text-sm text-emerald-600 font-medium bg-emerald-100 px-2 py-1 rounded-lg">Opcional</span>
+                        </h3>
                         <div id="questions-builder-container" class="space-y-6"></div>
                     </div>
                     
@@ -546,33 +569,25 @@
                         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-3">
                             <h4 class="font-extrabold text-emerald-700 flex items-center text-base sm:text-lg">
                                 <span class="bg-emerald-100 text-emerald-800 w-8 h-8 rounded-full flex items-center justify-center mr-2 text-sm sm:text-base">${i}</span> 
-                                Questão
+                                Questão <span class="text-xs font-normal text-emerald-600 ml-2">(Opcional)</span>
                             </h4>
-                            
-                            <!-- Os Nomes foram movidos para a primeira questão para economizar espaço -->
-                            ${i === 1 ? `
-                            <div class="flex gap-2 w-full sm:w-auto">
-                                <input type="text" id="input-name" required placeholder="Nome Popular" class="w-1/2 p-2 rounded-lg border-2 border-green-200 bg-green-50 text-xs sm:text-sm font-bold placeholder-green-600/50">
-                                <input type="text" id="input-scientific" required placeholder="Nome Científico" class="w-1/2 p-2 rounded-lg border-2 border-green-200 bg-green-50 text-xs sm:text-sm font-bold italic placeholder-green-600/50">
-                            </div>
-                            ` : ''}
                         </div>
 
                         <div class="space-y-3">
-                            <textarea id="q${i}-text" required rows="2" placeholder="Digite a pergunta..." class="w-full p-3 rounded-xl border border-gray-300 bg-gray-50 focus:border-emerald-500 font-medium text-sm sm:text-base resize-none"></textarea>
+                            <textarea id="q${i}-text" rows="2" placeholder="Digite a pergunta..." class="w-full p-3 rounded-xl border border-gray-300 bg-gray-50 focus:border-emerald-500 font-medium text-sm sm:text-base resize-none"></textarea>
                             
                             <!-- Grid responsivo: 1 coluna no celular, 2 no tablet/pc -->
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 pl-1 sm:pl-3">
-                                <div class="flex items-center"><span class="font-bold text-gray-400 w-6">A)</span> <input type="text" id="q${i}-o0" required class="w-full p-2 rounded-lg border border-gray-200 text-sm sm:text-base"></div>
-                                <div class="flex items-center"><span class="font-bold text-gray-400 w-6">B)</span> <input type="text" id="q${i}-o1" required class="w-full p-2 rounded-lg border border-gray-200 text-sm sm:text-base"></div>
-                                <div class="flex items-center"><span class="font-bold text-gray-400 w-6">C)</span> <input type="text" id="q${i}-o2" required class="w-full p-2 rounded-lg border border-gray-200 text-sm sm:text-base"></div>
-                                <div class="flex items-center"><span class="font-bold text-gray-400 w-6">D)</span> <input type="text" id="q${i}-o3" required class="w-full p-2 rounded-lg border border-gray-200 text-sm sm:text-base"></div>
-                                <div class="flex items-center sm:col-span-2"><span class="font-bold text-gray-400 w-6">E)</span> <input type="text" id="q${i}-o4" required class="w-full p-2 rounded-lg border border-gray-200 text-sm sm:text-base"></div>
+                                <div class="flex items-center"><span class="font-bold text-gray-400 w-6">A)</span> <input type="text" id="q${i}-o0" class="w-full p-2 rounded-lg border border-gray-200 text-sm sm:text-base"></div>
+                                <div class="flex items-center"><span class="font-bold text-gray-400 w-6">B)</span> <input type="text" id="q${i}-o1" class="w-full p-2 rounded-lg border border-gray-200 text-sm sm:text-base"></div>
+                                <div class="flex items-center"><span class="font-bold text-gray-400 w-6">C)</span> <input type="text" id="q${i}-o2" class="w-full p-2 rounded-lg border border-gray-200 text-sm sm:text-base"></div>
+                                <div class="flex items-center"><span class="font-bold text-gray-400 w-6">D)</span> <input type="text" id="q${i}-o3" class="w-full p-2 rounded-lg border border-gray-200 text-sm sm:text-base"></div>
+                                <div class="flex items-center sm:col-span-2"><span class="font-bold text-gray-400 w-6">E)</span> <input type="text" id="q${i}-o4" class="w-full p-2 rounded-lg border border-gray-200 text-sm sm:text-base"></div>
                             </div>
 
                             <div class="mt-4 bg-emerald-50 p-3 sm:p-4 rounded-xl border border-emerald-100 flex flex-col sm:flex-row sm:items-center gap-2">
                                 <label class="text-sm font-bold text-emerald-800">Alternativa Correta:</label>
-                                <select id="q${i}-ans" required class="w-full sm:flex-grow p-2 sm:p-3 rounded-lg border border-emerald-300 font-bold text-emerald-700 bg-white cursor-pointer text-sm sm:text-base">
+                                <select id="q${i}-ans" class="w-full sm:flex-grow p-2 sm:p-3 rounded-lg border border-emerald-300 font-bold text-emerald-700 bg-white cursor-pointer text-sm sm:text-base">
                                     <option value="0">Letra A</option>
                                     <option value="1">Letra B</option>
                                     <option value="2">Letra C</option>
@@ -699,17 +714,22 @@
 
             let questionsArray = [];
             for(let i = 1; i <= 5; i++) {
-                questionsArray.push({
-                    q: document.getElementById(`q${i}-text`).value,
-                    opts: [
-                        document.getElementById(`q${i}-o0`).value,
-                        document.getElementById(`q${i}-o1`).value,
-                        document.getElementById(`q${i}-o2`).value,
-                        document.getElementById(`q${i}-o3`).value,
-                        document.getElementById(`q${i}-o4`).value
-                    ],
-                    ans: parseInt(document.getElementById(`q${i}-ans`).value)
-                });
+                const qText = document.getElementById(`q${i}-text`).value.trim();
+                
+                // Só adiciona a questão ao array se o professor tiver digitado alguma coisa
+                if (qText) {
+                    questionsArray.push({
+                        q: qText,
+                        opts: [
+                            document.getElementById(`q${i}-o0`).value || "Alternativa A",
+                            document.getElementById(`q${i}-o1`).value || "Alternativa B",
+                            document.getElementById(`q${i}-o2`).value || "Alternativa C",
+                            document.getElementById(`q${i}-o3`).value || "Alternativa D",
+                            document.getElementById(`q${i}-o4`).value || "Alternativa E"
+                        ],
+                        ans: parseInt(document.getElementById(`q${i}-ans`).value)
+                    });
+                }
             }
 
             const plantData = {
@@ -769,10 +789,12 @@
             document.getElementById('btn-submit-quiz').classList.remove('hidden');
 
             const quizContainer = document.getElementById('quiz-questions-container');
+            const studentFormSection = document.getElementById('student-form-section');
             quizContainer.innerHTML = '';
             currentQuizData = plantData.quiz || [];
 
             if (currentQuizData.length > 0) {
+                studentFormSection.classList.remove('hidden');
                 currentQuizData.forEach((item, index) => {
                     let optionsHtml = '';
                     const letters = ['A', 'B', 'C', 'D', 'E'];
@@ -800,7 +822,8 @@
                     `;
                 });
             } else {
-                quizContainer.innerHTML = '<p class="text-center text-gray-500 font-bold p-4 text-sm sm:text-base">Nenhuma questão cadastrada para esta planta.</p>';
+                studentFormSection.classList.add('hidden');
+                quizContainer.innerHTML = '<p class="text-center text-gray-500 font-bold p-4 text-sm sm:text-base">Esta placa é apenas informativa. Explore mais placas para encontrar desafios e quizzes!</p>';
                 document.getElementById('btn-submit-quiz').classList.add('hidden');
             }
 
@@ -949,24 +972,6 @@
         }
         window.updateRanking = updateRanking;
 
-        function handleManualSelection() {
-            const selectEl = document.getElementById('select-scientific');
-            const scientificName = selectEl.value;
-            if(scientificName) {
-                const plantData = getPlantFromLocal(scientificName);
-                if(plantData) loadStudentView(plantData);
-            }
-        }
-        function handleManualSelection() {
-            const selectEl = document.getElementById('select-scientific');
-            const scientificName = selectEl.value;
-            if(scientificName) {
-                const plantData = getPlantFromLocal(scientificName);
-                if(plantData) loadStudentView(plantData);
-            }
-        }
-
-        // Nova versão garantindo que a tela seja exibida corretamente
         function handleManualSelection() {
             const selectEl = document.getElementById('select-scientific');
             const scientificName = selectEl.value;
