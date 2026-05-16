@@ -184,7 +184,7 @@
                     
                     <div class="text-green-800 text-sm sm:text-base text-center space-y-3 mb-5 font-medium leading-relaxed">
                         <p>
-                            Nosso objetivo é <strong>combater a cegueira botânica</strong> por meio da pesquisa científica e desconstruir mitos relativos às plantas do ambiente escolar da EEEP Aderson Borges de Carvalho.
+                            Nosso objetivo é <strong>combater a cegueira botânica</strong> por meio da pesquisa científica e desconstruir mitos relativos às plantas do ambiente escolar da EEEP Aderson Borges de Carvalho. Está pronto para conhecer o universo das nossas plantas?
                         </p>
                     </div>
         
@@ -1174,7 +1174,9 @@
                     qrbox: { width: 250, height: 250 },
                     aspectRatio: 1.0,
                     // Otimização para forçar uso da câmera traseira no celular
-                    facingMode: "environment"
+                    facingMode: "environment",
+                    // Remove a aba de "Escanear Arquivo de Imagem", forçando apenas a Câmera
+                    supportedScanTypes: [ Html5QrcodeScanType.SCAN_TYPE_CAMERA ]
                 };
                 
                 const html5QrcodeScanner = new Html5QrcodeScanner("qr-reader", config, false);
