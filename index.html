@@ -341,6 +341,21 @@
                     <i class="ph-bold ph-info float-left mr-2 text-blue-500 text-lg"></i> Preencha a identificação da planta, o link da imagem e, se desejar, crie até 5 questões (opcional). Os dados serão salvos no aparelho e no QR Code.
                 </p>
 
+                <!-- NOVO BLOCO 0: Editar Planta Existente -->
+                <div class="mb-6 bg-blue-50/50 p-4 sm:p-6 rounded-2xl border border-blue-200">
+                    <h3 class="font-bold text-blue-800 text-base sm:text-lg mb-3 flex items-center">
+                        <i class="ph-bold ph-pencil-simple mr-2 text-blue-600"></i> Editar Planta Cadastrada
+                    </h3>
+                    <div class="flex flex-col sm:flex-row gap-3">
+                        <select id="select-edit-plant" class="w-full p-3 rounded-xl border-2 border-blue-200 bg-white focus:outline-none focus:border-blue-500 font-bold text-blue-800 cursor-pointer text-sm sm:text-base" onchange="loadPlantForEditing()">
+                            <option value="">-- Criar Nova Planta (Formulário Limpo) --</option>
+                        </select>
+                        <button type="button" onclick="clearForm()" class="w-full sm:w-auto bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-3 px-4 rounded-xl transition duration-300 flex justify-center items-center text-sm sm:text-base whitespace-nowrap">
+                            <i class="ph-bold ph-eraser mr-2 text-lg"></i> Limpar
+                        </button>
+                    </div>
+                </div>
+
                 <form id="plant-form" class="space-y-6" onsubmit="generateQRCode(event)">
                     
                     <!-- NOVO BLOCO 1: Nomes (Obrigatório) -->
@@ -692,17 +707,96 @@
 
         function updateDropdown() {
             const selectEl = document.getElementById('select-scientific');
-            let localPlants = JSON.parse(localStorage.getItem('botanica_plants') || '{}');
-            selectEl.innerHTML = '<option value="">-- Selecione uma planta registrada --</option>';
+            const selectEditEl = document.getElementById('select-edit-plant');
             
-            Object.values(localPlants).forEach(plant => {
-                const opt = document.createElement('option');
-                opt.value = plant.cientifico;
-                opt.textContent = `${plant.cientifico} (${plant.nome})`;
-                selectEl.appendChild(opt);
-            });
+            let localPlants = JSON.parse(localStorage.getItem('botanica_plants') || '{}');
+            
+            const optionsHtml = Object.values(localPlants).map(plant => 
+                `<option value="${plant.cientifico}">${plant.cientifico} (${plant.nome})</option>`
+            ).join('');
+
+            if(selectEl) selectEl.innerHTML = '<option value="">-- Selecione uma planta registrada --</option>' + optionsHtml;
+            if(selectEditEl) selectEditEl.innerHTML = '<option value="">-- Criar Nova Planta (Formulário Limpo) --</option>' + optionsHtml;
         }
         window.updateDropdown = updateDropdown;
+
+        function clearForm() {
+            document.getElementById('plant-form').reset();
+            document.getElementById('select-edit-plant').value = "";
+            document.getElementById('qrcode-display').innerHTML = "";
+            document.getElementById('generated-qr-section').classList.add('hidden');
+        }
+        window.clearForm = clearForm;
+
+        function loadPlantForEditing() {
+            const scientificName = document.getElementById('select-edit-plant').value;
+            if (!scientificName) {
+                clearForm();
+                return;
+            }
+
+            const plantData = getPlantFromLocal(scientificName);
+            if (!plantData) return;
+
+            // Preenche informações básicas
+            document.getElementById('input-name').value = plantData.nome || "";
+            document.getElementById('input-scientific').value = plantData.cientifico || "";
+            document.getElementById('input-url').value = plantData.url || "";
+
+            // Limpa todas as questões primeiro
+            for(let i = 1; i <= 5; i++) {
+                document.getElementById(`q${i}-text`).value = "";
+                document.getElementById(`q${i}-o0`).value = "";
+                document.getElementById(`q${i}-o1`).value = "";
+                document.getElementById(`q${i}-o2`).value = "";
+                document.getElementById(`q${i}-o3`).value = "";
+                document.getElementById(`q${i}-o4`).value = "";
+                document.getElementById(`q${i}-ans`).value = "0";
+            }
+
+            // Preenche com as questões existentes (se houver)
+            if (plantData.quiz && plantData.quiz.length > 0) {
+                plantData.quiz.forEach((qData, index) => {
+                    const i = index + 1;
+                    if (i <= 5) {
+                        document.getElementById(`q${i}-text`).value = qData.q || "";
+                        if (qData.opts) {
+                            document.getElementById(`q${i}-o0`).value = qData.opts[0] || "";
+                            document.getElementById(`q${i}-o1`).value = qData.opts[1] || "";
+                            document.getElementById(`q${i}-o2`).value = qData.opts[2] || "";
+                            document.getElementById(`q${i}-o3`).value = qData.opts[3] || "";
+                            document.getElementById(`q${i}-o4`).value = qData.opts[4] || "";
+                        }
+                        document.getElementById(`q${i}-ans`).value = qData.ans !== undefined ? qData.ans.toString() : "0";
+                    }
+                });
+            }
+
+            // --- NOVA PARTE: Exibir o QR Code da planta automaticamente ---
+            // O QR Code agora aponta diretamente para o link da imagem, com o ID escondido no final (#id=)
+            const finalUrl = `${plantData.url}#id=${encodeURIComponent(plantData.cientifico)}`;
+            
+            const qrCodeDisplay = document.getElementById('qrcode-display');
+            const qrGeneratedSection = document.getElementById('generated-qr-section');
+            qrCodeDisplay.innerHTML = "";
+            
+            try {
+                const qrSize = window.innerWidth < 400 ? 200 : 250;
+                new QRCode(qrCodeDisplay, {
+                    text: finalUrl,
+                    width: qrSize,
+                    height: qrSize,
+                    colorDark : "#166534",
+                    colorLight : "#ffffff",
+                    correctLevel : QRCode.CorrectLevel.L
+                });
+                qrGeneratedSection.classList.remove('hidden');
+                document.getElementById('qr-error').classList.add('hidden');
+            } catch (err) {
+                console.error("Erro ao gerar QR Code automático:", err);
+            }
+        }
+        window.loadPlantForEditing = loadPlantForEditing;
 
         function generateQRCode(event) {
             event.preventDefault();
@@ -744,9 +838,8 @@
             if(window.savePlantToCloud) window.savePlantToCloud(plantData);
             updateDropdown();
 
-            // Link otimizado que o QR Code guarda: Direciona para o ID da planta
-            const baseUrl = window.location.href.split('?')[0];
-            const finalUrl = `${baseUrl}?id=${encodeURIComponent(scientificText)}`;
+            // Link otimizado que o QR Code guarda: Direciona para a IMAGEM nativamente, mas o App lê o #id
+            const finalUrl = `${urlText}#id=${encodeURIComponent(scientificText)}`;
 
             qrCodeDisplay.innerHTML = "";
 
@@ -1047,6 +1140,30 @@
             observer.observe(document.body, { childList: true, subtree: true, characterData: true });
         }
 
+        // Função CRUCIAL para interceptar a leitura do QR Code pela câmera do App
+        function handleCodeScan(decodedText) {
+            let scientificName = "";
+            
+            // Extrai o ID escondido no link da imagem (#id=...) ou no link antigo (?id=...)
+            if (decodedText.includes('#id=')) {
+                scientificName = decodeURIComponent(decodedText.split('#id=')[1]);
+            } else if (decodedText.includes('?id=')) {
+                scientificName = decodeURIComponent(decodedText.split('?id=')[1].split('&')[0]);
+            }
+
+            if (scientificName) {
+                const plantData = getPlantFromLocal(scientificName);
+                if (plantData) {
+                    loadStudentView(plantData);
+                } else {
+                    window.pendingPlantId = scientificName;
+                    // Tenta forçar atualização da nuvem se a planta não estiver no cachê local
+                    if(typeof window.initCloudDB === 'function') window.initCloudDB();
+                }
+            }
+        }
+        window.handleCodeScan = handleCodeScan;
+
         function startScanner() {
             updateDropdown();
             translateScannerUI(); // Chama o tradutor imediatamente ao preparar a câmera
@@ -1076,7 +1193,12 @@
             
             // LÓGICA MÁGICA: Se o aluno leu o código com a CÂMERA NATIVA do celular fora do App
             const urlParams = new URLSearchParams(window.location.search);
-            const externalId = urlParams.get('id');
+            let externalId = urlParams.get('id');
+            
+            // Verifica também se o ID veio pelo formato novo de imagem caso abra o web app
+            if (!externalId && window.location.hash.includes('id=')) {
+                externalId = decodeURIComponent(window.location.hash.split('id=')[1]);
+            }
             
             if (externalId) {
                 const plantData = getPlantFromLocal(externalId);
