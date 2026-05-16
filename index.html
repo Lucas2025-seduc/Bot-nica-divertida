@@ -1,0 +1,1089 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    
+    <!-- Configurações PWA e Mobile App -->
+    <meta name="theme-color" content="#16a34a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Botânica">
+    <!-- Ícone genérico para quando adicionado à tela inicial -->
+    <link rel="apple-touch-icon" href="https://placehold.co/180x180/16a34a/ffffff?text=BD">
+
+    <title>Botânica Divertida</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- Biblioteca para Leitura de QR Code -->
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <!-- Biblioteca para Geração de QR Code -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
+        
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-image: radial-gradient(circle at top right, #dcfce7, #f0fdf4, #ecfdf5);
+            background-attachment: fixed;
+            color: #166534;
+            margin: 0;
+            padding: 0;
+            /* Suporte para Safe Area no iOS (Notch) */
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: env(safe-area-inset-bottom);
+            padding-left: env(safe-area-inset-left);
+            padding-right: env(safe-area-inset-right);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Estilos do Scanner embutido ajustado para todas as telas */
+        #qr-reader {
+            width: 100%;
+            max-width: 100%;
+            border-radius: 1.5rem;
+            overflow: hidden;
+            border: 4px dashed #86efac !important;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            background: white;
+        }
+        
+        #qr-reader video {
+            border-radius: 1.2rem;
+            object-fit: cover;
+            width: 100% !important;
+        }
+
+        #qr-reader button {
+            background-color: #22c55e;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 9999px;
+            border: none;
+            font-weight: 700;
+            font-family: 'Nunito', sans-serif;
+            cursor: pointer;
+            margin-top: 15px;
+            margin-bottom: 10px;
+            transition: all 0.2s;
+            box-shadow: 0 4px 6px -1px rgba(34, 197, 94, 0.4);
+            /* Evitar botões espremidos no celular */
+            max-width: 90%;
+            white-space: normal;
+        }
+        
+        #qr-reader button:hover {
+            background-color: #16a34a;
+            transform: translateY(-2px);
+        }
+
+        /* Estilos adicionais para os elementos nativos da biblioteca de QR Code */
+        #qr-reader a {
+            color: #16a34a !important;
+            font-weight: 800 !important;
+            text-decoration: underline !important;
+            margin-top: 10px;
+            display: inline-block;
+            cursor: pointer;
+        }
+        #qr-reader select {
+            padding: 8px;
+            border-radius: 8px;
+            border: 2px solid #bbf7d0;
+            background-color: #f0fdf4;
+            color: #166534;
+            font-weight: bold;
+            margin-bottom: 10px;
+            max-width: 100%;
+        }
+
+        /* Estilo do QR Code gerado */
+        #qrcode-display img {
+            margin: 0 auto;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            background: white;
+            border: 2px solid #bbf7d0;
+            max-width: 100%;
+            height: auto;
+        }
+
+        /* Abas ativas */
+        .tab-active {
+            background-color: #16a34a;
+            color: white;
+            box-shadow: 0 4px 6px -1px rgba(22, 163, 74, 0.4);
+        }
+        .tab-inactive {
+            background-color: #e2e8f0;
+            color: #475569;
+        }
+
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="antialiased selection:bg-green-300 selection:text-green-900">
+
+    <header class="bg-gradient-to-r from-green-600 to-emerald-500 text-white p-4 sm:p-6 shadow-lg rounded-b-3xl flex flex-col justify-center items-center relative overflow-hidden">
+        <i class="ph-fill ph-leaf text-white/20 text-5xl sm:text-6xl absolute -top-2 -left-2 transform -rotate-45"></i>
+        <i class="ph-fill ph-clover text-white/20 text-5xl sm:text-6xl absolute -bottom-4 -right-4 transform rotate-12"></i>
+        
+        <!-- Espaço da Logo -->
+        <div class="z-10 mb-3 sm:mb-4 bg-white p-2 rounded-2xl shadow-md flex justify-center items-center w-full max-w-[150px] sm:max-w-[180px] h-16 sm:h-20">
+            <img id="school-logo" src="https://uiktphiubjmqvywbbgnf.supabase.co/storage/v1/object/public/Logo/logo%20da%20escola.png" alt="Logo da Escola" class="max-w-full max-h-full object-contain">
+        </div>
+
+        <div class="flex items-center z-10 text-center">
+            <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight drop-shadow-md flex items-center flex-wrap justify-center">
+                <i class="ph-fill ph-potted-plant mr-2 text-green-200"></i> Botânica Divertida
+            </h1>
+        </div>
+    </header>
+
+    <nav class="flex flex-wrap justify-center gap-2 sm:gap-4 mt-6 px-4 w-full max-w-2xl mx-auto">
+        <button id="btn-tab-scan" onclick="switchTab('scan')" class="tab-active flex-1 min-w-[140px] px-3 sm:px-6 py-3 rounded-full font-bold flex items-center justify-center transition-all duration-300 text-sm sm:text-base">
+            <i class="ph-bold ph-scan text-lg sm:text-xl mr-1 sm:mr-2"></i> Explorar
+        </button>
+        <button id="btn-tab-create" onclick="switchTab('create')" class="tab-inactive flex-1 min-w-[140px] px-3 sm:px-6 py-3 rounded-full font-bold flex items-center justify-center transition-all duration-300 text-sm sm:text-base text-center leading-tight">
+            <i class="ph-bold ph-plus-circle text-lg sm:text-xl mr-1 sm:mr-2"></i> Criar Placas e Questões
+        </button>
+    </nav>
+
+    <!-- O Container Principal 'max-w-2xl' garante que no desktop ele fique como um App Centralizado, e no celular ocupe a tela toda -->
+    <main class="flex-grow flex flex-col items-center justify-start p-3 sm:p-4 w-full max-w-2xl mx-auto relative mt-2 mb-8">
+        
+        <!-- ========================================== -->
+        <!-- ABA 1: SCANNER E QUIZ DO ALUNO             -->
+        <!-- ========================================== -->
+        <div id="view-scan" class="w-full flex flex-col items-center fade-in">
+            
+            <div id="intro-section" class="w-full">
+                <div class="mb-6 bg-white/80 p-4 sm:p-5 rounded-3xl border-2 border-green-200 shadow-md flex flex-col items-center">
+                    <h2 class="text-xl sm:text-2xl font-extrabold text-green-800 mb-3 text-center">Boas-vindas ao App!</h2>
+                    
+                    <div class="text-green-800 text-sm sm:text-base text-center space-y-3 mb-5 font-medium leading-relaxed">
+                        <p>
+                            Nosso objetivo é <strong>combater a cegueira botânica</strong> incentivando a pesquisa sobre as plantas do ambiente escolar.
+                        </p>
+                        <p>
+                            Aqui, os dados ganham vida de forma lúdica, <strong>como se a própria planta estivesse se apresentando a você!</strong>
+                        </p>
+                    </div>
+        
+                    <div class="bg-emerald-50 text-emerald-700 p-3 sm:p-4 rounded-xl border border-emerald-200 w-full text-center font-bold flex flex-col sm:flex-row items-center justify-center text-sm shadow-sm gap-2">
+                        <i class="ph-bold ph-camera text-2xl sm:text-xl flex-shrink-0"></i>
+                        <span>Aponte para um QRCODE presente em alguma planta para conhecê-la!!!!</span>
+                    </div>
+                </div>
+
+                <div id="scanner-container" class="w-full flex flex-col items-center bg-white p-2 sm:p-3 rounded-3xl shadow-xl">
+                    <div id="qr-reader"></div>
+                    <p id="scanner-status" class="mt-4 text-sm text-red-500 hidden font-bold text-center px-4 pb-2"></p>
+                </div>
+
+                <!-- Barra de Seleção Manual Otimizada para Touch -->
+                <div class="w-full flex flex-col items-center bg-white p-4 sm:p-5 rounded-3xl shadow-xl mt-6 border-2 border-green-100">
+                    <label class="block text-sm font-bold text-green-800 mb-2 w-full text-left sm:ml-2">
+                        <i class="ph-bold ph-magnifying-glass mr-1 text-green-600"></i> Quiz rápido
+                    </label>
+                    <div class="relative w-full">
+                        <i class="ph-bold ph-caret-down absolute right-4 top-1/2 transform -translate-y-1/2 text-green-500 pointer-events-none text-xl"></i>
+                        <select id="select-scientific" class="w-full p-4 rounded-xl border-2 border-green-200 bg-green-50/50 focus:outline-none focus:border-green-500 font-bold text-green-800 appearance-none shadow-inner text-sm sm:text-base cursor-pointer" onchange="handleManualSelection()">
+                            <option value="">-- Selecione uma planta registrada --</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- QUADRO DE HONRA / RANKING -->
+                <div class="w-full flex flex-col items-center bg-white p-4 sm:p-6 rounded-3xl shadow-xl mt-6 border-2 border-yellow-200">
+                    <h2 class="text-xl sm:text-2xl font-extrabold text-yellow-600 mb-4 flex items-center justify-center w-full border-b-2 border-yellow-100 pb-3">
+                        <i class="ph-fill ph-trophy mr-2 text-3xl"></i> Quadro de Honra
+                    </h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+                        <!-- Ranking Alunos -->
+                        <div class="bg-yellow-50/50 p-3 rounded-2xl border border-yellow-100">
+                            <h3 class="font-bold text-yellow-700 mb-2 flex items-center"><i class="ph-fill ph-medal mr-1"></i> Top Alunos</h3>
+                            <ul id="ranking-students" class="space-y-2 text-sm text-gray-700">
+                                <li class="text-center text-gray-400 italic">Carregando dados...</li>
+                            </ul>
+                        </div>
+                        
+                        <!-- Ranking Turmas -->
+                        <div class="bg-emerald-50/50 p-3 rounded-2xl border border-emerald-100">
+                            <h3 class="font-bold text-emerald-700 mb-2 flex items-center"><i class="ph-fill ph-users-three mr-1"></i> Top Turmas</h3>
+                            <ul id="ranking-classes" class="space-y-2 text-sm text-gray-700">
+                                <li class="text-center text-gray-400 italic">Carregando dados...</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- RESULTADOS E FORMULÁRIO DO ALUNO -->
+            <div id="result-section" class="w-full hidden fade-in bg-white p-4 sm:p-6 rounded-3xl shadow-2xl border-2 border-green-200 relative mt-4">
+                <button onclick="resetScanner()" class="absolute top-2 sm:top-4 right-2 sm:right-4 bg-gray-100 p-2 rounded-full text-gray-500 hover:text-red-500 hover:bg-red-50 transition-colors z-10" title="Fechar">
+                    <i class="ph-bold ph-x text-xl"></i>
+                </button>
+                
+                <div class="flex flex-col items-center text-center mt-6 sm:mt-2">
+                    <h2 id="plant-title" class="text-2xl sm:text-3xl font-extrabold text-green-800 mb-1 break-words w-full">Nome Popular</h2>
+                    <h3 id="plant-scientific" class="text-base sm:text-lg text-emerald-600 italic font-semibold mb-4 break-words w-full">Nome Científico</h3>
+                    
+                    <div id="plant-image-container" class="mb-4 w-full flex flex-col items-center">
+                        <img id="plant-image" src="" alt="Foto da Planta" class="w-32 h-32 sm:w-48 sm:h-48 object-cover rounded-2xl border-4 border-emerald-300 shadow-md">
+                        <a id="btn-open-link" href="#" target="_blank" class="mt-4 text-xs sm:text-sm font-bold text-emerald-700 bg-emerald-100 hover:bg-emerald-200 py-2 sm:py-3 px-4 sm:px-6 rounded-full flex items-center transition-colors text-center">
+                            <i class="ph-bold ph-arrow-square-out mr-2 text-lg"></i> Abrir Imagem Completa
+                        </a>
+                    </div>
+                </div>
+
+                <div id="student-form-section" class="w-full mt-6 pt-6 border-t-2 border-dashed border-green-200">
+                    <h3 class="text-lg sm:text-xl font-extrabold text-green-800 mb-4 flex items-center">
+                        <i class="ph-fill ph-student mr-2 text-2xl text-emerald-500"></i> Registro do Aluno
+                    </h3>
+                    <div class="flex flex-col gap-3 sm:gap-4">
+                        <input type="text" id="student-name" placeholder="Nome Completo" class="w-full p-3 sm:p-4 rounded-xl border-2 border-green-100 bg-green-50/30 focus:outline-none focus:border-green-400 font-semibold text-green-900 text-sm sm:text-base">
+                        <div class="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                            <input type="text" id="student-class" placeholder="Sua Turma" class="w-full sm:w-1/2 p-3 sm:p-4 rounded-xl border-2 border-green-100 bg-green-50/30 focus:outline-none focus:border-green-400 font-semibold text-green-900 text-sm sm:text-base">
+                            <input type="date" id="student-date" class="w-full sm:w-1/2 p-3 sm:p-4 rounded-xl border-2 border-green-100 bg-green-50/30 focus:outline-none focus:border-green-400 font-semibold text-green-900 text-sm sm:text-base">
+                        </div>
+                    </div>
+                </div>
+
+                <div id="quiz-section" class="w-full mt-8">
+                    <div class="bg-gradient-to-r from-emerald-500 to-green-500 text-white p-3 sm:p-4 rounded-t-2xl shadow-md">
+                        <h3 class="text-lg sm:text-xl font-extrabold flex items-center justify-center text-center">
+                            <i class="ph-bold ph-brain mr-2 text-2xl"></i> Quiz de Conhecimentos!
+                        </h3>
+                    </div>
+                    <!-- Área gerada dinamicamente -->
+                    <div id="quiz-questions-container" class="bg-green-50/50 border-2 border-t-0 border-green-200 rounded-b-2xl p-3 sm:p-5 space-y-6">
+                    </div>
+
+                    <div id="quiz-result" class="hidden mt-6 p-4 sm:p-5 rounded-2xl text-center font-extrabold text-lg sm:text-xl shadow-inner break-words"></div>
+
+                    <button id="btn-submit-quiz" onclick="evaluateQuiz()" class="w-full mt-6 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 sm:py-4 px-4 rounded-2xl shadow-lg transition duration-300 flex justify-center items-center text-sm sm:text-base">
+                        <i class="ph-bold ph-check-circle mr-2 text-xl"></i> Finalizar e Ver Nota
+                    </button>
+                </div>
+                
+                <button onclick="resetScanner()" class="w-full mt-4 sm:mt-6 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 sm:py-4 px-4 rounded-2xl transition duration-300 flex justify-center items-center text-sm sm:text-base">
+                    <i class="ph-bold ph-arrow-left mr-2 text-xl"></i> Voltar ao Início
+                </button>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- ABA 2: CRIAR PLACAS E QUESTÕES             -->
+        <!-- ========================================== -->
+        <div id="view-create" class="w-full hidden flex-col items-center fade-in">
+            
+            <div id="auth-section" class="bg-white p-6 sm:p-8 rounded-3xl shadow-xl border border-green-100 w-full mt-4 flex flex-col items-center">
+                <div class="bg-green-100 p-4 rounded-full mb-4 text-green-600 shadow-inner">
+                    <i class="ph-fill ph-lock-key text-4xl sm:text-5xl"></i>
+                </div>
+                <h2 class="text-xl sm:text-2xl font-bold text-green-800 mb-2 text-center">Acesso Restrito</h2>
+                <p class="text-xs sm:text-sm text-gray-500 mb-6 text-center font-medium px-4">Área exclusiva para professores e administradores.</p>
+
+                <form id="login-form" class="w-full max-w-sm space-y-4" onsubmit="handleLogin(event)">
+                    <div>
+                        <div class="relative">
+                            <i class="ph-bold ph-envelope absolute left-4 top-1/2 transform -translate-y-1/2 text-green-500 text-lg"></i>
+                            <input type="email" id="input-login" required placeholder="E-mail do Professor" class="w-full pl-12 p-3 sm:p-4 rounded-xl border-2 border-green-100 bg-green-50/50 focus:outline-none focus:border-green-400 font-medium text-base">
+                        </div>
+                    </div>
+                    <div>
+                        <div class="relative">
+                            <i class="ph-bold ph-password absolute left-4 top-1/2 transform -translate-y-1/2 text-green-500 text-lg"></i>
+                            <input type="password" id="input-password" required placeholder="Senha" class="w-full pl-12 p-3 sm:p-4 rounded-xl border-2 border-green-100 bg-green-50/50 focus:outline-none focus:border-green-400 font-medium text-base">
+                        </div>
+                    </div>
+                    
+                    <button id="btn-login-submit" type="submit" class="w-full mt-6 bg-green-600 hover:bg-green-700 text-white font-bold py-3 sm:py-4 px-4 rounded-xl shadow-md transition duration-300 flex justify-center items-center text-lg">
+                        Entrar <i class="ph-bold ph-sign-in ml-2 text-xl"></i>
+                    </button>
+                    <p id="login-error" class="text-red-500 text-xs sm:text-sm text-center hidden font-bold mt-3">E-mail ou senha incorretos.</p>
+                </form>
+            </div>
+
+            <div id="create-section" class="bg-white p-4 sm:p-8 rounded-3xl shadow-xl border border-green-100 w-full mt-4 hidden">
+                <div class="flex flex-col sm:flex-row items-center justify-between mb-6 border-b-2 border-green-50 pb-4 gap-4">
+                    <div class="flex items-center text-center sm:text-left">
+                        <i class="ph-fill ph-magic-wand text-3xl sm:text-4xl text-emerald-500 mr-2 sm:mr-3"></i>
+                        <h2 class="text-lg sm:text-2xl font-bold text-green-800 leading-tight">Criar Placa e Questões</h2>
+                    </div>
+                    <button onclick="handleLogout()" class="w-full sm:w-auto text-sm text-red-600 font-bold hover:bg-red-100 transition-colors flex items-center justify-center bg-red-50 py-2 px-4 rounded-xl" title="Sair">
+                        <i class="ph-bold ph-sign-out text-xl mr-2"></i> <span>Sair</span>
+                    </button>
+                </div>
+                
+                <p class="text-xs sm:text-sm text-blue-700 mb-6 font-medium bg-blue-50 p-4 rounded-xl border border-blue-100 leading-relaxed text-justify">
+                    <i class="ph-bold ph-info float-left mr-2 text-blue-500 text-lg"></i> Preencha o link da imagem e crie 5 questões. Os dados serão salvos no aparelho e no QR Code.
+                </p>
+
+                <form id="plant-form" class="space-y-6" onsubmit="generateQRCode(event)">
+                    
+                    <div class="space-y-4 bg-green-50/50 p-4 sm:p-6 rounded-2xl border border-green-100">
+                        <h3 class="font-bold text-green-800 text-base sm:text-lg border-b border-green-200 pb-2 mb-4">1. Link da Imagem</h3>
+                        <div>
+                            <label class="block text-sm font-bold text-green-700 mb-2 ml-1">Cole o Link (URL) Público da Imagem</label>
+                            <input type="url" id="input-url" required placeholder="Ex: https://meusite.com/foto-planta.jpg" class="w-full p-3 sm:p-4 rounded-xl border-2 border-green-200 bg-white focus:outline-none focus:border-green-500 font-medium text-sm sm:text-base">
+                            <p class="text-xs text-gray-500 mt-2 ml-1">A imagem será aberta caso o aluno não possua o app.</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-6">
+                        <h3 class="font-bold text-green-800 text-base sm:text-lg border-b border-green-200 pb-2">2. Cadastro de Questões</h3>
+                        <div id="questions-builder-container" class="space-y-6"></div>
+                    </div>
+                    
+                    <button id="btn-generate" type="submit" class="w-full mt-8 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-4 sm:py-5 px-4 rounded-2xl shadow-xl transition duration-300 flex justify-center items-center text-base sm:text-lg">
+                        <i class="ph-bold ph-floppy-disk mr-2 text-2xl"></i> Salvar e Gerar QR Code
+                    </button>
+                    <p id="qr-error" class="text-red-500 text-xs text-center hidden font-bold mt-3">Erro ao gerar. Verifique o link e os dados.</p>
+                </form>
+
+                <div id="generated-qr-section" class="hidden mt-8 pt-6 border-t-2 border-dashed border-green-300 flex flex-col items-center fade-in bg-green-50 p-4 sm:p-8 rounded-3xl">
+                    <h3 class="text-lg sm:text-xl font-bold text-green-800 mb-4 text-center">Planta Salva e QR Code Pronto!</h3>
+                    <div id="qrcode-display" class="bg-white p-4 shadow-md rounded-2xl border-4 border-green-200 max-w-full overflow-hidden flex justify-center"></div>
+                    <p class="text-xs sm:text-sm text-green-700 mt-4 text-center font-bold px-2">Imprima este QR Code! O aluno já pode lê-lo ou pesquisar pelo nome científico.</p>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="bg-green-900 text-green-100 py-6 sm:py-8 px-4 mt-auto border-t-4 border-green-700 pb-safe">
+        <div class="max-w-3xl mx-auto text-center space-y-3">
+            <i class="ph-fill ph-graduation-cap text-3xl sm:text-4xl text-green-400 mb-2 block mx-auto"></i>
+            <p class="text-xs sm:text-sm font-semibold leading-relaxed px-2">
+                Aplicativo desenvolvido na escola EEEP Aderson Borges de Carvalho pelo aluno Luiz Emanuel Miranda Silveira sob orientação do professor mestre Lucas Sebastião Barbosa Silva.
+            </p>
+        </div>
+    </footer>
+
+    <!-- Conexão Módulo Nuvem (Supabase) -->
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/+esm';
+
+        // =========================================================================
+        // ATENÇÃO: COLE SUAS CREDENCIAIS DO SUPABASE ABAIXO
+        // =========================================================================
+        const SUPABASE_URL = 'https://uiktphiubjmqvywbbgnf.supabase.co'; 
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVpa3RwaGl1YmptcXZ5d2JiZ25mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg5NTE0MzksImV4cCI6MjA5NDUyNzQzOX0.ta-UXmc7pICbi9qWNBOQfK-qKHGyZpA6RMTyYeDDijo'; 
+        // =========================================================================
+
+        // Tornar o cliente Supabase global para ser usado na autenticação
+        window.supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        window.initCloudDB = async function() {
+            if (SUPABASE_URL === 'COLE_AQUI_SEU_PROJECT_URL' || !SUPABASE_URL) {
+                console.warn("Supabase não configurado. Usando armazenamento local preventivamente.");
+                if(typeof window.updateRanking === 'function') window.updateRanking(); // Atualiza ranking local
+                return false;
+            }
+
+            try {
+                // Função global para salvar dados no Supabase
+                window.savePlantToCloud = async function(plantData) {
+                    const { data, error } = await window.supabase
+                        .from('plants')
+                        .upsert({ 
+                            id: plantData.cientifico, // Nome científico é a chave principal
+                            nome: plantData.nome,
+                            cientifico: plantData.cientifico,
+                            url: plantData.url,
+                            quiz: plantData.quiz
+                        });
+                        
+                    if (error) {
+                        console.error("Erro ao salvar Planta:", error);
+                        alert("Erro ao salvar: É necessário estar logado como professor!");
+                    }
+                };
+
+                // Função para salvar nota do aluno
+                window.saveResultToCloud = async function(resultData) {
+                    const { data, error } = await window.supabase
+                        .from('quiz_results')
+                        .insert([resultData]);
+                        
+                    if (error) console.error("Erro ao salvar Resultado:", error);
+                    else window.syncCloudResults(); // Atualiza ranking após salvar
+                };
+
+                // Baixa os resultados da nuvem
+                window.syncCloudResults = async function() {
+                    const { data: results, error } = await window.supabase
+                        .from('quiz_results')
+                        .select('*');
+                        
+                    if (!error && results) {
+                        localStorage.setItem('botanica_results', JSON.stringify(results));
+                        if(typeof window.updateRanking === 'function') window.updateRanking();
+                    }
+                };
+
+                // Baixa as plantas da nuvem para o cachê do celular na inicialização
+                async function syncCloudPlants() {
+                    const { data: plants, error } = await window.supabase
+                        .from('plants')
+                        .select('*');
+                        
+                    if (error) return;
+
+                    let cloudPlants = {};
+                    plants.forEach(plant => {
+                        cloudPlants[plant.id] = {
+                            nome: plant.nome,
+                            cientifico: plant.cientifico,
+                            url: plant.url,
+                            quiz: plant.quiz
+                        };
+                    });
+                    
+                    localStorage.setItem('botanica_plants', JSON.stringify(cloudPlants));
+                    if(typeof window.updateDropdown === 'function') window.updateDropdown();
+                    
+                    if(window.pendingPlantId && cloudPlants[window.pendingPlantId]) {
+                        if(typeof window.loadStudentView === 'function') {
+                            window.loadStudentView(cloudPlants[window.pendingPlantId]);
+                        }
+                        window.pendingPlantId = null;
+                    }
+                }
+
+                syncCloudPlants();
+                window.syncCloudResults();
+                
+                // Verifica se já existe uma sessão ativa ao carregar
+                const { data: { session } } = await window.supabase.auth.getSession();
+                if (session && typeof window.showCreateSection === 'function') {
+                    window.showCreateSection();
+                }
+                
+                return true;
+
+            } catch (error) {
+                console.warn("Modo offline ativado.", error);
+                if(typeof window.updateRanking === 'function') window.updateRanking();
+                return false;
+            }
+        };
+
+        window.initCloudDB();
+    </script>
+
+    <script>
+        let isScanningActive = true;
+        const viewScan = document.getElementById('view-scan');
+        const viewCreate = document.getElementById('view-create');
+        const btnTabScan = document.getElementById('btn-tab-scan');
+        const btnTabCreate = document.getElementById('btn-tab-create');
+        
+        // --- GERENCIAMENTO DE ABAS COM PREVENÇÃO DE ERROS ---
+        function switchTab(tab) {
+            if (tab === 'scan') {
+                viewScan.classList.remove('hidden');
+                viewScan.classList.add('flex');
+                viewCreate.classList.add('hidden');
+                viewCreate.classList.remove('flex');
+                
+                btnTabScan.classList.replace('tab-inactive', 'tab-active');
+                btnTabCreate.classList.replace('tab-active', 'tab-inactive');
+                
+                isScanningActive = true;
+                updateDropdown(); 
+            } else {
+                viewCreate.classList.remove('hidden');
+                viewCreate.classList.add('flex');
+                viewScan.classList.add('hidden');
+                viewScan.classList.remove('flex');
+                
+                btnTabCreate.classList.replace('tab-inactive', 'tab-active');
+                btnTabScan.classList.replace('tab-active', 'tab-inactive');
+                
+                isScanningActive = false;
+            }
+        }
+
+        // --- AUTENTICAÇÃO E CONSTRUTOR DO FORMULÁRIO RESPONSIVO ---
+        let isLoggedIn = false;
+        const authSection = document.getElementById('auth-section');
+        const createSection = document.getElementById('create-section');
+        const loginError = document.getElementById('login-error');
+
+        function buildQuestionsForm() {
+            const container = document.getElementById('questions-builder-container');
+            container.innerHTML = '';
+            
+            for(let i = 1; i <= 5; i++) {
+                container.innerHTML += `
+                    <div class="bg-white border-2 border-emerald-100 p-4 sm:p-5 rounded-2xl shadow-sm">
+                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-3">
+                            <h4 class="font-extrabold text-emerald-700 flex items-center text-base sm:text-lg">
+                                <span class="bg-emerald-100 text-emerald-800 w-8 h-8 rounded-full flex items-center justify-center mr-2 text-sm sm:text-base">${i}</span> 
+                                Questão
+                            </h4>
+                            
+                            <!-- Os Nomes foram movidos para a primeira questão para economizar espaço -->
+                            ${i === 1 ? `
+                            <div class="flex gap-2 w-full sm:w-auto">
+                                <input type="text" id="input-name" required placeholder="Nome Popular" class="w-1/2 p-2 rounded-lg border-2 border-green-200 bg-green-50 text-xs sm:text-sm font-bold placeholder-green-600/50">
+                                <input type="text" id="input-scientific" required placeholder="Nome Científico" class="w-1/2 p-2 rounded-lg border-2 border-green-200 bg-green-50 text-xs sm:text-sm font-bold italic placeholder-green-600/50">
+                            </div>
+                            ` : ''}
+                        </div>
+
+                        <div class="space-y-3">
+                            <textarea id="q${i}-text" required rows="2" placeholder="Digite a pergunta..." class="w-full p-3 rounded-xl border border-gray-300 bg-gray-50 focus:border-emerald-500 font-medium text-sm sm:text-base resize-none"></textarea>
+                            
+                            <!-- Grid responsivo: 1 coluna no celular, 2 no tablet/pc -->
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 pl-1 sm:pl-3">
+                                <div class="flex items-center"><span class="font-bold text-gray-400 w-6">A)</span> <input type="text" id="q${i}-o0" required class="w-full p-2 rounded-lg border border-gray-200 text-sm sm:text-base"></div>
+                                <div class="flex items-center"><span class="font-bold text-gray-400 w-6">B)</span> <input type="text" id="q${i}-o1" required class="w-full p-2 rounded-lg border border-gray-200 text-sm sm:text-base"></div>
+                                <div class="flex items-center"><span class="font-bold text-gray-400 w-6">C)</span> <input type="text" id="q${i}-o2" required class="w-full p-2 rounded-lg border border-gray-200 text-sm sm:text-base"></div>
+                                <div class="flex items-center"><span class="font-bold text-gray-400 w-6">D)</span> <input type="text" id="q${i}-o3" required class="w-full p-2 rounded-lg border border-gray-200 text-sm sm:text-base"></div>
+                                <div class="flex items-center sm:col-span-2"><span class="font-bold text-gray-400 w-6">E)</span> <input type="text" id="q${i}-o4" required class="w-full p-2 rounded-lg border border-gray-200 text-sm sm:text-base"></div>
+                            </div>
+
+                            <div class="mt-4 bg-emerald-50 p-3 sm:p-4 rounded-xl border border-emerald-100 flex flex-col sm:flex-row sm:items-center gap-2">
+                                <label class="text-sm font-bold text-emerald-800">Alternativa Correta:</label>
+                                <select id="q${i}-ans" required class="w-full sm:flex-grow p-2 sm:p-3 rounded-lg border border-emerald-300 font-bold text-emerald-700 bg-white cursor-pointer text-sm sm:text-base">
+                                    <option value="0">Letra A</option>
+                                    <option value="1">Letra B</option>
+                                    <option value="2">Letra C</option>
+                                    <option value="3">Letra D</option>
+                                    <option value="4">Letra E</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // Função extraída para exibir a área restrita
+        function showCreateSection() {
+            isLoggedIn = true;
+            loginError.classList.add('hidden');
+            authSection.classList.add('hidden');
+            createSection.classList.remove('hidden');
+            createSection.classList.add('fade-in');
+            buildQuestionsForm(); 
+            document.getElementById('input-login').value = '';
+            document.getElementById('input-password').value = '';
+        }
+        window.showCreateSection = showCreateSection;
+
+        // Login integrado com Supabase Auth
+        async function handleLogin(event) {
+            event.preventDefault();
+            const emailVal = document.getElementById('input-login').value;
+            const passVal = document.getElementById('input-password').value;
+            const btnSubmit = document.getElementById('btn-login-submit');
+            
+            // Estado de carregamento
+            const originalText = btnSubmit.innerHTML;
+            btnSubmit.innerHTML = '<i class="ph-bold ph-spinner animate-spin text-xl"></i>';
+            btnSubmit.disabled = true;
+
+            try {
+                const { data, error } = await window.supabase.auth.signInWithPassword({
+                    email: emailVal,
+                    password: passVal,
+                });
+
+                if (error) {
+                    let errorMessage = "E-mail ou palavra-passe incorretos.";
+                    
+                    // Traduzir e esclarecer os erros comuns do Supabase
+                    if (error.message.includes("Email not confirmed")) {
+                        errorMessage = "E-mail não confirmado! Vá ao painel do Supabase e confirme o utilizador.";
+                    } else if (error.message.includes("Invalid login credentials")) {
+                        errorMessage = "E-mail ou palavra-passe incorretos.";
+                    } else {
+                        errorMessage = "Erro: " + error.message;
+                    }
+                    
+                    loginError.textContent = errorMessage;
+                    loginError.classList.remove('hidden');
+                } else {
+                    showCreateSection();
+                }
+            } catch (err) {
+                loginError.textContent = "Erro ao conectar. Tente novamente.";
+                loginError.classList.remove('hidden');
+            } finally {
+                btnSubmit.innerHTML = originalText;
+                btnSubmit.disabled = false;
+            }
+        }
+
+        async function handleLogout() {
+            if(window.supabase) {
+                await window.supabase.auth.signOut();
+            }
+            
+            isLoggedIn = false;
+            createSection.classList.add('hidden');
+            createSection.classList.remove('fade-in');
+            authSection.classList.remove('hidden');
+            authSection.classList.add('fade-in');
+            
+            document.getElementById('plant-form').reset();
+            document.getElementById('generated-qr-section').classList.add('hidden');
+            document.getElementById('qrcode-display').innerHTML = '';
+        }
+
+        // --- BANCO LOCAL & QR CODE ---
+        const qrCodeDisplay = document.getElementById('qrcode-display');
+        const qrGeneratedSection = document.getElementById('generated-qr-section');
+        const errorMsg = document.getElementById('qr-error');
+
+        function savePlantToLocal(plantData) {
+            let localPlants = JSON.parse(localStorage.getItem('botanica_plants') || '{}');
+            localPlants[plantData.cientifico] = plantData;
+            localStorage.setItem('botanica_plants', JSON.stringify(localPlants));
+        }
+
+        function getPlantFromLocal(scientificName) {
+            let localPlants = JSON.parse(localStorage.getItem('botanica_plants') || '{}');
+            return localPlants[scientificName] || null;
+        }
+
+        function updateDropdown() {
+            const selectEl = document.getElementById('select-scientific');
+            let localPlants = JSON.parse(localStorage.getItem('botanica_plants') || '{}');
+            selectEl.innerHTML = '<option value="">-- Selecione uma planta registrada --</option>';
+            
+            Object.values(localPlants).forEach(plant => {
+                const opt = document.createElement('option');
+                opt.value = plant.cientifico;
+                opt.textContent = `${plant.cientifico} (${plant.nome})`;
+                selectEl.appendChild(opt);
+            });
+        }
+        window.updateDropdown = updateDropdown;
+
+        function generateQRCode(event) {
+            event.preventDefault();
+            errorMsg.classList.add('hidden');
+
+            const nameText = document.getElementById('input-name').value;
+            const scientificText = document.getElementById('input-scientific').value;
+            let urlText = document.getElementById('input-url').value;
+
+            let questionsArray = [];
+            for(let i = 1; i <= 5; i++) {
+                questionsArray.push({
+                    q: document.getElementById(`q${i}-text`).value,
+                    opts: [
+                        document.getElementById(`q${i}-o0`).value,
+                        document.getElementById(`q${i}-o1`).value,
+                        document.getElementById(`q${i}-o2`).value,
+                        document.getElementById(`q${i}-o3`).value,
+                        document.getElementById(`q${i}-o4`).value
+                    ],
+                    ans: parseInt(document.getElementById(`q${i}-ans`).value)
+                });
+            }
+
+            const plantData = {
+                nome: nameText,
+                cientifico: scientificText,
+                url: urlText,
+                quiz: questionsArray
+            };
+
+            // Salva os dados no cachê e dispara envio para o Banco de Dados Nuvem
+            savePlantToLocal(plantData);
+            if(window.savePlantToCloud) window.savePlantToCloud(plantData);
+            updateDropdown();
+
+            // Link otimizado que o QR Code guarda: Direciona para o ID da planta
+            const baseUrl = window.location.href.split('?')[0];
+            const finalUrl = `${baseUrl}?id=${encodeURIComponent(scientificText)}`;
+
+            qrCodeDisplay.innerHTML = "";
+
+            try {
+                const qrSize = window.innerWidth < 400 ? 200 : 250;
+                new QRCode(qrCodeDisplay, {
+                    text: finalUrl,
+                    width: qrSize,
+                    height: qrSize,
+                    colorDark : "#166534",
+                    colorLight : "#ffffff",
+                    correctLevel : QRCode.CorrectLevel.L
+                });
+                qrGeneratedSection.classList.remove('hidden');
+                
+                qrGeneratedSection.scrollIntoView({ behavior: 'smooth', block: 'end' });
+            } catch (err) {
+                errorMsg.classList.remove('hidden');
+                qrGeneratedSection.classList.add('hidden');
+            }
+        }
+
+        // --- SISTEMA DE RESOLUÇÃO DO ALUNO RESPONSIVO ---
+        const resultSection = document.getElementById('result-section');
+        const introSection = document.getElementById('intro-section');
+        const scannerContainer = document.getElementById('scanner-container');
+        let currentQuizData = []; 
+
+        document.getElementById('student-date').valueAsDate = new Date();
+
+        function loadStudentView(plantData) {
+            document.getElementById('plant-title').textContent = plantData.nome || 'Planta Desconhecida';
+            document.getElementById('plant-scientific').textContent = plantData.cientifico || '';
+            document.getElementById('plant-image').src = plantData.url || '';
+            document.getElementById('btn-open-link').href = plantData.url || '#';
+
+            document.getElementById('student-name').value = '';
+            document.getElementById('student-class').value = '';
+            document.getElementById('quiz-result').classList.add('hidden');
+            document.getElementById('btn-submit-quiz').classList.remove('hidden');
+
+            const quizContainer = document.getElementById('quiz-questions-container');
+            quizContainer.innerHTML = '';
+            currentQuizData = plantData.quiz || [];
+
+            if (currentQuizData.length > 0) {
+                currentQuizData.forEach((item, index) => {
+                    let optionsHtml = '';
+                    const letters = ['A', 'B', 'C', 'D', 'E'];
+                    
+                    item.opts.forEach((opt, optIndex) => {
+                        // Classes Break-words e Flex responsivo para textos longos no celular
+                        optionsHtml += `
+                            <label class="flex items-start sm:items-center p-3 sm:p-4 border-2 border-green-100 rounded-xl bg-white cursor-pointer hover:bg-green-50 transition-colors has-[:checked]:bg-emerald-100 has-[:checked]:border-emerald-500 min-h-[50px]">
+                                <input type="radio" name="question_${index}" value="${optIndex}" class="mt-1 sm:mt-0 w-5 h-5 text-emerald-600 border-gray-300 focus:ring-emerald-500 mr-3 flex-shrink-0">
+                                <div class="flex flex-col sm:flex-row sm:items-center w-full break-words">
+                                    <span class="font-bold text-gray-700 mr-2 flex-shrink-0">${letters[optIndex]})</span> 
+                                    <span class="text-gray-800 font-medium text-sm sm:text-base leading-snug sm:leading-normal w-full">${opt}</span>
+                                </div>
+                            </label>
+                        `;
+                    });
+
+                    quizContainer.innerHTML += `
+                        <div class="bg-white p-4 sm:p-5 rounded-2xl shadow-sm border border-green-100" id="q-block-${index}">
+                            <p class="font-extrabold text-green-900 mb-4 text-base sm:text-lg leading-snug"><span class="text-emerald-500">${index + 1}.</span> ${item.q}</p>
+                            <div class="space-y-2 sm:space-y-3">
+                                ${optionsHtml}
+                            </div>
+                        </div>
+                    `;
+                });
+            } else {
+                quizContainer.innerHTML = '<p class="text-center text-gray-500 font-bold p-4 text-sm sm:text-base">Nenhuma questão cadastrada para esta planta.</p>';
+                document.getElementById('btn-submit-quiz').classList.add('hidden');
+            }
+
+            scannerContainer.classList.add('hidden');
+            introSection.classList.add('hidden');
+            resultSection.classList.remove('hidden');
+            
+            resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function evaluateQuiz() {
+            const studentName = document.getElementById('student-name').value.trim();
+            const studentClass = document.getElementById('student-class').value.trim();
+            const studentDate = document.getElementById('student-date').value;
+
+            if(!studentName || !studentClass || !studentDate) {
+                alert("⚠️ Atenção: Por favor, preencha o seu Nome Completo, Turma e a Data antes de finalizar o quiz.");
+                return;
+            }
+
+            let correctCount = 0;
+            
+            currentQuizData.forEach((item, index) => {
+                const selectedOption = document.querySelector(`input[name="question_${index}"]:checked`);
+                const block = document.getElementById(`q-block-${index}`);
+                
+                if (selectedOption) {
+                    const studentAns = parseInt(selectedOption.value);
+                    if (studentAns === item.ans) {
+                        correctCount++;
+                        block.classList.add('border-green-400', 'bg-green-50/50');
+                        block.classList.remove('border-green-100');
+                    } else {
+                        block.classList.add('border-red-400', 'bg-red-50/50');
+                        block.classList.remove('border-green-100');
+                        const correctLetter = ['A', 'B', 'C', 'D', 'E'][item.ans];
+                        block.innerHTML += `<p class="mt-3 text-sm font-bold text-red-600 bg-red-100 p-3 rounded-lg flex items-center break-words"><i class="ph-bold ph-x-circle mr-2 text-lg flex-shrink-0"></i> A resposta correta era a Letra ${correctLetter}</p>`;
+                    }
+                } else {
+                    block.classList.add('border-yellow-400', 'bg-yellow-50/50');
+                    block.innerHTML += `<p class="mt-3 text-sm font-bold text-yellow-600 bg-yellow-100 p-3 rounded-lg flex items-center break-words"><i class="ph-bold ph-warning-circle mr-2 text-lg flex-shrink-0"></i> Não respondida.</p>`;
+                }
+
+                const inputs = block.querySelectorAll('input[type="radio"]');
+                inputs.forEach(input => input.disabled = true);
+            });
+
+            const resultDiv = document.getElementById('quiz-result');
+            resultDiv.classList.remove('hidden');
+            
+            if(correctCount >= 4) {
+                resultDiv.className = 'mt-6 p-5 rounded-2xl text-center font-extrabold text-lg sm:text-xl shadow-inner bg-green-100 text-green-800 border-2 border-green-300 break-words';
+                resultDiv.innerHTML = `Parabéns, ${studentName}! 🎉<br>Você acertou ${correctCount} de ${currentQuizData.length} questões!`;
+            } else if (correctCount >= 2) {
+                resultDiv.className = 'mt-6 p-5 rounded-2xl text-center font-extrabold text-lg sm:text-xl shadow-inner bg-yellow-100 text-yellow-800 border-2 border-yellow-300 break-words';
+                resultDiv.innerHTML = `Muito bem, ${studentName}! 👍<br>Você acertou ${correctCount} de ${currentQuizData.length}. Continue estudando!`;
+            } else {
+                resultDiv.className = 'mt-6 p-5 rounded-2xl text-center font-extrabold text-lg sm:text-xl shadow-inner bg-red-100 text-red-800 border-2 border-red-300 break-words';
+                resultDiv.innerHTML = `Poxa, ${studentName}... 😔<br>Você acertou ${correctCount} de ${currentQuizData.length}. Tente novamente depois!`;
+            }
+
+            document.getElementById('btn-submit-quiz').classList.add('hidden');
+            resultDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+            // Salva o resultado
+            saveResult(studentName, studentClass, studentDate, correctCount, currentQuizData.length);
+        }
+        window.loadStudentView = loadStudentView;
+
+        // --- SISTEMA DE RANKING E SALVAMENTO ---
+        function saveResult(name, studentClass, date, score, total) {
+            const resultData = {
+                student_name: name,
+                student_class: studentClass,
+                date: date,
+                score: score,
+                total: total
+            };
+
+            // Salva Local
+            let localResults = JSON.parse(localStorage.getItem('botanica_results') || '[]');
+            localResults.push(resultData);
+            localStorage.setItem('botanica_results', JSON.stringify(localResults));
+            
+            // Tenta salvar na nuvem e atualizar ranking
+            if(window.saveResultToCloud) {
+                window.saveResultToCloud(resultData);
+            } else {
+                updateRanking();
+            }
+        }
+
+        function updateRanking() {
+            const results = JSON.parse(localStorage.getItem('botanica_results') || '[]');
+            const listStudents = document.getElementById('ranking-students');
+            const listClasses = document.getElementById('ranking-classes');
+
+            if (results.length === 0) {
+                listStudents.innerHTML = '<li class="text-center text-gray-400 italic">Nenhum quiz resolvido ainda.</li>';
+                listClasses.innerHTML = '<li class="text-center text-gray-400 italic">Nenhuma turma registrada.</li>';
+                return;
+            }
+
+            // Agrupa e soma pontos
+            const studentMap = {};
+            const classMap = {};
+
+            results.forEach(r => {
+                // Previne erros caso a data não esteja num formato exato
+                const year = r.date ? r.date.substring(0, 4) : new Date().getFullYear(); 
+                const sKey = `${r.student_name} (${r.student_class})`;
+                const cKey = `${r.student_class} (${year})`;
+
+                if (!studentMap[sKey]) studentMap[sKey] = { name: r.student_name, info: r.student_class, score: 0, total: 0 };
+                studentMap[sKey].score += r.score;
+                studentMap[sKey].total += r.total;
+
+                if (!classMap[cKey]) classMap[cKey] = { name: r.student_class, info: `Ano ${year}`, score: 0, total: 0 };
+                classMap[cKey].score += r.score;
+                classMap[cKey].total += r.total;
+            });
+
+            // Ordena os Tops (Maior pontuação primeiro, desempate por mais resolvidas)
+            const topStudents = Object.values(studentMap).sort((a, b) => b.score - a.score || b.total - a.total).slice(0, 5);
+            const topClasses = Object.values(classMap).sort((a, b) => b.score - a.score || b.total - a.total).slice(0, 5);
+
+            // Renderiza HTML
+            const renderList = (arr) => arr.map((item, i) => `
+                <li class="flex justify-between items-center bg-white p-2 rounded-lg shadow-sm border border-gray-100">
+                    <div class="flex items-center w-3/4">
+                        <span class="font-black text-${i === 0 ? 'yellow-500' : (i === 1 ? 'gray-400' : (i === 2 ? 'amber-700' : 'gray-300'))} w-6">${i+1}º</span>
+                        <div class="flex flex-col overflow-hidden">
+                            <span class="font-bold text-gray-800 truncate">${item.name}</span>
+                            <span class="text-xs text-gray-500 truncate">${item.info}</span>
+                        </div>
+                    </div>
+                    <div class="flex flex-col items-end">
+                        <span class="font-black text-emerald-600">${item.score} <i class="ph-fill ph-check-circle text-xs"></i></span>
+                        <span class="text-[10px] text-gray-400">${item.total} q.</span>
+                    </div>
+                </li>
+            `).join('');
+
+            listStudents.innerHTML = renderList(topStudents);
+            listClasses.innerHTML = renderList(topClasses);
+        }
+        window.updateRanking = updateRanking;
+
+        function handleManualSelection() {
+            const selectEl = document.getElementById('select-scientific');
+            const scientificName = selectEl.value;
+            if(scientificName) {
+                const plantData = getPlantFromLocal(scientificName);
+                if(plantData) loadStudentView(plantData);
+            }
+        }
+        function handleManualSelection() {
+            const selectEl = document.getElementById('select-scientific');
+            const scientificName = selectEl.value;
+            if(scientificName) {
+                const plantData = getPlantFromLocal(scientificName);
+                if(plantData) loadStudentView(plantData);
+            }
+        }
+
+        // Nova versão garantindo que a tela seja exibida corretamente
+        function handleManualSelection() {
+            const selectEl = document.getElementById('select-scientific');
+            const scientificName = selectEl.value;
+            
+            if(scientificName) {
+                const plantData = getPlantFromLocal(scientificName);
+                
+                if(plantData) {
+                    // Carrega os dados da planta e do quiz na tela
+                    loadStudentView(plantData);
+                    
+                    // Foca a atenção do usuário no resultado
+                    resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }
+        }
+
+        function resetScanner() {
+            resultSection.classList.add('hidden');
+            introSection.classList.remove('hidden');
+            scannerContainer.classList.remove('hidden');
+            document.getElementById('select-scientific').value = ""; 
+            isScanningActive = true;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function translateScannerUI() {
+            const dictionary = {
+                "Request Camera Permissions": "Permitir Acesso à Câmera",
+                "Requesting camera permissions...": "Solicitando permissão...",
+                "Scan an Image File": "Escanear Arquivo de Imagem",
+                "Scan using camera directly": "Usar a Câmera",
+                "Choose Image": "Escolher Imagem",
+                "Choose File": "Escolher Arquivo",
+                "No image choosen": "Nenhuma imagem selecionada",
+                "No file chosen": "Nenhum arquivo selecionado",
+                "Start Scanning": "Iniciar Câmera",
+                "Stop Scanning": "Parar Câmera",
+                "Select Camera": "Selecione a Câmera",
+                "Camera based scan": "Leitura via Câmera",
+                "File based scan": "Leitura via Arquivo",
+                "Or drop an image to scan": "Ou arraste uma foto aqui",
+                "No camera found": "Nenhuma câmera encontrada"
+            };
+
+            const walkDOM = (node) => {
+                if (node.nodeType === 3) { 
+                    let text = node.nodeValue.trim();
+                    if (dictionary[text]) {
+                        node.nodeValue = dictionary[text];
+                    } else {
+                        // Varre o dicionário buscando correspondências parciais
+                        for (const [eng, ptbr] of Object.entries(dictionary)) {
+                            if (text.includes(eng)) {
+                                node.nodeValue = node.nodeValue.replace(eng, ptbr);
+                            }
+                        }
+                    }
+                } else if (node.nodeType === 1) { 
+                    if (node.nodeName === "SCRIPT" || node.nodeName === "STYLE") return;
+                    for (let i = 0; i < node.childNodes.length; i++) {
+                        walkDOM(node.childNodes[i]);
+                    }
+                }
+            };
+
+            // Fica "vigiando" a interface do scanner. Se ele mudar textos, traduz na hora!
+            const observer = new MutationObserver(() => {
+                const qrReader = document.getElementById('qr-reader');
+                if (qrReader) walkDOM(qrReader);
+            });
+
+            observer.observe(document.body, { childList: true, subtree: true, characterData: true });
+        }
+
+        function startScanner() {
+            updateDropdown();
+            translateScannerUI(); // Chama o tradutor imediatamente ao preparar a câmera
+            
+            try {
+                const config = { 
+                    fps: 10, 
+                    qrbox: { width: 250, height: 250 },
+                    aspectRatio: 1.0,
+                    // Otimização para forçar uso da câmera traseira no celular
+                    facingMode: "environment"
+                };
+                
+                const html5QrcodeScanner = new Html5QrcodeScanner("qr-reader", config, false);
+                html5QrcodeScanner.render(
+                    (decodedText) => handleCodeScan(decodedText),
+                    (error) => {} 
+                );
+            } catch (error) {
+                document.getElementById('scanner-status').textContent = "Erro ao acessar a câmera. Verifique as permissões do seu navegador.";
+                document.getElementById('scanner-status').classList.remove('hidden');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            startScanner();
+            
+            // LÓGICA MÁGICA: Se o aluno leu o código com a CÂMERA NATIVA do celular fora do App
+            const urlParams = new URLSearchParams(window.location.search);
+            const externalId = urlParams.get('id');
+            
+            if (externalId) {
+                const plantData = getPlantFromLocal(externalId);
+                if (plantData) {
+                    loadStudentView(plantData);
+                } else {
+                    // Manda para a fila de carregamento da nuvem
+                    window.pendingPlantId = externalId;
+                }
+            }
+        });
+
+    </script>
+</body>
+</html>
