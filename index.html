@@ -80,6 +80,7 @@
 </head>
 <body class="antialiased selection:bg-green-300 selection:text-green-900">
 
+    <!-- Recipiente para as Notificações Toast -->
     <div id="toast-container" class="fixed top-4 left-1/2 transform -translate-x-1/2 z-[100] flex flex-col gap-2 w-full max-w-sm px-4 pointer-events-none"></div>
 
     <header class="bg-gradient-to-r from-green-600 to-emerald-500 text-white p-4 sm:p-6 shadow-lg rounded-b-3xl flex flex-col justify-center items-center relative overflow-hidden">
@@ -97,7 +98,7 @@
         </div>
     </header>
 
-    <!-- Menu de abas de Navegação atualizado -->
+    <!-- Menu de abas de Navegação -->
     <nav class="flex flex-wrap justify-center gap-2 sm:gap-4 mt-6 px-4 w-full max-w-2xl mx-auto">
         <button id="btn-tab-scan" onclick="switchTab('scan')" class="tab-active flex-1 min-w-[100px] sm:min-w-[140px] px-2 sm:px-6 py-3 rounded-full font-bold flex items-center justify-center transition-all duration-300 text-xs sm:text-base">
             <i class="ph-bold ph-scan text-base sm:text-xl mr-1 sm:mr-2"></i> Explorar
@@ -206,13 +207,36 @@
                     </div>
                 </div>
 
-                <!-- CARD DE GEOLOCALIZAÇÃO DETALHADA DA PLANTA -->
+                <!-- CARD DE GEOLOCALIZAÇÃO DETALHADA COM RADAR INTEGADO (Suavizado e redimensionado) -->
                 <div id="plant-location-card" class="w-full mt-6 bg-green-50 p-4 rounded-2xl border border-green-200 hidden">
                     <h4 class="font-bold text-green-800 text-sm sm:text-base mb-2 flex items-center">
                         <i class="ph-bold ph-map-pin-line mr-2 text-emerald-600 text-xl"></i> Localização da Planta
                     </h4>
-                    <div id="plant-detail-map" class="h-48 w-full rounded-xl z-10 border border-emerald-300 shadow-sm"></div>
-                    <p class="text-[10px] text-gray-500 mt-1.5 italic text-center">Coordenadas no mapa: <span id="detail-coords-text"></span></p>
+                    <!-- MAPA GRANDE (h-64 sm:h-80) -->
+                    <div id="plant-detail-map" class="h-64 sm:h-80 w-full rounded-2xl z-10 border border-emerald-300 shadow-sm mb-3"></div>
+                    
+                    <!-- Radar dinâmico de proximidade lúdico -->
+                    <div id="radar-panel" class="bg-white p-4 rounded-2xl border border-emerald-100 flex flex-col items-center justify-center text-center shadow-sm">
+                        <div class="flex items-center space-x-2 mb-1.5">
+                            <i class="ph-fill ph-radar text-2xl text-emerald-600 animate-pulse"></i>
+                            <span class="font-bold text-xs text-gray-500 uppercase tracking-wider">Radar de Busca (GPS)</span>
+                        </div>
+                        <div id="radar-distance" class="text-3xl font-extrabold text-green-800">Calculando distância...</div>
+                        <div id="radar-direction" class="text-xs sm:text-sm font-bold text-emerald-600 mt-1 max-w-[280px]">Mova-se pelo pátio para calibrar o sensor</div>
+                        
+                        <div class="flex flex-col sm:flex-row gap-2 mt-3 w-full justify-center">
+                            <!-- Botão de centralização inteligente no mapa para evitar reajustes brutos automáticos -->
+                            <button type="button" onclick="focusUserOnDetailMap()" class="bg-emerald-100 hover:bg-emerald-200 text-emerald-800 text-xs font-bold py-2.5 px-4 rounded-full flex items-center justify-center transition">
+                                <i class="ph-bold ph-navigation-arrow mr-1.5"></i> Focar Minha Posição
+                            </button>
+                            <!-- NOVO BOTÃO: Direcionar para o Google Maps diretamente da tela de detalhes -->
+                            <a id="btn-google-maps-nav" href="#" target="_blank" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-2.5 px-4 rounded-full flex items-center justify-center transition no-underline shadow">
+                                <i class="ph-bold ph-map-pin mr-1.5"></i> Abrir no Google Maps
+                            </a>
+                        </div>
+                    </div>
+
+                    <p class="text-[10px] text-gray-500 mt-2 italic text-center">Coordenadas da planta: <span id="detail-coords-text"></span></p>
                 </div>
 
                 <div id="student-form-section" class="w-full mt-6 pt-6 border-t-2 border-dashed border-green-200">
@@ -230,7 +254,7 @@
 
                 <div id="quiz-section" class="w-full mt-8">
                     <div class="bg-gradient-to-r from-emerald-500 to-green-500 text-white p-3 sm:p-4 rounded-t-2xl shadow-md">
-                        <h3 class="text-lg sm:text-xl font-extrabold flex items-center justify-center text-center">
+                        <h3 class="text-lg sm:text-xl font-extrabold flex items-center justify-center text-center font-extrabold">
                             <i class="ph-bold ph-brain mr-2 text-2xl"></i> Quiz de Conhecimentos!
                         </h3>
                     </div>
@@ -249,11 +273,11 @@
         </div>
 
         <!-- ========================================== -->
-        <!-- NOVO MAPA GLOBAL DA FLORA (ABA 2)          -->
+        <!-- MAPA GLOBAL DA FLORA (ABA 2)               -->
         <!-- ========================================== -->
         <div id="view-map" class="w-full hidden flex-col fade-in bg-white p-4 sm:p-6 rounded-3xl shadow-xl border-2 border-green-200">
-            <h2 class="text-xl sm:text-2xl font-extrabold text-green-800 mb-2 flex items-center justify-center text-center">
-                <i class="ph-fill ph-map-trifold mr-2 text-emerald-600 text-3xl animate-bounce"></i> Mapa das Plantas Registradas
+            <h2 class="text-xl sm:text-2xl font-extrabold text-green-800 mb-2 flex items-center justify-center text-center font-extrabold">
+                <i class="ph-fill ph-map-trifold mr-2 text-emerald-600 text-3xl animate-bounce font-extrabold"></i> Mapa das Plantas Registradas
             </h2>
             <p class="text-xs text-gray-500 mb-4 text-center">Navegue pelas ilhas verdes do campus. Clique em um pin para descobrir a espécie.</p>
             <div id="global-map" class="w-full h-[400px] sm:h-[480px] rounded-2xl z-10 shadow-inner border border-emerald-300"></div>
@@ -286,7 +310,7 @@
                     </div>
                     
                     <button id="btn-login-submit" type="submit" class="w-full mt-6 bg-green-600 hover:bg-green-700 text-white font-bold py-3 sm:py-4 px-4 rounded-xl shadow-md transition duration-300 flex justify-center items-center text-lg">
-                        Entrar <i class="ph-bold ph-sign-in ml-2 text-xl"></i>
+                        Entrar <i class="ph-bold ph-sign-in ml-2 text-xl font-bold"></i>
                     </button>
                     <p id="login-error" class="text-red-500 text-xs sm:text-sm text-center hidden font-bold mt-3">E-mail ou senha incorretos.</p>
                 </form>
@@ -360,7 +384,7 @@
                     <div class="space-y-4 bg-green-50/50 p-4 sm:p-6 rounded-2xl border border-green-100">
                         <h3 class="font-bold text-green-800 text-base sm:text-lg border-b border-green-200 pb-2 mb-2 flex items-center justify-between">
                             <span>2. Localização Geográfica (Mapa)</span>
-                            <span class="text-sm text-emerald-600 font-medium bg-emerald-100 px-2 py-1 rounded-lg">Opcional</span>
+                            <span class="text-sm text-emerald-600 font-medium bg-emerald-100 px-2 py-1 rounded-lg font-bold">Opcional</span>
                         </h3>
                         <p class="text-xs text-gray-500 leading-relaxed mb-4">Insira as coordenadas exatas da planta. Se estiver ao lado da planta, utilize o botão abaixo para capturar via GPS.</p>
                         
@@ -400,7 +424,7 @@
                     </div>
                     
                     <button id="btn-generate" type="submit" class="w-full mt-8 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-4 sm:py-5 px-4 rounded-2xl shadow-xl transition duration-300 flex justify-center items-center text-base sm:text-lg">
-                        <i class="ph-bold ph-floppy-disk mr-2 text-2xl"></i> Salvar e Gerar QR Code
+                        <i class="ph-bold ph-floppy-disk mr-2 text-2xl font-bold"></i> Salvar e Gerar QR Code
                     </button>
                     <p id="qr-error" class="text-red-500 text-xs text-center hidden font-bold mt-3">Erro ao gerar. Verifique os dados.</p>
                 </form>
@@ -418,7 +442,7 @@
     <div id="modal-plan" class="fixed inset-0 modal-overlay hidden items-center justify-center p-4">
         <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl p-6 relative max-h-[90vh] overflow-y-auto no-scrollbar">
             <button onclick="closeModals()" class="absolute top-4 right-4 text-gray-400 hover:text-red-500"><i class="ph-bold ph-x text-2xl"></i></button>
-            <h2 class="text-xl font-bold text-emerald-800 mb-4 flex items-center"><i class="ph-fill ph-shield-plus mr-2 text-2xl"></i> Novo Plano de Ação</h2>
+            <h2 class="text-xl font-bold text-emerald-800 mb-4 flex items-center font-extrabold"><i class="ph-fill ph-shield-plus mr-2 text-2xl"></i> Novo Plano de Ação</h2>
             
             <form id="form-plan" onsubmit="submitGuardianPlan(event)" class="space-y-4">
                 <div>
@@ -480,7 +504,7 @@
                         </label>
                     </div>
                 </div>
-                <button type="submit" id="btn-submit-plan" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-xl transition mt-2">Enviar para Aprovação</button>
+                <button type="submit" id="btn-submit-plan" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-xl transition mt-2 font-bold">Enviar para Aprovação</button>
             </form>
         </div>
     </div>
@@ -489,7 +513,7 @@
     <div id="modal-report" class="fixed inset-0 modal-overlay hidden items-center justify-center p-4">
         <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl p-6 relative">
             <button onclick="closeModals()" class="absolute top-4 right-4 text-gray-400 hover:text-red-500"><i class="ph-bold ph-x text-2xl"></i></button>
-            <h2 class="text-xl font-bold text-blue-800 mb-4 flex items-center"><i class="ph-fill ph-file-pdf mr-2 text-2xl"></i> Enviar Relatório Final</h2>
+            <h2 class="text-xl font-bold text-blue-800 mb-4 flex items-center font-extrabold"><i class="ph-fill ph-file-pdf mr-2 text-2xl"></i> Enviar Relatório Final</h2>
             
             <form id="form-report" onsubmit="submitGuardianReport(event)" class="space-y-4">
                 <div>
@@ -502,7 +526,7 @@
                     <label class="block text-sm font-bold text-blue-700 mb-1">Arquivo PDF</label>
                     <input type="file" id="report-file" accept="application/pdf" required class="w-full p-3 rounded-xl border-2 border-blue-100 bg-blue-50 text-sm">
                 </div>
-                <button type="submit" id="btn-submit-report" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl transition mt-2 flex justify-center items-center">Enviar PDF</button>
+                <button type="submit" id="btn-submit-report" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl transition mt-2 flex justify-center items-center font-bold">Enviar PDF</button>
             </form>
         </div>
     </div>
@@ -616,6 +640,34 @@
 
 
         let isScanningActive = true;
+        let globalLeafletMap = null;
+        let globalMarkersLayer = null;
+        
+        let userWatchId = null;       // ID de monitoramento contínuo do GPS do aluno
+        let lastDistance = null;      // Para determinar se está se aproximando ou afastando
+        let userMarkerDetail = null;  // Marcador do aluno no mapa individual
+
+        // Coordenadas suavizadas globais (Média Móvel Exponencial - EMA) para diminuir ruídos de oscilação do GPS
+        let smoothUserLat = null;
+        let smoothUserLng = null;
+        const ALPHA = 0.25; // Fator de suavização (menor = mais estável/lento, maior = resposta mais rápida)
+
+        // Função Haversine para calcular distância precisa em metros entre dois pontos de coordenadas geográficas
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371e3; // Raio da Terra em metros
+            const phi1 = lat1 * Math.PI / 180;
+            const phi2 = lat2 * Math.PI / 180;
+            const deltaPhi = (lat2 - lat1) * Math.PI / 180;
+            const deltaLambda = (lon2 - lon1) * Math.PI / 180;
+
+            const a = Math.sin(deltaPhi / 2) * Math.sin(deltaPhi / 2) +
+                      Math.cos(phi1) * Math.cos(phi2) *
+                      Math.sin(deltaLambda / 2) * Math.sin(deltaLambda / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+            return R * c; // Distância em metros
+        }
+        window.calculateDistance = calculateDistance;
         
         // Função de alteração de abas redesenhada para suportar a nova aba do MAPA
         function switchTab(tab) {
@@ -642,6 +694,9 @@
             btnMap.className = btnMap.className.replace('tab-active', 'tab-inactive');
             btnCreate.className = btnCreate.className.replace('tab-active', 'tab-inactive');
             
+            // Desliga sensores ativos se sair da aba de escaneamento
+            stopGPSTracking();
+
             if (tab === 'scan') {
                 scanView.classList.replace('hidden', 'flex');
                 btnScan.className = btnScan.className.replace('tab-inactive', 'tab-active');
@@ -659,6 +714,27 @@
             }
         }
         window.switchTab = switchTab;
+
+        function stopGPSTracking() {
+            if (userWatchId !== null) {
+                navigator.geolocation.clearWatch(userWatchId);
+                userWatchId = null;
+            }
+            lastDistance = null;
+            userMarkerDetail = null;
+            smoothUserLat = null;
+            smoothUserLng = null;
+        }
+
+        // Função de focagem manual controlada pelo usuário, evitando piscar automático indesejado
+        window.focusUserOnDetailMap = function() {
+            if (window.detailLeafletMap && smoothUserLat !== null && smoothUserLng !== null) {
+                window.detailLeafletMap.panTo([smoothUserLat, smoothUserLng]);
+                showToast("Mapa focado na sua posição!", false);
+            } else {
+                showToast("Aguardando sinal estável de GPS...", true);
+            }
+        };
 
         // --- SISTEMA DE GEOLOCALIZAÇÃO NO CADASTRO ---
         window.getGPSCoordinates = function() {
@@ -683,7 +759,7 @@
                     btn.disabled = false;
                 },
                 (error) => {
-                    console.error(error);
+                    console.error("Erro de Geolocalização:", error.message || error);
                     let errMsg = "Erro ao capturar localização.";
                     if (error.code === error.PERMISSION_DENIED) {
                         errMsg = "Permissão de localização negada.";
@@ -699,14 +775,25 @@
         };
 
         // --- SISTEMA DE MAPA GLOBAL (LEAFLET) ---
-        let globalLeafletMap = null;
-        let globalMarkersLayer = null;
-
         function initGlobalMap() {
+            if (typeof L === 'undefined') {
+                console.warn("Leaflet ainda não foi carregado.");
+                return;
+            }
+            
             // Coordenadas aproximadas da EEEP Aderson Borges de Carvalho
             const schoolCoordinates = [-7.2186, -39.3145];
             
             setTimeout(() => {
+                const container = L.DomUtil.get('global-map');
+                if (container && container._leaflet_id) {
+                    if (globalLeafletMap) {
+                        try { globalLeafletMap.remove(); } catch(e){}
+                    }
+                    globalLeafletMap = null;
+                    container._leaflet_id = null;
+                }
+
                 if (!globalLeafletMap) {
                     globalLeafletMap = L.map('global-map').setView(schoolCoordinates, 18);
                     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -739,12 +826,16 @@
                         const lng = parseFloat(p.longitude);
                         bounds.push([lat, lng]);
 
+                        // POPUP ATUALIZADO: Inclui botão que redireciona diretamente ao Google Maps com coordenadas ultraprecisas
                         const marker = L.marker([lat, lng], { icon: plantIcon })
                             .bindPopup(`
-                                <div class="text-center p-1">
+                                <div class="text-center p-1 font-sans">
                                     <h4 class="font-extrabold text-green-800 text-sm mb-0.5">${p.nome}</h4>
                                     <p class="text-xs italic text-emerald-600 mb-2">${p.cientifico}</p>
-                                    <button onclick="window.loadStudentViewFromMap('${p.cientifico}')" class="bg-emerald-600 text-white font-bold text-[10px] py-1 px-3 rounded-full hover:bg-emerald-700 transition">Ver Detalhes</button>
+                                    <div class="flex flex-col gap-1.5 w-full">
+                                        <button onclick="window.loadStudentViewFromMap('${p.cientifico}')" class="bg-emerald-600 text-white font-bold text-[10px] py-2 px-3 rounded-full hover:bg-emerald-700 transition w-full shadow-sm">Ver Detalhes</button>
+                                        <a href="https://www.google.com/maps/search/?api=1&query=${lat},${lng}" target="_blank" class="bg-blue-600 text-white font-bold text-[10px] py-2 px-3 rounded-full hover:bg-blue-700 transition inline-block text-center no-underline w-full shadow-sm">Como Chegar (Google Maps)</a>
+                                    </div>
                                 </div>
                             `);
                         globalMarkersLayer.addLayer(marker);
@@ -1001,7 +1092,7 @@
                 if(window.syncGuardians) window.syncGuardians();
 
             } catch (err) {
-                console.error(err);
+                console.error("Erro no envio de PDF:", err.message || err);
                 showToast("Erro ao enviar PDF. Tente novamente.", true);
             } finally {
                 btn.innerHTML = 'Enviar PDF'; btn.disabled = false;
@@ -1265,7 +1356,7 @@
                     await window.syncGuardians(); 
                 }
             } catch(e) { 
-                console.error("Erro do Supabase:", e);
+                console.error("Erro do Supabase:", e.message || e);
                 showToast("Erro: " + e.message, true);
                 btn.innerHTML = btn.dataset.originalHtml;
                 btn.disabled = false;
@@ -1468,7 +1559,7 @@
             const studentFormSection = document.getElementById('student-form-section');
             quizContainer.innerHTML = ''; currentQuizData = plantData.quiz || [];
 
-            // Controle do Mapa Individual da Planta
+            // Controle do Mapa Individual da Planta com botão integrado do Google Maps
             const locationCard = document.getElementById('plant-location-card');
             if (plantData.latitude && plantData.longitude) {
                 const lat = parseFloat(plantData.latitude);
@@ -1476,8 +1567,25 @@
                 document.getElementById('detail-coords-text').textContent = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
                 locationCard.classList.remove('hidden');
                 
+                // Configura o link de navegação do botão no card detalhado
+                const btnGmapsNav = document.getElementById('btn-google-maps-nav');
+                if (btnGmapsNav) {
+                    btnGmapsNav.href = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+                }
+
                 // Desenha ou atualiza o mini-mapa com foco
                 setTimeout(() => {
+                    if (typeof L === 'undefined') return;
+
+                    const container = L.DomUtil.get('plant-detail-map');
+                    if (container && container._leaflet_id) {
+                        if (window.detailLeafletMap) {
+                            try { window.detailLeafletMap.remove(); } catch(e){}
+                        }
+                        window.detailLeafletMap = null;
+                        container._leaflet_id = null;
+                    }
+
                     if (!window.detailLeafletMap) {
                         window.detailLeafletMap = L.map('plant-detail-map', { zoomControl: false }).setView([lat, lng], 18);
                         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -1575,9 +1683,20 @@
         document.addEventListener('DOMContentLoaded', () => {
             updateDropdown();
             try {
-                new Html5QrcodeScanner("qr-reader", { fps: 10, qrbox: { width: 250, height: 250 }, aspectRatio: 1.0, facingMode: "environment", supportedScanTypes: [ Html5QrcodeScanType.SCAN_TYPE_CAMERA ] }, false)
+                if (typeof Html5QrcodeScanner !== 'undefined') {
+                    const scanType = typeof Html5QrcodeScanType !== 'undefined' ? Html5QrcodeScanType.SCAN_TYPE_CAMERA : 0;
+                    new Html5QrcodeScanner("qr-reader", { 
+                        fps: 10, 
+                        qrbox: { width: 250, height: 250 }, 
+                        aspectRatio: 1.0, 
+                        facingMode: "environment", 
+                        supportedScanTypes: [ scanType ] 
+                    }, false)
                     .render((t) => handleCodeScan(t), () => {});
-            } catch (e) {}
+                }
+            } catch (e) {
+                console.warn("Scanner initialization failed:", e);
+            }
             
             let extId = new URLSearchParams(window.location.search).get('id') || (window.location.hash.includes('id=') ? decodeURIComponent(window.location.hash.split('id=')[1]) : null);
             if (extId) {
