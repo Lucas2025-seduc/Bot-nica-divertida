@@ -74,16 +74,30 @@
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-        /* Ajustes de mapa para Leaflet */
         .leaflet-container { font-family: 'Nunito', sans-serif; }
+        .leaflet-popup-content a.btn-map-nav { color: #ffffff !important; text-decoration: none !important; }
     </style>
 </head>
 <body class="antialiased selection:bg-green-300 selection:text-green-900">
 
-    <!-- Recipiente para as Notificações Toast -->
     <div id="toast-container" class="fixed top-4 left-1/2 transform -translate-x-1/2 z-[100] flex flex-col gap-2 w-full max-w-sm px-4 pointer-events-none"></div>
 
-    <header class="bg-gradient-to-r from-green-600 to-emerald-500 text-white p-4 sm:p-6 shadow-lg rounded-b-3xl flex flex-col justify-center items-center relative overflow-hidden">
+    <!-- BANNER DE DESAFIO ATIVO (HUD do Jogo) -->
+    <div id="active-challenge-hud" class="fixed top-0 left-0 w-full bg-amber-500 text-white p-3 z-40 shadow-lg hidden flex-col sm:flex-row items-center justify-between transition-all pt-safe">
+        <div class="flex items-center text-sm font-bold w-full sm:w-auto justify-center sm:justify-start mb-2 sm:mb-0">
+            <i class="ph-fill ph-sword mr-2 text-xl animate-pulse"></i> 
+            <span id="hud-text">Encontre e responda aos quizzes!</span>
+        </div>
+        <div class="flex gap-2">
+            <button onclick="showChallengeStatus()" class="bg-amber-600 hover:bg-amber-700 px-3 py-1.5 rounded-full text-xs font-bold transition">Ver Plantas</button>
+            <button onclick="abandonChallenge()" class="bg-red-500 hover:bg-red-600 px-3 py-1.5 rounded-full text-xs font-bold transition">Desistir</button>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- CABEÇALHO E NAVEGAÇÃO                      -->
+    <!-- ========================================== -->
+    <header id="main-header" class="bg-gradient-to-r from-green-600 to-emerald-500 text-white p-4 sm:p-6 shadow-lg rounded-b-3xl flex flex-col justify-center items-center relative overflow-hidden">
         <i class="ph-fill ph-leaf text-white/20 text-5xl sm:text-6xl absolute -top-2 -left-2 transform -rotate-45"></i>
         <i class="ph-fill ph-clover text-white/20 text-5xl sm:text-6xl absolute -bottom-4 -right-4 transform rotate-12"></i>
         
@@ -98,7 +112,6 @@
         </div>
     </header>
 
-    <!-- Menu de abas de Navegação -->
     <nav class="flex flex-wrap justify-center gap-2 sm:gap-4 mt-6 px-4 w-full max-w-2xl mx-auto">
         <button id="btn-tab-scan" onclick="switchTab('scan')" class="tab-active flex-1 min-w-[100px] sm:min-w-[140px] px-2 sm:px-6 py-3 rounded-full font-bold flex items-center justify-center transition-all duration-300 text-xs sm:text-base">
             <i class="ph-bold ph-scan text-base sm:text-xl mr-1 sm:mr-2"></i> Explorar
@@ -114,16 +127,27 @@
     <main class="flex-grow flex flex-col items-center justify-start p-3 sm:p-4 w-full max-w-2xl mx-auto relative mt-2 mb-8">
         
         <!-- ========================================== -->
-        <!-- ABA 1: SCANNER E GUARDIÕES                 -->
+        <!-- ABA 1: EXPLORAR (SCANNER E DETALHES)       -->
         <!-- ========================================== -->
         <div id="view-scan" class="w-full flex flex-col items-center fade-in">
             
+            <!-- Tela Inicial do Explorar -->
             <div id="intro-section" class="w-full">
+                
+                <!-- SEÇÃO DESAFIOS (ALUNOS) -->
+                <div id="student-challenges-container" class="w-full mb-6 bg-amber-50 p-4 sm:p-5 rounded-3xl border-2 border-amber-300 shadow-md hidden flex-col">
+                    <h2 class="text-lg sm:text-xl font-extrabold text-amber-800 mb-3 flex items-center">
+                        <i class="ph-fill ph-trophy mr-2 text-amber-600 text-2xl"></i> Desafios de Localização!
+                    </h2>
+                    <p class="text-sm text-amber-700 mb-4 font-medium">Reúna o seu grupo, localize as plantas no mapa e responda aos quizzes no menor tempo possível para vencer.</p>
+                    <div id="active-challenges-list" class="space-y-3"></div>
+                </div>
+
                 <div class="mb-6 bg-white/80 p-4 sm:p-5 rounded-3xl border-2 border-green-200 shadow-md flex flex-col items-center">
                     <h2 class="text-xl sm:text-2xl font-extrabold text-green-800 mb-3 text-center">Boas-vindas ao App!</h2>
                     <div class="text-green-800 text-sm sm:text-base text-center space-y-3 mb-5 font-medium leading-relaxed">
                         <p>
-                            Nosso objetivo é <strong>combater a cegueira botânica</strong> e estimular o cuidado com as plantas da nossa escola por meio da divulgação potencialmente lúdica de conhecimentos científicos e curiosidades sobre essas plantas. Você está preparado para essa nova aventura?
+                            Nosso objetivo é <strong>combater a cegueira botânica</strong> e estimular o cuidado com as plantas da nossa escola por meio da divulgação potencialmente lúdica de conhecimentos científicos e curiosidades sobre essas plantas.
                         </p>
                     </div>
                     <div class="bg-emerald-50 text-emerald-700 p-3 sm:p-4 rounded-xl border border-emerald-200 w-full text-center font-bold flex flex-col sm:flex-row items-center justify-center text-sm shadow-sm gap-2">
@@ -158,7 +182,6 @@
                     </h2>
                     <p class="text-sm text-emerald-600 font-medium text-center mb-6">Alunos comprometidos com os cuidados e a pesquisa das nossas plantas.</p>
                     
-                    <!-- Botões de Ação do Aluno -->
                     <div class="flex flex-col sm:flex-row w-full gap-3 mb-6">
                         <button onclick="openPlanModal()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-xl shadow transition duration-300 flex justify-center items-center text-sm sm:text-base">
                             <i class="ph-bold ph-clipboard-text mr-2 text-xl"></i> Propor Plano de Ação
@@ -168,17 +191,13 @@
                         </button>
                     </div>
 
-                    <!-- Estatísticas por Turma -->
                     <div id="class-stats-container" class="w-full mb-5 hidden fade-in">
                         <h3 class="font-bold text-gray-700 mb-2 border-b-2 border-gray-100 pb-1 text-sm flex items-center">
                             <i class="ph-fill ph-chart-bar mr-2 text-emerald-500 text-lg"></i> Engajamento por Turma:
                         </h3>
-                        <div id="class-stats-list" class="flex flex-wrap gap-2 mt-2">
-                            <!-- Badges geradas via JS -->
-                        </div>
+                        <div id="class-stats-list" class="flex flex-wrap gap-2 mt-2"></div>
                     </div>
 
-                    <!-- Lista de Guardiões Aprovados -->
                     <div class="w-full">
                         <h3 class="font-bold text-gray-700 mb-3 border-b-2 border-gray-100 pb-2">Guardiões Registrados:</h3>
                         <div id="approved-guardians-list" class="space-y-3">
@@ -189,7 +208,7 @@
 
             </div>
 
-            <!-- RESULTADOS E FORMULÁRIO DO ALUNO -->
+            <!-- RESULTADOS E DETALHES DA PLANTA -->
             <div id="result-section" class="w-full hidden fade-in bg-white p-4 sm:p-6 rounded-3xl shadow-2xl border-2 border-green-200 relative mt-4">
                 <button onclick="resetScanner()" class="absolute top-2 sm:top-4 right-2 sm:right-4 bg-gray-100 p-2 rounded-full text-gray-500 hover:text-red-500 hover:bg-red-50 transition-colors z-10" title="Fechar">
                     <i class="ph-bold ph-x text-xl"></i>
@@ -200,7 +219,7 @@
                     <h3 id="plant-scientific" class="text-base sm:text-lg text-emerald-600 italic font-semibold break-words w-full">Nome Científico</h3>
                 </div>
 
-                <!-- FOLHETO INFORMATIVO -->
+                <!-- 1. Folheto Informativo -->
                 <div id="plant-info-container" class="w-full mt-4 bg-blue-50 p-4 rounded-2xl border border-blue-200 hidden">
                     <h4 class="font-bold text-blue-800 text-sm sm:text-base mb-3 flex items-center justify-center">
                         <i class="ph-bold ph-info mr-2 text-blue-600 text-xl"></i> Folheto Informativo
@@ -211,20 +230,18 @@
                     </a>
                 </div>
 
-                <!-- FOTO(S) REAL(IS) DA PLANTA - CARROSSEL -->
+                <!-- 2. Fotos Reais (Carrossel) -->
                 <div id="plant-image-container" class="w-full mt-6 flex flex-col items-center">
                     <!-- Galeria inserida via JS -->
                 </div>
 
-                <!-- CARD DE GEOLOCALIZAÇÃO DETALHADA COM RADAR INTEGADO -->
+                <!-- 3. Localização (Mapa) -->
                 <div id="plant-location-card" class="w-full mt-6 bg-green-50 p-4 rounded-2xl border border-green-200 hidden">
                     <h4 class="font-bold text-green-800 text-sm sm:text-base mb-2 flex items-center">
                         <i class="ph-bold ph-map-pin-line mr-2 text-emerald-600 text-xl"></i> Localização da Planta
                     </h4>
-                    <!-- MAPA GRANDE (h-64 sm:h-80) -->
                     <div id="plant-detail-map" class="h-64 sm:h-80 w-full rounded-2xl z-10 border border-emerald-300 shadow-sm mb-3"></div>
                     
-                    <!-- Radar dinâmico de proximidade lúdico -->
                     <div id="radar-panel" class="bg-white p-4 rounded-2xl border border-emerald-100 flex flex-col items-center justify-center text-center shadow-sm">
                         <div class="flex items-center space-x-2 mb-1.5">
                             <i class="ph-fill ph-radar text-2xl text-emerald-600 animate-pulse"></i>
@@ -234,8 +251,10 @@
                         <div id="radar-direction" class="text-xs sm:text-sm font-bold text-emerald-600 mt-1 max-w-[280px]">Mova-se pelo pátio para calibrar o sensor</div>
                         
                         <div class="flex flex-col sm:flex-row gap-2 mt-3 w-full justify-center">
-                            <!-- Direcionar para o Google Maps diretamente da tela de detalhes -->
-                            <a id="btn-google-maps-nav" href="#" target="_blank" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-2.5 px-4 rounded-full flex items-center justify-center transition no-underline shadow" style="color: white !important; text-decoration: none !important;">
+                            <button type="button" onclick="focusUserOnDetailMap()" class="bg-emerald-100 hover:bg-emerald-200 text-emerald-800 text-xs font-bold py-2.5 px-4 rounded-full flex items-center justify-center transition">
+                                <i class="ph-bold ph-navigation-arrow mr-1.5"></i> Focar Minha Posição
+                            </button>
+                            <a id="btn-google-maps-nav" href="#" target="_blank" class="btn-map-nav bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-2.5 px-4 rounded-full flex items-center justify-center transition no-underline shadow">
                                 <i class="ph-bold ph-map-pin mr-1.5"></i> Abrir no Google Maps
                             </a>
                         </div>
@@ -244,14 +263,15 @@
                     <p class="text-[10px] text-gray-500 mt-2 italic text-center">Coordenadas da planta: <span id="detail-coords-text"></span></p>
                 </div>
 
+                <!-- 4. Formulário e Quiz -->
                 <div id="student-form-section" class="w-full mt-6 pt-6 border-t-2 border-dashed border-green-200">
                     <h3 class="text-lg sm:text-xl font-extrabold text-green-800 mb-4 flex items-center">
                         <i class="ph-fill ph-student mr-2 text-2xl text-emerald-500"></i> Registro de Resposta
                     </h3>
                     <div class="flex flex-col gap-3 sm:gap-4">
-                        <input type="text" id="student-name" placeholder="Nome Completo" class="w-full p-3 sm:p-4 rounded-xl border-2 border-green-100 bg-green-50/30 focus:outline-none focus:border-green-400 font-semibold text-green-900 text-sm sm:text-base">
+                        <input type="text" id="student-name" placeholder="Seu Nome ou da Equipa" class="w-full p-3 sm:p-4 rounded-xl border-2 border-green-100 bg-green-50/30 focus:outline-none focus:border-green-400 font-semibold text-green-900 text-sm sm:text-base">
                         <div class="flex flex-col sm:flex-row gap-3 sm:gap-4">
-                            <input type="text" id="student-class" placeholder="Sua Turma" class="w-full sm:w-1/2 p-3 sm:p-4 rounded-xl border-2 border-green-100 bg-green-50/30 focus:outline-none focus:border-green-400 font-semibold text-green-900 text-sm sm:text-base">
+                            <input type="text" id="student-class" placeholder="Turma" class="w-full sm:w-1/2 p-3 sm:p-4 rounded-xl border-2 border-green-100 bg-green-50/30 focus:outline-none focus:border-green-400 font-semibold text-green-900 text-sm sm:text-base">
                             <input type="date" id="student-date" class="w-full sm:w-1/2 p-3 sm:p-4 rounded-xl border-2 border-green-100 bg-green-50/30 focus:outline-none focus:border-green-400 font-semibold text-green-900 text-sm sm:text-base">
                         </div>
                     </div>
@@ -278,7 +298,7 @@
         </div>
 
         <!-- ========================================== -->
-        <!-- MAPA GLOBAL DA FLORA (ABA 2)               -->
+        <!-- ABA 2: MAPA GLOBAL DA FLORA                -->
         <!-- ========================================== -->
         <div id="view-map" class="w-full hidden flex-col fade-in bg-white p-4 sm:p-6 rounded-3xl shadow-xl border-2 border-green-200">
             <h2 class="text-xl sm:text-2xl font-extrabold text-green-800 mb-2 flex items-center justify-center text-center font-extrabold">
@@ -289,10 +309,11 @@
         </div>
 
         <!-- ========================================== -->
-        <!-- ABA 3: CRIAR PLACAS E ADMIN GUARDIÕES      -->
+        <!-- ABA 3: PAINEL ADM (CRIAR E GERENCIAR)      -->
         <!-- ========================================== -->
         <div id="view-create" class="w-full hidden flex-col items-center fade-in">
             
+            <!-- Login -->
             <div id="auth-section" class="bg-white p-6 sm:p-8 rounded-3xl shadow-xl border border-green-100 w-full mt-4 flex flex-col items-center">
                 <div class="bg-green-100 p-4 rounded-full mb-4 text-green-600 shadow-inner">
                     <i class="ph-fill ph-lock-key text-4xl sm:text-5xl"></i>
@@ -313,7 +334,6 @@
                             <input type="password" id="input-password" required placeholder="Senha" class="w-full py-3 pr-3 pl-12 sm:py-4 sm:pr-4 sm:pl-12 rounded-xl border-2 border-green-100 bg-green-50/50 focus:outline-none focus:border-green-400 font-medium text-base">
                         </div>
                     </div>
-                    
                     <button id="btn-login-submit" type="submit" class="w-full mt-6 bg-green-600 hover:bg-green-700 text-white font-bold py-3 sm:py-4 px-4 rounded-xl shadow-md transition duration-300 flex justify-center items-center text-lg">
                         Entrar <i class="ph-bold ph-sign-in ml-2 text-xl font-bold"></i>
                     </button>
@@ -321,6 +341,7 @@
                 </form>
             </div>
 
+            <!-- Área Logada do Admin -->
             <div id="create-section" class="bg-white p-4 sm:p-8 rounded-3xl shadow-xl border border-green-100 w-full mt-4 hidden">
                 <div class="flex flex-col sm:flex-row items-center justify-between mb-6 border-b-2 border-green-50 pb-4 gap-4">
                     <div class="flex items-center text-center sm:text-left">
@@ -330,6 +351,38 @@
                     <button onclick="handleLogout()" class="w-full sm:w-auto text-sm text-red-600 font-bold hover:bg-red-100 transition-colors flex items-center justify-center bg-red-50 py-2 px-4 rounded-xl" title="Sair">
                         <i class="ph-bold ph-sign-out text-xl mr-2"></i> <span>Sair</span>
                     </button>
+                </div>
+
+                <!-- GERENCIAR DESAFIOS DE LOCALIZAÇÃO (NOVO) -->
+                <div class="mb-10 bg-amber-50/50 p-4 sm:p-6 rounded-2xl border-2 border-amber-200">
+                    <h3 class="font-extrabold text-amber-800 text-lg sm:text-xl mb-4 flex items-center">
+                        <i class="ph-fill ph-trophy mr-2 text-amber-600"></i> Desafios de Exploração
+                    </h3>
+                    <p class="text-sm text-amber-700 mb-4">Crie caças ao tesouro! Selecione as plantas e defina um prazo para as equipas competirem no pátio.</p>
+                    
+                    <form onsubmit="submitNewChallenge(event)" class="bg-white p-4 rounded-xl border border-amber-100 shadow-sm mb-6 space-y-4">
+                        <h4 class="font-bold text-amber-800 text-sm border-b border-amber-100 pb-2">Criar Novo Desafio</h4>
+                        <div>
+                            <label class="block text-xs font-bold text-amber-700 mb-1">Título do Desafio</label>
+                            <input type="text" id="challenge-title" required placeholder="Ex: Rali das Frutíferas" class="w-full p-2.5 rounded-lg border border-amber-200 bg-amber-50/30 text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-amber-700 mb-1">Prazo Final para Participação</label>
+                            <input type="datetime-local" id="challenge-deadline" required class="w-full p-2.5 rounded-lg border border-amber-200 bg-amber-50/30 text-sm font-semibold">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-amber-700 mb-1">Plantas do Desafio (Selecione pelo menos uma)</label>
+                            <div id="challenge-plants-list" class="max-h-40 overflow-y-auto border border-amber-200 rounded-lg p-2 bg-amber-50/30 space-y-1 text-sm">
+                                <!-- Preenchido via JS -->
+                            </div>
+                        </div>
+                        <button type="submit" id="btn-submit-challenge" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-2.5 px-4 rounded-lg transition shadow-sm text-sm">Criar Desafio</button>
+                    </form>
+
+                    <h4 class="font-bold text-amber-800 text-sm mb-2 border-b border-amber-200 pb-1">Desafios Criados</h4>
+                    <div id="admin-challenges-list" class="space-y-3 max-h-80 overflow-y-auto pr-2 no-scrollbar">
+                        <div class="text-center text-gray-500 italic py-2 text-sm">Carregando desafios...</div>
+                    </div>
                 </div>
                 
                 <!-- GERENCIAR GUARDIÕES (ADMIN) -->
@@ -342,15 +395,38 @@
                     </div>
                 </div>
 
+                <!-- RESULTADOS DOS QUIZZES -->
+                <div class="mb-10 bg-sky-50/50 p-4 sm:p-6 rounded-2xl border-2 border-sky-200">
+                    <h3 class="font-extrabold text-sky-800 text-lg sm:text-xl mb-4 flex items-center">
+                        <i class="ph-fill ph-exam mr-2 text-sky-600"></i> Resultados dos Quizzes (Tempo Real)
+                    </h3>
+                    <div id="admin-quiz-results-list" class="space-y-3 max-h-80 overflow-y-auto pr-2 no-scrollbar"></div>
+                </div>
+
+                <!-- IMPRESSÃO DE RELATÓRIOS -->
+                <div class="mb-10 bg-purple-50/50 p-4 sm:p-6 rounded-2xl border-2 border-purple-200">
+                    <h3 class="font-extrabold text-purple-800 text-lg sm:text-xl mb-4 flex items-center">
+                        <i class="ph-fill ph-printer mr-2 text-purple-600"></i> Relatórios e Impressões (Admin)
+                    </h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <button type="button" onclick="printBiodiversityReport()" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded-xl transition flex justify-center items-center text-sm shadow-md">
+                            <i class="ph-bold ph-map-trifold mr-2 text-lg"></i> Mapa de Biodiversidade
+                        </button>
+                        <button type="button" onclick="printPlansReport('andamento')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-xl transition flex justify-center items-center text-sm shadow-md">
+                            <i class="ph-bold ph-leaf mr-2 text-lg"></i> Planos em Andamento
+                        </button>
+                        <button type="button" onclick="printPlansReport('concluidos')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl transition flex justify-center items-center text-sm shadow-md">
+                            <i class="ph-bold ph-check-circle mr-2 text-lg"></i> Relatórios Concluídos
+                        </button>
+                    </div>
+                </div>
+
                 <hr class="border-green-200 mb-8 border-2 rounded">
 
+                <!-- FORMULÁRIO DE CADASTRO/EDIÇÃO DE PLANTAS -->
                 <h3 class="font-extrabold text-green-800 text-lg sm:text-xl mb-4 flex items-center font-extrabold">
                     <i class="ph-bold ph-leaf mr-2 text-green-600"></i> Cadastrar/Editar Plantas
                 </h3>
-
-                <p class="text-xs sm:text-sm text-blue-700 mb-6 font-medium bg-blue-50 p-4 rounded-xl border border-blue-100 leading-relaxed text-justify">
-                    <i class="ph-bold ph-info float-left mr-2 text-blue-500 text-lg"></i> Preencha a identificação da planta, adicione fotos reais, insira a folha informativa e cadastre o GPS. Tudo ficará salvo no QR Code.
-                </p>
 
                 <div class="mb-6 bg-blue-50/50 p-4 sm:p-6 rounded-2xl border border-blue-200">
                     <h3 class="font-bold text-blue-800 text-base sm:text-lg mb-3 flex items-center">
@@ -360,7 +436,7 @@
                         <select id="select-edit-plant" class="w-full p-3 rounded-xl border-2 border-blue-200 bg-white focus:outline-none focus:border-blue-500 font-bold text-blue-800 cursor-pointer text-sm sm:text-base" onchange="loadPlantForEditing()">
                             <option value="">-- Criar Nova Planta (Formulário Limpo) --</option>
                         </select>
-                        <button type="button" onclick="clearForm()" class="w-full sm:w-auto bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-3 px-4 rounded-xl transition duration-300 flex justify-center items-center text-sm sm:text-base whitespace-nowrap font-bold">
+                        <button type="button" onclick="clearForm()" class="w-full sm:w-auto bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-3 px-4 rounded-xl transition flex justify-center items-center text-sm whitespace-nowrap font-bold">
                             <i class="ph-bold ph-eraser mr-2 text-lg"></i> Limpar
                         </button>
                     </div>
@@ -370,106 +446,79 @@
                     
                     <div class="space-y-4 bg-green-50/50 p-4 sm:p-6 rounded-2xl border-green-100 border">
                         <h3 class="font-bold text-green-800 text-base sm:text-lg border-b border-green-200 pb-2 mb-4 flex items-center justify-between font-extrabold">
-                            <span>1. Identificação da Planta</span>
-                            <span class="text-sm text-red-600 font-medium bg-red-100 px-2 py-1 rounded-lg">Obrigatório</span>
+                            <span>1. Identificação</span>
                         </h3>
                         <div class="flex flex-col sm:flex-row gap-4">
                             <div class="w-full sm:w-1/2">
                                 <label class="block text-sm font-bold text-green-700 mb-2 ml-1">Nome Popular</label>
-                                <input type="text" id="input-name" required placeholder="Ex: Espada de São Jorge" class="w-full p-3 sm:p-4 rounded-xl border-2 border-green-200 bg-white focus:outline-none focus:border-green-500 font-bold text-sm sm:text-base">
+                                <input type="text" id="input-name" required class="w-full p-3 sm:p-4 rounded-xl border-2 border-green-200 bg-white focus:outline-none focus:border-green-500 font-bold text-sm sm:text-base">
                             </div>
                             <div class="w-full sm:w-1/2">
                                 <label class="block text-sm font-bold text-green-700 mb-2 ml-1">Nome Científico</label>
-                                <input type="text" id="input-scientific" required placeholder="Ex: Sansevieria trifasciata" class="w-full p-3 sm:p-4 rounded-xl border-2 border-green-200 bg-white focus:outline-none focus:border-green-500 font-bold italic text-sm sm:text-base">
+                                <input type="text" id="input-scientific" required class="w-full p-3 sm:p-4 rounded-xl border-2 border-green-200 bg-white focus:outline-none focus:border-green-500 font-bold italic text-sm sm:text-base">
                             </div>
                         </div>
                     </div>
 
-                    <!-- FOTOS REAIS DA PLANTA (MÚLTIPLAS) -->
                     <div class="space-y-4 bg-green-50/50 p-4 sm:p-6 rounded-2xl border border-green-100">
                         <h3 class="font-bold text-green-800 text-base sm:text-lg border-b border-green-200 pb-2 mb-4 flex items-center justify-between font-extrabold">
-                            <span>2. Fotos Reais da Planta</span>
-                            <span class="text-sm text-red-600 font-medium bg-red-100 px-2 py-1 rounded-lg">Obrigatório</span>
+                            <span>2. Fotos Reais</span>
                         </h3>
                         <div class="space-y-4">
                             <div>
-                                <label class="block text-sm font-bold text-green-700 mb-1.5 ml-1">Upload de Fotos Reais (Permite selecionar várias)</label>
-                                <!-- Adicionado o atributo 'multiple' para permitir seleção de várias imagens -->
+                                <label class="block text-sm font-bold text-green-700 mb-1.5 ml-1">Upload (Múltiplas)</label>
                                 <input type="file" id="input-file-plant" accept="image/*" multiple class="w-full p-3 rounded-xl border-2 border-green-200 bg-white text-sm font-semibold">
-                                <p class="text-xs text-green-600 mt-1.5 font-medium"><i class="ph-bold ph-info"></i> Pode selecionar várias fotos segurando a tecla Ctrl ou selecionando em massa no telemóvel para criar uma galeria na app.</p>
                             </div>
-                            
-                            <div class="flex items-center justify-center my-2 text-green-700 font-bold text-sm">
-                                <span class="border-t border-green-200 flex-grow mr-3"></span> OU <span class="border-t border-green-200 flex-grow ml-3"></span>
-                            </div>
-
                             <div>
-                                <label class="block text-sm font-bold text-green-700 mb-1.5 ml-1 font-semibold">Colar um Link de Imagem Externa</label>
-                                <input type="url" id="input-url" placeholder="Ex: https://meusite.com/foto-planta.jpg" class="w-full p-3 sm:p-4 rounded-xl border-2 border-green-200 bg-white focus:outline-none focus:border-green-500 font-medium text-sm sm:text-base">
+                                <label class="block text-sm font-bold text-green-700 mb-1.5 ml-1 font-semibold">Colar Link URL</label>
+                                <input type="url" id="input-url" class="w-full p-3 rounded-xl border-2 border-green-200 bg-white focus:outline-none focus:border-green-500 text-sm">
                             </div>
                         </div>
                     </div>
 
-                    <!-- FOLHETO INFORMATIVO -->
                     <div class="space-y-4 bg-blue-50/50 p-4 sm:p-6 rounded-2xl border border-blue-200">
                         <h3 class="font-bold text-blue-800 text-base sm:text-lg border-b border-blue-200 pb-2 mb-4 flex items-center justify-between font-extrabold">
-                            <span>3. Folheto Informativo da Planta</span>
-                            <span class="text-sm text-blue-600 font-medium bg-blue-100 px-2 py-1 rounded-lg">Opcional</span>
+                            <span>3. Folheto Informativo</span>
                         </h3>
-                        <p class="text-xs text-gray-500 mb-2">Imagem com curiosidades, benefícios e dados formatados (Canvas/PDF exportado) para o aluno.</p>
                         <div class="space-y-4">
                             <div>
-                                <label class="block text-sm font-bold text-blue-700 mb-1.5 ml-1">Upload do Folheto</label>
                                 <input type="file" id="input-file-info" accept="image/*" class="w-full p-3 rounded-xl border-2 border-blue-200 bg-white text-sm font-semibold">
                             </div>
-                            
-                            <div class="flex items-center justify-center my-2 text-blue-700 font-bold text-sm">
-                                <span class="border-t border-blue-200 flex-grow mr-3"></span> OU <span class="border-t border-blue-200 flex-grow ml-3"></span>
-                            </div>
-
                             <div>
-                                <label class="block text-sm font-bold text-blue-700 mb-1.5 ml-1 font-semibold">Colar Link do Folheto</label>
-                                <input type="url" id="input-url-info" placeholder="Ex: https://meusite.com/folheto.jpg" class="w-full p-3 sm:p-4 rounded-xl border-2 border-blue-200 bg-white focus:outline-none focus:border-blue-500 font-medium text-sm sm:text-base">
+                                <input type="url" id="input-url-info" placeholder="URL do folheto..." class="w-full p-3 rounded-xl border-2 border-blue-200 bg-white text-sm">
                             </div>
                         </div>
                     </div>
 
-                    <!-- CADASTRO DE LOCALIZAÇÃO GEOGRÁFICA -->
                     <div class="space-y-4 bg-green-50/50 p-4 sm:p-6 rounded-2xl border border-green-100">
                         <h3 class="font-bold text-green-800 text-base sm:text-lg border-b border-green-200 pb-2 mb-2 flex items-center justify-between font-extrabold">
-                            <span>4. Localização Geográfica (Mapa)</span>
-                            <span class="text-sm text-emerald-600 font-medium bg-emerald-100 px-2 py-1 rounded-lg font-bold">Opcional</span>
+                            <span>4. Localização (Mapa)</span>
                         </h3>
-                        <p class="text-xs text-gray-500 leading-relaxed mb-4">Insira as coordenadas exatas da planta. Se estiver ao lado da planta, utilize o botão abaixo para capturar via GPS.</p>
-                        
-                        <div class="flex flex-col sm:flex-row gap-4">
+                        <div class="flex flex-col sm:flex-row gap-4 mt-2">
                             <div class="w-full sm:w-1/2">
                                 <label class="block text-sm font-bold text-green-700 mb-1.5 ml-1">Latitude</label>
-                                <input type="number" step="any" id="input-latitude" placeholder="Ex: -7.224412" class="w-full p-3 sm:p-4 rounded-xl border-2 border-green-200 bg-white focus:outline-none focus:border-green-500 font-semibold text-sm sm:text-base">
+                                <input type="number" step="any" id="input-latitude" class="w-full p-3 rounded-xl border-2 border-green-200 bg-white text-sm font-semibold">
                             </div>
                             <div class="w-full sm:w-1/2">
                                 <label class="block text-sm font-bold text-green-700 mb-1.5 ml-1">Longitude</label>
-                                <input type="number" step="any" id="input-longitude" placeholder="Ex: -39.314225" class="w-full p-3 sm:p-4 rounded-xl border-2 border-green-200 bg-white focus:outline-none focus:border-green-500 font-semibold text-sm sm:text-base">
+                                <input type="number" step="any" id="input-longitude" class="w-full p-3 rounded-xl border-2 border-green-200 bg-white text-sm font-semibold">
                             </div>
                         </div>
-
-                        <button type="button" onclick="getGPSCoordinates()" class="w-full bg-blue-100 hover:bg-blue-200 text-blue-800 font-bold py-3 px-4 rounded-xl transition duration-300 flex justify-center items-center text-sm mt-2">
-                            <i class="ph-bold ph-gps mr-2 text-lg"></i> Capturar Coordenadas do GPS Atual
+                        <button type="button" onclick="getGPSCoordinates()" class="w-full bg-blue-100 hover:bg-blue-200 text-blue-800 font-bold py-3 px-4 rounded-xl transition flex justify-center items-center text-sm mt-2">
+                            <i class="ph-bold ph-gps mr-2 text-lg"></i> Capturar GPS
                         </button>
                     </div>
 
                     <div class="space-y-6">
                         <h3 class="font-bold text-green-800 text-base sm:text-lg border-b border-green-200 pb-2 flex items-center justify-between font-extrabold">
                             <span>5. Cadastro de Questões</span>
-                            <span class="text-sm text-emerald-600 font-medium bg-emerald-100 px-2 py-1 rounded-lg font-bold">Opcional</span>
                         </h3>
                         <div id="questions-builder-container" class="space-y-6"></div>
                     </div>
                     
-                    <button id="btn-generate" type="submit" class="w-full mt-8 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-4 sm:py-5 px-4 rounded-2xl shadow-xl transition duration-300 flex justify-center items-center text-base sm:text-lg font-extrabold">
-                        <i class="ph-bold ph-floppy-disk mr-2 text-2xl font-bold"></i> Salvar e Gerar QR Code
+                    <button id="btn-generate" type="submit" class="w-full mt-8 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-4 sm:py-5 px-4 rounded-2xl shadow-xl transition flex justify-center items-center text-base sm:text-lg">
+                        <i class="ph-bold ph-floppy-disk mr-2 text-2xl font-bold"></i> Salvar Planta
                     </button>
-                    <p id="qr-error" class="text-red-500 text-xs text-center hidden font-bold mt-3">Erro ao gerar. Verifique os dados.</p>
                 </form>
 
                 <div id="generated-qr-section" class="hidden mt-8 pt-6 border-t-2 border-dashed border-green-300 flex flex-col items-center fade-in bg-green-50 p-4 sm:p-8 rounded-3xl">
@@ -480,96 +529,80 @@
         </div>
     </main>
 
-    <!-- MODAIS GUARDIÕES -->
-    <!-- Modal Plano de Ação -->
-    <div id="modal-plan" class="fixed inset-0 modal-overlay hidden items-center justify-center p-4">
+    <!-- ========================================== -->
+    <!-- MODAIS                                     -->
+    <!-- ========================================== -->
+    
+    <!-- Modal Iniciar Desafio (Alunos) -->
+    <div id="modal-start-challenge" class="fixed inset-0 modal-overlay hidden items-center justify-center p-4 z-50">
         <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl p-6 relative max-h-[90vh] overflow-y-auto no-scrollbar">
             <button onclick="closeModals()" class="absolute top-4 right-4 text-gray-400 hover:text-red-500"><i class="ph-bold ph-x text-2xl"></i></button>
-            <h2 class="text-xl font-bold text-emerald-800 mb-4 flex items-center font-extrabold"><i class="ph-fill ph-shield-plus mr-2 text-2xl"></i> Novo Plano de Ação</h2>
+            <h2 class="text-xl font-bold text-amber-800 mb-4 flex items-center"><i class="ph-fill ph-users-three mr-2 text-2xl"></i> Preparar Equipa</h2>
+            <p class="text-xs text-gray-500 mb-4">O cronómetro iniciará assim que confirmarem. Sejam rápidos!</p>
             
-            <form id="form-plan" onsubmit="submitGuardianPlan(event)" class="space-y-4">
+            <form id="form-start-challenge" onsubmit="confirmStartChallenge(event)" class="space-y-4">
+                <input type="hidden" id="chal-start-id">
                 <div>
-                    <label class="block text-sm font-bold text-green-700 mb-1">Nome Completo</label>
-                    <input type="text" id="plan-name" required class="w-full p-3 rounded-xl border-2 border-green-100 bg-green-50 focus:border-green-500 font-semibold">
+                    <label class="block text-sm font-bold text-amber-700 mb-1">Nome criado para o grupo</label>
+                    <input type="text" id="chal-group-name" required class="w-full p-3 rounded-xl border-2 border-amber-100 bg-amber-50 focus:border-amber-500 font-semibold">
                 </div>
                 <div>
-                    <label class="block text-sm font-bold text-green-700 mb-1">Turma</label>
-                    <select id="plan-class" required class="w-full p-3 rounded-xl border-2 border-green-100 bg-green-50 focus:border-green-500 font-bold text-green-900 cursor-pointer">
-                        <option value="">-- Selecione sua turma --</option>
-                        <option value="1º A">1º A</option>
-                        <option value="1º B">1º B</option>
-                        <option value="1º C">1º C</option>
-                        <option value="1º D">1º D</option>
-                        <option value="2º A">2º A</option>
-                        <option value="2º B">2º B</option>
-                        <option value="2º C">2º C</option>
-                        <option value="2º D">2º D</option>
-                        <option value="3º A">3º A</option>
-                        <option value="3º B">3º B</option>
-                        <option value="3º C">3º C</option>
-                        <option value="3º D">3º D</option>
+                    <label class="block text-sm font-bold text-amber-700 mb-1">Turma</label>
+                    <select id="chal-class" required class="w-full p-3 rounded-xl border-2 border-amber-100 bg-amber-50 focus:border-amber-500 font-bold text-amber-900">
+                        <option value="">-- Selecione --</option>
+                        <option value="1º A">1º A</option><option value="1º B">1º B</option><option value="1º C">1º C</option><option value="1º D">1º D</option>
+                        <option value="2º A">2º A</option><option value="2º B">2º B</option><option value="2º C">2º C</option><option value="2º D">2º D</option>
+                        <option value="3º A">3º A</option><option value="3º B">3º B</option><option value="3º C">3º C</option><option value="3º D">3º D</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block text-sm font-bold text-green-700 mb-1">Professor(es) Acompanhante(s)</label>
-                    <input type="text" id="plan-teacher" required placeholder="Ex: Prof. Lucas Silva" class="w-full p-3 rounded-xl border-2 border-green-100 bg-green-50 focus:border-green-500 font-semibold">
-                    <p class="text-xs text-green-600 mt-1 italic font-semibold">Obrigatório, pois os alunos não podem sair sozinhos da parte central da escola.</p>
+                    <label class="block text-sm font-bold text-amber-700 mb-1">Nome dos Alunos</label>
+                    <textarea id="chal-members" rows="3" required placeholder="Ex: João, Maria, Pedro" class="w-full p-3 rounded-xl border-2 border-amber-100 bg-amber-50 focus:border-amber-500 text-sm font-medium resize-none"></textarea>
                 </div>
-                <div>
-                    <label class="block text-sm font-bold text-green-700 mb-1">Plantas que irei cuidar</label>
-                    <div id="plan-plants-list" class="max-h-64 overflow-y-auto border-2 border-green-100 rounded-xl p-2 bg-green-50 space-y-1">
-                        <!-- Checkboxes renderizados via JS -->
-                    </div>
-                </div>
-                <div>
-                    <label class="block text-sm font-bold text-green-700 mb-1">Período de Execução do Plano</label>
-                    <div class="flex flex-col sm:flex-row gap-3">
-                        <div class="w-full sm:w-1/2">
-                            <div class="text-xs text-green-600 font-bold mb-1">Data Inicial</div>
-                            <input type="date" id="plan-start-date" required class="w-full p-3 rounded-xl border-2 border-green-100 bg-green-50/50 focus:border-green-500 text-sm font-semibold">
-                        </div>
-                        <div class="w-full sm:w-1/2">
-                            <div class="text-xs text-green-600 font-bold mb-1">Data Final</div>
-                            <input type="date" id="plan-end-date" required class="w-full p-3 rounded-xl border-2 border-green-100 bg-green-50/50 focus:border-green-500 text-sm font-semibold">
-                        </div>
-                    </div>
-                </div>
-                <div>
-                    <label class="block text-sm font-bold text-green-700 mb-1">Método de Registro (a colocar no relatório do plano de ação em pdf)</label>
-                    <div class="flex flex-col gap-2 p-3 rounded-xl border-2 border-green-100 bg-green-50">
-                        <label class="flex items-center space-x-2 text-sm text-green-800 cursor-pointer hover:bg-green-100 p-1.5 rounded transition-colors">
-                            <input type="checkbox" value="Fotos das ações com data" class="plan-method-checkbox rounded text-emerald-600 focus:ring-emerald-500 w-4 h-4">
-                            <span class="font-medium">Fotos das ações com data</span>
-                        </label>
-                        <label class="flex items-center space-x-2 text-sm text-green-800 cursor-pointer hover:bg-green-100 p-1.5 rounded transition-colors">
-                            <input type="checkbox" value="Link de vídeos das ações com data" class="plan-method-checkbox rounded text-emerald-600 focus:ring-emerald-500 w-4 h-4">
-                            <span class="font-medium">Link de vídeos das ações com data</span>
-                        </label>
-                    </div>
-                </div>
-                <button type="submit" id="btn-submit-plan" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-xl transition mt-2 font-bold">Enviar para Aprovação</button>
+                <button type="submit" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 px-4 rounded-xl transition mt-2">Iniciar Cronómetro e Jogar!</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Pódio do Desafio (Admin) -->
+    <div id="modal-podium" class="fixed inset-0 modal-overlay hidden items-center justify-center p-4 z-50">
+        <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl p-6 relative max-h-[90vh] overflow-y-auto no-scrollbar border-4 border-amber-300">
+            <button onclick="closeModals()" class="absolute top-4 right-4 text-gray-400 hover:text-red-500"><i class="ph-bold ph-x text-2xl"></i></button>
+            <h2 class="text-2xl font-extrabold text-amber-800 mb-2 flex items-center justify-center text-center"><i class="ph-fill ph-ranking mr-2 text-3xl"></i> Pódio do Desafio</h2>
+            <p id="podium-title" class="text-sm font-bold text-center text-gray-500 mb-6 border-b pb-2"></p>
+            
+            <div id="podium-list" class="space-y-3">
+                <div class="text-center text-gray-400 italic py-6">Carregando resultados...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Plano de Ação -->
+    <div id="modal-plan" class="fixed inset-0 modal-overlay hidden items-center justify-center p-4 z-50">
+        <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl p-6 relative max-h-[90vh] overflow-y-auto no-scrollbar">
+            <button onclick="closeModals()" class="absolute top-4 right-4 text-gray-400 hover:text-red-500"><i class="ph-bold ph-x text-2xl"></i></button>
+            <h2 class="text-xl font-bold text-emerald-800 mb-4 flex items-center font-extrabold"><i class="ph-fill ph-shield-plus mr-2 text-2xl"></i> Novo Plano de Ação</h2>
+            <form id="form-plan" onsubmit="submitGuardianPlan(event)" class="space-y-4">
+                <div><label class="block text-sm font-bold text-green-700 mb-1">Nome Completo</label><input type="text" id="plan-name" required class="w-full p-3 rounded-xl border-2 border-green-100 bg-green-50 font-semibold"></div>
+                <div><label class="block text-sm font-bold text-green-700 mb-1">Turma</label><select id="plan-class" required class="w-full p-3 rounded-xl border-2 border-green-100 bg-green-50 font-bold"><option value="">-- Selecione --</option><option value="1º A">1º A</option><option value="1º B">1º B</option><option value="1º C">1º C</option><option value="1º D">1º D</option><option value="2º A">2º A</option><option value="2º B">2º B</option><option value="2º C">2º C</option><option value="2º D">2º D</option><option value="3º A">3º A</option><option value="3º B">3º B</option><option value="3º C">3º C</option><option value="3º D">3º D</option></select></div>
+                <div><label class="block text-sm font-bold text-green-700 mb-1">Prof. Acompanhante</label><input type="text" id="plan-teacher" required class="w-full p-3 rounded-xl border-2 border-green-100 bg-green-50 font-semibold"></div>
+                <div><label class="block text-sm font-bold text-green-700 mb-1">Plantas que irei cuidar</label><div id="plan-plants-list" class="max-h-64 overflow-y-auto border-2 border-green-100 rounded-xl p-2 bg-green-50 space-y-1"></div></div>
+                <div><div class="flex gap-3"><div class="w-1/2"><label class="text-xs text-green-600 font-bold">Início</label><input type="date" id="plan-start-date" required class="w-full p-2 rounded-xl border border-green-100 text-sm"></div><div class="w-1/2"><label class="text-xs text-green-600 font-bold">Fim</label><input type="date" id="plan-end-date" required class="w-full p-2 rounded-xl border border-green-100 text-sm"></div></div></div>
+                <div><label class="block text-sm font-bold text-green-700 mb-1">Método de Registro (Provas)</label><div class="flex flex-col gap-2 p-3 rounded-xl bg-green-50"><label class="flex items-center space-x-2 text-sm cursor-pointer"><input type="checkbox" value="Fotos" class="plan-method-checkbox w-4 h-4"><span class="font-medium">Fotos</span></label><label class="flex items-center space-x-2 text-sm cursor-pointer"><input type="checkbox" value="Vídeos" class="plan-method-checkbox w-4 h-4"><span class="font-medium">Vídeos</span></label></div></div>
+                <button type="submit" id="btn-submit-plan" class="w-full bg-emerald-600 text-white font-bold py-3 px-4 rounded-xl mt-2">Enviar Plano</button>
             </form>
         </div>
     </div>
 
     <!-- Modal Relatório -->
-    <div id="modal-report" class="fixed inset-0 modal-overlay hidden items-center justify-center p-4">
+    <div id="modal-report" class="fixed inset-0 modal-overlay hidden items-center justify-center p-4 z-50">
         <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl p-6 relative">
             <button onclick="closeModals()" class="absolute top-4 right-4 text-gray-400 hover:text-red-500"><i class="ph-bold ph-x text-2xl"></i></button>
-            <h2 class="text-xl font-bold text-blue-800 mb-4 flex items-center font-extrabold"><i class="ph-fill ph-file-pdf mr-2 text-2xl"></i> Enviar Relatório Final</h2>
-            
+            <h2 class="text-xl font-bold text-blue-800 mb-4 flex items-center"><i class="ph-fill ph-file-pdf mr-2 text-2xl"></i> Enviar Relatório Final</h2>
             <form id="form-report" onsubmit="submitGuardianReport(event)" class="space-y-4">
-                <div>
-                    <label class="block text-sm font-bold text-blue-700 mb-1">Selecione seu Plano</label>
-                    <select id="report-guardian-id" required class="w-full p-3 rounded-xl border-2 border-blue-100 bg-blue-50 focus:border-blue-500 font-semibold text-gray-700">
-                        <option value="">Carregando seus planos...</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-sm font-bold text-blue-700 mb-1">Arquivo PDF</label>
-                    <input type="file" id="report-file" accept="application/pdf" required class="w-full p-3 rounded-xl border-2 border-blue-100 bg-blue-50 text-sm">
-                </div>
-                <button type="submit" id="btn-submit-report" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl transition mt-2 flex justify-center items-center font-bold">Enviar PDF</button>
+                <div><label class="block text-sm font-bold text-blue-700 mb-1">Seu Plano</label><select id="report-guardian-id" required class="w-full p-3 rounded-xl border-2 border-blue-100 bg-blue-50 font-semibold text-gray-700"><option value="">Carregando...</option></select></div>
+                <div><label class="block text-sm font-bold text-blue-700 mb-1">Arquivo PDF</label><input type="file" id="report-file" accept="application/pdf" required class="w-full p-3 rounded-xl border-2 border-blue-100 bg-blue-50 text-sm"></div>
+                <button type="submit" id="btn-submit-report" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-xl mt-2 flex justify-center">Enviar PDF</button>
             </form>
         </div>
     </div>
@@ -583,63 +616,43 @@
         </div>
     </footer>
 
-    <!-- Conexão Módulo Nuvem (Supabase) -->
+    <!-- ========================================== -->
+    <!-- MÓDULO SUPABASE E INIT                     -->
+    <!-- ========================================== -->
     <script type="module">
         import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/+esm';
 
-        // =========================================================================
-        // ATENÇÃO: COLE SUAS CREDENCIAIS DO SUPABASE ABAIXO
-        // =========================================================================
         const SUPABASE_URL = 'https://uiktphiubjmqvywbbgnf.supabase.co'; 
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVpa3RwaGl1YmptcXZ5d2JiZ25mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg5NTE0MzksImV4cCI6MjA5NDUyNzQzOX0.ta-UXmc7pICbi9qWNBOQfK-qKHGyZpA6RMTyYeDDijo'; 
-        // =========================================================================
-
+        
         window.supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         window.initCloudDB = async function() {
-            if (SUPABASE_URL === 'COLE_AQUI_SEU_PROJECT_URL' || !SUPABASE_URL) return false;
-
+            if (!SUPABASE_URL) return false;
             try {
-                // Plantas - Atualizado para suportar a galeria de imagens 'image_urls' JSONB
                 window.savePlantToCloud = async function(plantData) {
                     const { error } = await window.supabase.from('plants').upsert({ 
-                        id: plantData.cientifico, 
-                        nome: plantData.nome, 
-                        cientifico: plantData.cientifico, 
-                        url: plantData.url, 
-                        image_urls: plantData.image_urls,
-                        info_url: plantData.info_url,
-                        quiz: plantData.quiz,
-                        latitude: plantData.latitude,
-                        longitude: plantData.longitude
+                        id: plantData.cientifico, nome: plantData.nome, cientifico: plantData.cientifico, 
+                        url: plantData.url, image_urls: plantData.image_urls, info_url: plantData.info_url,
+                        quiz: plantData.quiz, latitude: plantData.latitude, longitude: plantData.longitude
                     });
-                    if (error) showToast("Erro ao salvar na nuvem! Conecte-se como professor.", true);
+                    if (error) showToast("Erro ao salvar na nuvem!", true);
                 };
 
                 async function syncCloudPlants() {
-                    const { data: plants, error } = await window.supabase.from('plants').select('*');
-                    if (error) return;
-                    let cloudPlants = {};
-                    plants.forEach(p => { 
-                        cloudPlants[p.id] = { 
-                            nome: p.nome, 
-                            cientifico: p.cientifico, 
-                            url: p.url, 
-                            image_urls: p.image_urls,
-                            info_url: p.info_url,
-                            quiz: p.quiz,
-                            latitude: p.latitude,
-                            longitude: p.longitude
-                        }; 
-                    });
-                    localStorage.setItem('botanica_plants', JSON.stringify(cloudPlants));
-                    if(typeof window.updateDropdown === 'function') window.updateDropdown();
+                    const { data: plants } = await window.supabase.from('plants').select('*');
+                    if (plants) {
+                        let cloudPlants = {};
+                        plants.forEach(p => { cloudPlants[p.id] = p; });
+                        localStorage.setItem('botanica_plants', JSON.stringify(cloudPlants));
+                        if(typeof window.updateDropdown === 'function') window.updateDropdown();
+                        if(typeof window.renderAdminChallengesList === 'function') window.populateChallengePlants(plants);
+                    }
                 }
 
-                // Guardiões
                 window.syncGuardians = async function() {
-                    const { data, error } = await window.supabase.from('guardians').select('*').order('created_at', { ascending: false });
-                    if (!error && data) {
+                    const { data } = await window.supabase.from('guardians').select('*').order('created_at', { ascending: false });
+                    if (data) {
                         window.cachedGuardians = data; 
                         if(typeof window.renderApprovedGuardians === 'function') window.renderApprovedGuardians(data);
                         if(typeof window.renderAdminGuardians === 'function') window.renderAdminGuardians(data);
@@ -647,897 +660,767 @@
                     }
                 };
 
+                window.syncQuizResults = async function() {
+                    const { data } = await window.supabase.from('quiz_results').select('*').order('created_at', { ascending: false });
+                    if (data && typeof window.renderQuizResults === 'function') window.renderQuizResults(data);
+                };
+
+                window.syncChallenges = async function() {
+                    const { data } = await window.supabase.from('challenges').select('*').order('deadline', { ascending: true });
+                    if (data) {
+                        window.cachedChallenges = data;
+                        if(typeof window.renderStudentChallenges === 'function') window.renderStudentChallenges(data);
+                        if(typeof window.renderAdminChallengesList === 'function') window.renderAdminChallengesList(data);
+                    }
+                };
+
                 syncCloudPlants();
                 window.syncGuardians();
+                window.syncQuizResults();
+                window.syncChallenges();
+                
+                window.supabase.channel('public:quiz_results').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'quiz_results' }, payload => { window.syncQuizResults(); showToast(`Novo quiz respondido por ${payload.new.student_name}!`, false); }).subscribe();
+                window.supabase.channel('public:challenge_teams').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'challenge_teams' }, payload => { showToast(`Desafio concluído pela equipa: ${payload.new.group_name}!`, false); }).subscribe();
                 
                 const { data: { session } } = await window.supabase.auth.getSession();
                 if (session && typeof window.showCreateSection === 'function') window.showCreateSection();
-                
                 return true;
-            } catch (error) {
-                console.warn("Modo offline.", error);
-                return false;
-            }
+            } catch (error) { return false; }
         };
-
         window.initCloudDB();
     </script>
 
+    <!-- ========================================== -->
+    <!-- LÓGICA PRINCIPAL DO APLICATIVO             -->
+    <!-- ========================================== -->
     <script>
-        // --- SISTEMA DE NOTIFICAÇÕES TOAST (Livre de travamentos e popups) ---
+        // --- 1. UI E UTILITÁRIOS ---
         function showToast(msg, isError = false) {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
-            if(container.children.length > 0) container.innerHTML = '';
-            
-            toast.className = `p-4 rounded-xl shadow-2xl text-sm font-bold text-white transition-all duration-300 transform translate-y-[-20px] opacity-0 flex items-center ${isError ? 'bg-red-600' : 'bg-emerald-600'}`;
+            container.innerHTML = '';
+            toast.className = `p-4 rounded-xl shadow-2xl text-sm font-bold text-white transition-all duration-300 transform translate-y-[-20px] opacity-0 flex items-center ${isError ? 'bg-red-600' : 'bg-emerald-600'} z-[999]`;
             toast.innerHTML = `<i class="ph-bold ${isError ? 'ph-warning-circle' : 'ph-check-circle'} text-xl mr-2"></i> <span>${msg}</span>`;
             container.appendChild(toast);
-
-            requestAnimationFrame(() => {
-                toast.classList.remove('translate-y-[-20px]', 'opacity-0');
-            });
-
-            setTimeout(() => {
-                toast.classList.add('opacity-0');
-                setTimeout(() => { if(toast.parentNode) toast.parentNode.removeChild(toast); }, 300);
-            }, 3500);
+            requestAnimationFrame(() => toast.classList.remove('translate-y-[-20px]', 'opacity-0'));
+            setTimeout(() => { toast.classList.add('opacity-0'); setTimeout(() => { if(toast.parentNode) toast.parentNode.removeChild(toast); }, 300); }, 3500);
         }
         window.showToast = showToast;
 
+        window.closeModals = function() {
+            document.getElementById('modal-plan').classList.replace('flex', 'hidden');
+            document.getElementById('modal-report').classList.replace('flex', 'hidden');
+            document.getElementById('modal-start-challenge').classList.replace('flex', 'hidden');
+            document.getElementById('modal-podium').classList.replace('flex', 'hidden');
+        };
 
+        // --- 2. NAVEGAÇÃO E TABS ---
         let isScanningActive = true;
-        let globalLeafletMap = null;
-        let globalMarkersLayer = null;
         
-        let userWatchId = null;       
-        let lastDistance = null;      
-        let userMarkerDetail = null;  
-
-        let smoothUserLat = null;
-        let smoothUserLng = null;
-        const ALPHA = 0.25; 
-
-        function calculateDistance(lat1, lon1, lat2, lon2) {
-            const R = 6371e3; 
-            const phi1 = lat1 * Math.PI / 180;
-            const phi2 = lat2 * Math.PI / 180;
-            const deltaPhi = (lat2 - lat1) * Math.PI / 180;
-            const deltaLambda = (lon2 - lon1) * Math.PI / 180;
-
-            const a = Math.sin(deltaPhi / 2) * Math.sin(deltaPhi / 2) +
-                      Math.cos(phi1) * Math.cos(phi2) *
-                      Math.sin(deltaLambda / 2) * Math.sin(deltaLambda / 2);
-            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-            return R * c; 
-        }
-        window.calculateDistance = calculateDistance;
-        
-        function switchTab(tab) {
-            const scanView = document.getElementById('view-scan');
-            const mapView = document.getElementById('view-map');
-            const createView = document.getElementById('view-create');
-            
-            const btnScan = document.getElementById('btn-tab-scan');
-            const btnMap = document.getElementById('btn-tab-map');
-            const btnCreate = document.getElementById('btn-tab-create');
-            
-            scanView.classList.replace('flex', 'hidden');
-            if(!scanView.classList.contains('hidden')) scanView.classList.add('hidden');
-            
-            mapView.classList.replace('flex', 'hidden');
-            if(!mapView.classList.contains('hidden')) mapView.classList.add('hidden');
-            
-            createView.classList.replace('flex', 'hidden');
-            if(!createView.classList.contains('hidden')) createView.classList.add('hidden');
-            
-            btnScan.className = btnScan.className.replace('tab-active', 'tab-inactive');
-            btnMap.className = btnMap.className.replace('tab-active', 'tab-inactive');
-            btnCreate.className = btnCreate.className.replace('tab-active', 'tab-inactive');
-            
+        window.switchTab = function(tab) {
+            ['scan', 'map', 'create'].forEach(v => {
+                const el = document.getElementById(`view-${v}`);
+                el.classList.replace('flex', 'hidden'); if(!el.classList.contains('hidden')) el.classList.add('hidden');
+                const btn = document.getElementById(`btn-tab-${v}`);
+                btn.className = btn.className.replace('tab-active', 'tab-inactive');
+            });
             stopGPSTracking();
 
-            if (tab === 'scan') {
-                scanView.classList.replace('hidden', 'flex');
-                btnScan.className = btnScan.className.replace('tab-inactive', 'tab-active');
-                isScanningActive = true;
-                updateDropdown(); 
-            } else if (tab === 'map') {
-                mapView.classList.replace('hidden', 'flex');
-                btnMap.className = btnMap.className.replace('tab-inactive', 'tab-active');
-                isScanningActive = false;
-                initGlobalMap(); 
-            } else if (tab === 'create') {
-                createView.classList.replace('hidden', 'flex');
-                btnCreate.className = btnCreate.className.replace('tab-inactive', 'tab-active');
-                isScanningActive = false;
-            }
+            const targetView = document.getElementById(`view-${tab}`);
+            const targetBtn = document.getElementById(`btn-tab-${tab}`);
+            targetView.classList.replace('hidden', 'flex');
+            targetBtn.className = targetBtn.className.replace('tab-inactive', 'tab-active');
+
+            if (tab === 'scan') { isScanningActive = true; updateDropdown(); window.checkActiveChallengeState(); } 
+            else if (tab === 'map') { isScanningActive = false; initGlobalMap(); } 
+            else if (tab === 'create') { isScanningActive = false; }
+        };
+
+        // --- 3. GEOLOCALIZAÇÃO E MAPAS ---
+        let globalLeafletMap = null; let globalMarkersLayer = null;
+        let userWatchId = null; let lastDistance = null; let userMarkerDetail = null;  
+        let smoothUserLat = null; let smoothUserLng = null; const ALPHA = 0.25; 
+
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371e3; const phi1 = lat1 * Math.PI / 180; const phi2 = lat2 * Math.PI / 180;
+            const deltaPhi = (lat2 - lat1) * Math.PI / 180; const deltaLambda = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(deltaPhi / 2) * Math.sin(deltaPhi / 2) + Math.cos(phi1) * Math.cos(phi2) * Math.sin(deltaLambda / 2) * Math.sin(deltaLambda / 2);
+            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         }
-        window.switchTab = switchTab;
 
         function stopGPSTracking() {
-            if (userWatchId !== null) {
-                navigator.geolocation.clearWatch(userWatchId);
-                userWatchId = null;
-            }
-            lastDistance = null;
-            userMarkerDetail = null;
-            smoothUserLat = null;
-            smoothUserLng = null;
+            if (userWatchId !== null) { navigator.geolocation.clearWatch(userWatchId); userWatchId = null; }
+            lastDistance = null; userMarkerDetail = null; smoothUserLat = null; smoothUserLng = null;
         }
+
+        window.focusUserOnDetailMap = function() {
+            if (window.detailLeafletMap && smoothUserLat !== null && smoothUserLng !== null) {
+                window.detailLeafletMap.panTo([smoothUserLat, smoothUserLng]);
+                showToast("Mapa focado na sua posição!", false);
+            } else { showToast("Aguardando sinal estável de GPS...", true); }
+        };
 
         window.getGPSCoordinates = function() {
             const btn = document.querySelector('button[onclick="getGPSCoordinates()"]');
-            const originalText = btn.innerHTML;
-            btn.innerHTML = '<i class="ph-bold ph-spinner animate-spin mr-2"></i> Obtendo localização pelo GPS...';
-            btn.disabled = true;
+            const originalText = btn.innerHTML; btn.innerHTML = '<i class="ph-bold ph-spinner animate-spin mr-2"></i> Capturando...'; btn.disabled = true;
 
-            if (!navigator.geolocation) {
-                showToast("Seu dispositivo não suporta Geolocalização.", true);
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-                return;
-            }
+            if (!navigator.geolocation) { showToast("Sem suporte a GPS.", true); btn.innerHTML = originalText; btn.disabled = false; return; }
 
             navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    document.getElementById('input-latitude').value = position.coords.latitude;
-                    document.getElementById('input-longitude').value = position.coords.longitude;
-                    showToast("Coordenadas capturadas com sucesso!", false);
-                    btn.innerHTML = originalText;
-                    btn.disabled = false;
+                (pos) => {
+                    document.getElementById('input-latitude').value = pos.coords.latitude;
+                    document.getElementById('input-longitude').value = pos.coords.longitude;
+                    showToast("Coordenadas salvas!", false); btn.innerHTML = originalText; btn.disabled = false;
                 },
-                (error) => {
-                    console.error("Erro de Geolocalização:", error.message || error);
-                    let errMsg = "Erro ao capturar localização.";
-                    if (error.code === error.PERMISSION_DENIED) {
-                        errMsg = "Permissão de localização negada.";
-                    } else if (error.code === error.POSITION_UNAVAILABLE) {
-                        errMsg = "Sinal de GPS indisponível.";
-                    }
-                    showToast(errMsg, true);
-                    btn.innerHTML = originalText;
-                    btn.disabled = false;
-                },
+                (err) => { showToast("Erro de GPS.", true); btn.innerHTML = originalText; btn.disabled = false; },
                 { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
             );
         };
 
         function initGlobalMap() {
-            if (typeof L === 'undefined') {
-                console.warn("Leaflet ainda não foi carregado.");
-                return;
-            }
-            
+            if (typeof L === 'undefined') return;
             const schoolCoordinates = [-7.2186, -39.3145];
             
             setTimeout(() => {
                 const container = L.DomUtil.get('global-map');
-                if (container && container._leaflet_id) {
-                    if (globalLeafletMap) {
-                        try { globalLeafletMap.remove(); } catch(e){}
-                    }
-                    globalLeafletMap = null;
-                    container._leaflet_id = null;
-                }
-
+                if (container && container._leaflet_id) { if (globalLeafletMap) try{globalLeafletMap.remove();}catch(e){} globalLeafletMap = null; container._leaflet_id = null; }
                 if (!globalLeafletMap) {
                     globalLeafletMap = L.map('global-map').setView(schoolCoordinates, 18);
-                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                        maxZoom: 19,
-                        attribution: '© OpenStreetMap'
-                    }).addTo(globalLeafletMap);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(globalLeafletMap);
                     globalMarkersLayer = L.layerGroup().addTo(globalLeafletMap);
                 }
 
                 globalMarkersLayer.clearLayers();
-
                 const plants = JSON.parse(localStorage.getItem('botanica_plants') || '{}');
-                
                 const busyPlants = {};
-                if (window.cachedGuardians) {
-                    window.cachedGuardians.forEach(g => {
-                        if (['pendente', 'aprovado', 'relatorio_enviado'].includes(g.status)) {
-                            const plantIds = Array.isArray(g.plants) ? g.plants : [];
-                            plantIds.forEach(pId => {
-                                busyPlants[pId] = { name: g.student_name, class: g.student_class, status: g.status };
-                            });
-                        }
-                    });
-                }
+                if (window.cachedGuardians) window.cachedGuardians.forEach(g => { if (['pendente', 'aprovado', 'relatorio_enviado'].includes(g.status)) g.plants.forEach(pId => busyPlants[pId] = { name: g.student_name, class: g.student_class }); });
 
-                let hasCoordinates = false;
                 let bounds = [];
-
-                const greenIcon = L.icon({
-                    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
-                    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-                    iconSize: [25, 41],
-                    iconAnchor: [12, 41],
-                    popupAnchor: [1, -34],
-                    shadowSize: [41, 41]
-                });
-
-                const redIcon = L.icon({
-                    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
-                    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-                    iconSize: [25, 41],
-                    iconAnchor: [12, 41],
-                    popupAnchor: [1, -34],
-                    shadowSize: [41, 41]
-                });
+                const greenIcon = L.icon({iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png', shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png', iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]});
+                const redIcon = L.icon({iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png', shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png', iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]});
 
                 Object.values(plants).forEach(p => {
                     if (p.latitude && p.longitude) {
-                        hasCoordinates = true;
-                        const lat = parseFloat(p.latitude);
-                        const lng = parseFloat(p.longitude);
-                        bounds.push([lat, lng]);
-
-                        const busyInfo = busyPlants[p.cientifico];
-                        const isBusy = !!busyInfo;
-                        
-                        const markerIcon = isBusy ? redIcon : greenIcon;
-
-                        const marker = L.marker([lat, lng], { icon: markerIcon })
-                            .bindPopup(`
-                                <div class="text-center p-1 font-sans">
-                                    <h4 class="font-extrabold text-green-800 text-sm mb-0.5">${p.nome}</h4>
-                                    <p class="text-xs italic text-emerald-600 mb-1">${p.cientifico}</p>
-                                    ${isBusy ? 
-                                        `<p class="text-[10px] text-red-600 font-bold mb-2 flex items-center justify-center"><i class="ph-bold ph-shield-warning mr-1 text-sm"></i> Guardião: ${busyInfo.name} (${busyInfo.class})</p>` : 
-                                        `<p class="text-[10px] text-emerald-600 font-bold mb-2 flex items-center justify-center"><i class="ph-bold ph-hands-clapping mr-1 text-sm"></i> Disponível para cuidar!</p>`
-                                    }
-                                    <div class="flex flex-col gap-1.5 w-full">
-                                        <button onclick="window.loadStudentViewFromMap('${p.cientifico}')" class="bg-emerald-600 text-white font-bold text-[10px] py-2 px-3 rounded-full hover:bg-emerald-700 transition w-full shadow-sm">Ver Detalhes</button>
-                                        <a href="https://www.google.com/maps/search/?api=1&query=${lat},${lng}" target="_blank" class="bg-blue-600 font-bold text-[10px] py-2 px-3 rounded-full hover:bg-blue-700 transition inline-block text-center no-underline w-full shadow-sm" style="color: white !important; text-decoration: none !important;">Como Chegar (Google Maps)</a>
-                                    </div>
+                        bounds.push([p.latitude, p.longitude]);
+                        const isBusy = !!busyPlants[p.cientifico];
+                        const marker = L.marker([p.latitude, p.longitude], { icon: isBusy ? redIcon : greenIcon }).bindPopup(`
+                            <div class="text-center p-1 font-sans">
+                                <h4 class="font-extrabold text-green-800 text-sm mb-0.5">${p.nome}</h4>
+                                <p class="text-xs italic text-emerald-600 mb-1">${p.cientifico}</p>
+                                ${isBusy ? `<p class="text-[10px] text-red-600 font-bold mb-2 flex items-center justify-center"><i class="ph-bold ph-shield-warning mr-1"></i> Guardião: ${busyPlants[p.cientifico].name}</p>` : `<p class="text-[10px] text-emerald-600 font-bold mb-2 flex items-center justify-center"><i class="ph-bold ph-hands-clapping mr-1"></i> Livre!</p>`}
+                                <div class="flex flex-col gap-1.5 w-full">
+                                    <button onclick="window.loadStudentViewFromMap('${p.cientifico}')" class="bg-emerald-600 text-white font-bold text-[10px] py-2 px-3 rounded-full hover:bg-emerald-700 transition w-full shadow-sm">Ver Detalhes</button>
+                                    <a href="https://www.google.com/maps/search/?api=1&query=${p.latitude},${p.longitude}" target="_blank" class="btn-map-nav bg-blue-600 text-white font-bold text-[10px] py-2 px-3 rounded-full hover:bg-blue-700 transition inline-block text-center no-underline w-full shadow-sm">Como Chegar</a>
                                 </div>
-                            `);
+                            </div>
+                        `);
                         globalMarkersLayer.addLayer(marker);
                     }
                 });
 
-                if (hasCoordinates && bounds.length > 0) {
-                    globalLeafletMap.fitBounds(bounds, { padding: [40, 40] });
-                } else {
-                    globalLeafletMap.setView(schoolCoordinates, 18);
-                }
-
+                if (bounds.length > 0) globalLeafletMap.fitBounds(bounds, { padding: [40, 40] });
                 globalLeafletMap.invalidateSize();
             }, 300);
         }
 
         window.loadStudentViewFromMap = function(scientificName) {
-            const plants = JSON.parse(localStorage.getItem('botanica_plants') || '{}');
-            const p = plants[scientificName];
-            if(p) {
-                switchTab('scan');
-                loadStudentView(p);
-            }
+            const p = JSON.parse(localStorage.getItem('botanica_plants') || '{}')[scientificName];
+            if(p) { switchTab('scan'); loadStudentView(p); }
         };
 
-        function closeModals() {
-            document.getElementById('modal-plan').classList.replace('flex', 'hidden');
-            document.getElementById('modal-report').classList.replace('flex', 'hidden');
-            document.getElementById('form-plan').reset();
-            document.getElementById('form-report').reset();
-        }
-        window.closeModals = closeModals;
+        // --- 4. SISTEMA DE DESAFIOS (ALUNOS & JOGO) ---
+        window.renderStudentChallenges = function(challenges) {
+            const container = document.getElementById('student-challenges-container');
+            const list = document.getElementById('active-challenges-list');
+            const now = new Date();
+            const active = challenges.filter(c => new Date(c.deadline) > now);
 
-        async function openPlanModal() {
-            if(window.syncGuardians) {
-                await window.syncGuardians();
-            }
-
-            const plants = JSON.parse(localStorage.getItem('botanica_plants') || '{}');
-            const listDiv = document.getElementById('plan-plants-list');
-            if(!listDiv) return;
-            
-            listDiv.innerHTML = '';
-
-            const busyPlants = {};
-            if (window.cachedGuardians) {
-                window.cachedGuardians.forEach(g => {
-                    if (['pendente', 'aprovado', 'relatorio_enviado'].includes(g.status)) {
-                        const plantIds = Array.isArray(g.plants) ? g.plants : [];
-                        plantIds.forEach(pId => {
-                            busyPlants[pId] = { name: g.student_name, class: g.student_class, status: g.status };
-                        });
-                    }
-                });
-            }
-            
-            if(Object.keys(plants).length === 0) {
-                listDiv.innerHTML = '<p class="text-xs text-gray-500 p-2 text-center">Nenhuma planta cadastrada no app ainda.</p>';
-            } else {
-                Object.values(plants).forEach((p, idx) => {
-                    const busyInfo = busyPlants[p.cientifico];
-                    const isBusy = !!busyInfo;
-                    const statusLabel = busyInfo?.status === 'pendente' ? 'Aguardando aprovação' : 'Sob cuidado ativo';
-
-                    listDiv.innerHTML += `
-                        <div class="border ${isBusy ? 'border-red-200 bg-red-50/10' : 'border-green-200 bg-white'} rounded-lg p-2 mb-2 transition-all">
-                            <label class="flex items-start space-x-2 text-sm text-green-800 ${isBusy ? 'cursor-not-allowed text-gray-400' : 'cursor-pointer'}">
-                                <input type="checkbox" value="${p.cientifico}" data-name="${p.nome}" data-idx="${idx}" 
-                                    ${isBusy ? 'disabled' : ''} 
-                                    class="plan-plant-checkbox rounded ${isBusy ? 'text-gray-300 border-gray-200 mt-1' : 'text-emerald-600 focus:ring-emerald-500 mt-1'}" 
-                                    onchange="togglePlantActions(${idx})">
-                                <div class="flex-grow flex-col">
-                                    <span class="${isBusy ? 'line-through text-gray-400' : ''}"><strong class="font-bold">${p.nome}</strong> <em class="text-xs text-gray-500 font-normal">(${p.cientifico})</em></span>
-                                    ${isBusy ? `<span class="block text-[10px] text-red-600 font-bold mt-1"><i class="ph-bold ph-shield-warning mr-1"></i> ${statusLabel} de: ${busyInfo.name} (${busyInfo.class})</span>` : ''}
-                                </div>
-                            </label>
-                            
-                            <div id="actions-${idx}" class="hidden ml-6 mt-3 space-y-2 text-xs text-green-800 border-t border-gray-100 pt-2">
-                                <p class="font-bold text-emerald-700 bg-emerald-50 px-2 py-1 rounded inline-block">Ações de cuidado (quando necessário):</p>
-                                <div class="flex flex-wrap gap-2 mt-1">
-                                    <label class="flex items-center bg-gray-50 border border-gray-200 px-2 py-1 rounded cursor-pointer hover:bg-green-50 hover:border-green-200 transition-colors"><input type="checkbox" class="mr-1.5 action-cb-${idx} rounded text-emerald-600" value="Agoar"> Agoar</label>
-                                    <label class="flex items-center bg-gray-50 border border-gray-200 px-2 py-1 rounded cursor-pointer hover:bg-green-50 hover:border-green-200 transition-colors"><input type="checkbox" class="mr-1.5 action-cb-${idx} rounded text-emerald-600" value="Adubar"> Adubar</label>
-                                    <label class="flex items-center bg-gray-50 border border-gray-200 px-2 py-1 rounded cursor-pointer hover:bg-green-50 hover:border-green-200 transition-colors"><input type="checkbox" class="mr-1.5 action-cb-${idx} rounded text-emerald-600" value="Podar"> Podar</label>
-                                    <label class="flex items-center bg-gray-50 border border-gray-200 px-2 py-1 rounded cursor-pointer hover:bg-green-50 hover:border-green-200 transition-colors"><input type="checkbox" class="mr-1.5 action-cb-${idx} rounded text-emerald-600" value="Tratar praga"> Tratar praga</label>
-                                    <label class="flex items-center bg-gray-50 border border-gray-200 px-2 py-1 rounded cursor-pointer hover:bg-green-50 hover:border-green-200 transition-colors"><input type="checkbox" class="mr-1.5 action-cb-${idx} rounded text-emerald-600" value="Replantar"> Replantar</label>
-                                    <label class="flex items-center bg-gray-50 border border-gray-200 px-2 py-1 rounded cursor-pointer hover:bg-green-50 hover:border-green-200 transition-colors"><input type="checkbox" class="mr-1.5 action-cb-${idx} rounded text-emerald-600" value="Adequar a exposição à luz/sombra"> Adequar a exposição à luz/sombra</label>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                });
-            }
-            document.getElementById('modal-plan').classList.replace('hidden', 'flex');
-        }
-        window.openPlanModal = openPlanModal;
-
-        window.togglePlantActions = function(idx) {
-            const div = document.getElementById(`actions-${idx}`);
-            const cb = document.querySelector(`input[data-idx="${idx}"]`);
-            if(cb && cb.checked) {
-                div.classList.remove('hidden');
-            } else {
-                div.classList.add('hidden');
-                document.querySelectorAll(`.action-cb-${idx}`).forEach(el => el.checked = false);
-            }
-        };
-
-        function openReportModal() {
-            if(window.syncGuardians) window.syncGuardians(); 
-            document.getElementById('modal-report').classList.replace('hidden', 'flex');
-        }
-        window.openReportModal = openReportModal;
-
-        function populateReportSelect(guardians) {
-            const select = document.getElementById('report-guardian-id');
-            const eligible = guardians.filter(g => g.status === 'aprovado' && (g.report_url == null || g.report_url === ''));
-            
-            if (eligible.length === 0) {
-                select.innerHTML = '<option value="">Nenhum plano disponível ou aprovado.</option>';
-                return;
-            }
-            
-            select.innerHTML = '<option value="">-- Escolha seu nome/plano --</option>';
-            eligible.forEach(g => {
-                select.innerHTML += `<option value="${g.id}">${g.student_name} (${g.student_class}) - ${new Date(g.created_at).toLocaleDateString()}</option>`;
-            });
-        }
-        window.populateReportSelect = populateReportSelect;
-
-        async function submitGuardianPlan(e) {
-            e.preventDefault();
-            const btn = document.getElementById('btn-submit-plan');
-            btn.innerHTML = 'Enviando...'; btn.disabled = true;
-
-            const selectedPlantsElements = Array.from(document.querySelectorAll('.plan-plant-checkbox:checked'));
-            
-            if(selectedPlantsElements.length === 0) {
-                showToast("Selecione pelo menos uma planta na lista.", true);
-                btn.innerHTML = 'Enviar para Aprovação'; btn.disabled = false;
+            if(active.length === 0) {
+                container.classList.replace('flex', 'hidden');
                 return;
             }
 
-            const startDate = document.getElementById('plan-start-date').value;
-            const endDate = document.getElementById('plan-end-date').value;
-            
-            if(!startDate || !endDate) {
-                showToast("Preencha o período inicial e final.", true);
-                btn.innerHTML = 'Enviar para Aprovação'; btn.disabled = false;
-                return;
-            }
-
-            if(new Date(endDate) < new Date(startDate)) {
-                showToast("A data final deve ser posterior à data inicial.", true);
-                btn.innerHTML = 'Enviar para Aprovação'; btn.disabled = false;
-                return;
-            }
-
-            const selectedMethods = Array.from(document.querySelectorAll('.plan-method-checkbox:checked')).map(cb => cb.value);
-            if(selectedMethods.length === 0) {
-                showToast("Selecione o método de registro (provas).", true);
-                btn.innerHTML = 'Enviar para Aprovação'; btn.disabled = false;
-                return;
-            }
-
-            const accompanyingTeacher = document.getElementById('plan-teacher').value.trim();
-            if(!accompanyingTeacher) {
-                showToast("Preencha o nome do professor acompanhante.", true);
-                btn.innerHTML = 'Enviar para Aprovação'; btn.disabled = false;
-                return;
-            }
-
-            const formatDt = (dt) => dt.split('-').reverse().join('/');
-            let actionPlanText = `Período: ${formatDt(startDate)} a ${formatDt(endDate)}\n\nCuidados propostos:\n`;
-            let selectedPlantsIds = [];
-            let missingActions = false;
-
-            selectedPlantsElements.forEach(cb => {
-                const idx = cb.getAttribute('data-idx');
-                const plantName = cb.getAttribute('data-name');
-                selectedPlantsIds.push(cb.value);
-                
-                const actions = Array.from(document.querySelectorAll(`.action-cb-${idx}:checked`)).map(a => a.value);
-                if(actions.length === 0) {
-                    missingActions = true;
-                    showToast(`Por favor, selecione as ações de cuidado para: ${plantName}`, true);
-                } else {
-                    actionPlanText += `• ${plantName}: ${actions.join(', ')}\n`;
-                }
-            });
-
-            if (missingActions) {
-                btn.innerHTML = 'Enviar para Aprovação'; btn.disabled = false;
-                return;
-            }
-
-            const payload = {
-                student_name: document.getElementById('plan-name').value,
-                student_class: document.getElementById('plan-class').value,
-                accompanying_teacher: accompanyingTeacher,
-                action_plan: actionPlanText,
-                recording_method: "PDF com: " + selectedMethods.join(' e/ou '),
-                plants: selectedPlantsIds,
-                status: 'pendente' 
-            };
-
-            try {
-                const { error } = await window.supabase.from('guardians').insert([payload]);
-                if (error) throw error;
-                showToast("Enviado! Aguarde a aprovação do professor.", false);
-                closeModals();
-                if(window.syncGuardians) window.syncGuardians();
-            } catch (err) {
-                showToast("Erro ao enviar: " + err.message, true);
-            } finally {
-                btn.innerHTML = 'Enviar para Aprovação'; btn.disabled = false;
-            }
-        }
-        window.submitGuardianPlan = submitGuardianPlan;
-
-        async function submitGuardianReport(e) {
-            e.preventDefault();
-            const btn = document.getElementById('btn-submit-report');
-            const guardianId = document.getElementById('report-guardian-id').value;
-            const fileInput = document.getElementById('report-file');
-            
-            if(!guardianId) { showToast("Selecione seu plano primeiro.", true); return; }
-            if(fileInput.files.length === 0) { showToast("Selecione um arquivo PDF.", true); return; }
-
-            btn.innerHTML = '<i class="ph-bold ph-spinner animate-spin"></i> Enviando PDF...'; btn.disabled = true;
-            const file = fileInput.files[0];
-            const fileName = `${Date.now()}_${file.name.replace(/\s+/g, '_')}`;
-
-            try {
-                const { data: uploadData, error: uploadError } = await window.supabase.storage
-                    .from('reports')
-                    .upload(fileName, file);
-
-                if (uploadError) throw uploadError;
-
-                const { data: publicUrlData } = window.supabase.storage.from('reports').getPublicUrl(fileName);
-                const publicUrl = publicUrlData.publicUrl;
-
-                const { error: updateError } = await window.supabase.from('guardians')
-                    .update({ report_url: publicUrl, status: 'relatorio_enviado' })
-                    .eq('id', guardianId);
-
-                if (updateError) throw updateError;
-
-                showToast("Relatório enviado! Aguardando aprovação do professor.", false);
-                closeModals();
-                if(window.syncGuardians) window.syncGuardians();
-
-            } catch (err) {
-                console.error("Erro no envio de PDF:", err.message || err);
-                showToast("Erro ao enviar PDF. Tente novamente.", true);
-            } finally {
-                btn.innerHTML = 'Enviar PDF'; btn.disabled = false;
-            }
-        }
-        window.submitGuardianReport = submitGuardianReport;
-
-        function renderApprovedGuardians(guardians) {
-            const list = document.getElementById('approved-guardians-list');
-            const statsContainer = document.getElementById('class-stats-container');
-            const statsList = document.getElementById('class-stats-list');
-            
-            const activeGuardians = guardians.filter(g => ['aprovado', 'relatorio_enviado', 'concluido'].includes(g.status));
-            
-            if (activeGuardians.length > 0) {
-                const classCounts = {};
-                activeGuardians.forEach(g => {
-                    const turma = g.student_class.trim().toUpperCase();
-                    classCounts[turma] = (classCounts[turma] || 0) + 1;
-                });
-
-                const sortedClasses = Object.keys(classCounts).sort();
-                
-                statsList.innerHTML = sortedClasses.map(turma => `
-                    <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 font-extrabold px-3 py-1.5 rounded-full text-xs sm:text-sm flex items-center shadow-sm">
-                        ${turma} 
-                        <span class="bg-emerald-500 text-white rounded-full w-5 h-5 flex items-center justify-center ml-2 text-xs shadow-inner">${classCounts[turma]}</span>
+            container.classList.replace('hidden', 'flex');
+            list.innerHTML = active.map(c => `
+                <div class="bg-white p-4 rounded-2xl border border-amber-200 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                    <div>
+                        <h4 class="font-extrabold text-amber-900 text-lg">${c.title}</h4>
+                        <p class="text-xs text-amber-700 font-bold mb-1"><i class="ph-bold ph-clock mr-1"></i> Termina: ${new Date(c.deadline).toLocaleString('pt-BR')}</p>
+                        <p class="text-xs text-gray-500 font-medium">Missão: Localizar ${c.plants.length} planta(s)</p>
                     </div>
-                `).join('');
-                statsContainer.classList.remove('hidden');
-            } else {
-                statsContainer.classList.add('hidden');
-            }
-            
-            if (activeGuardians.length === 0) {
-                list.innerHTML = '<div class="text-center text-emerald-600/70 italic py-4 bg-emerald-50 rounded-xl">Seja o primeiro Guardião da Flora! Proponha seu plano acima.</div>';
-                return;
-            }
-
-            list.innerHTML = activeGuardians.map(g => `
-                <div class="bg-emerald-50 border border-emerald-100 p-4 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-                    <div class="flex-grow w-full">
-                        <h4 class="font-extrabold text-emerald-800 flex items-center">
-                            <i class="ph-fill ph-medal text-yellow-500 mr-2 text-xl"></i> ${g.student_name} <span class="text-xs bg-emerald-200 text-emerald-800 px-2 py-1 rounded ml-2">${g.student_class}</span>
-                        </h4>
-                        <div class="flex flex-wrap gap-x-4 gap-y-1 mt-1 mb-2">
-                            <p class="text-xs text-emerald-600 font-medium flex items-center"><i class="ph-bold ph-plant mr-1"></i> ${g.plants.length} espécie(s)</p>
-                            ${g.accompanying_teacher ? `<p class="text-xs text-emerald-700 font-bold flex items-center"><i class="ph-bold ph-chalkboard-teacher mr-1"></i> Prof. ${g.accompanying_teacher}</p>` : ''}
-                        </div>
-                        <p class="text-sm text-gray-700 font-medium bg-white p-3 rounded-xl border border-emerald-100 whitespace-pre-wrap leading-relaxed shadow-sm">${g.action_plan}</p>
-                    </div>
-                    
-                    ${g.status === 'concluido' ? 
-                        `<div class="flex flex-col sm:flex-row items-end gap-2 shrink-0">
-                            <span class="text-xs text-green-700 bg-green-100 font-bold px-2 py-1 rounded-lg flex items-center border border-green-200"><i class="ph-bold ph-check-circle mr-1"></i> Concluído</span>
-                            <a href="${g.report_url}" target="_blank" class="bg-blue-100 text-blue-700 font-bold px-3 py-2 rounded-lg text-xs flex items-center hover:bg-blue-200"><i class="ph-bold ph-file-pdf mr-1 text-lg"></i> Ver PDF</a>
-                        </div>` 
-                    : g.status === 'relatorio_enviado' ? 
-                        `<span class="text-xs text-yellow-700 bg-yellow-100 font-bold px-2 py-1 rounded-lg border border-yellow-200 shrink-0">Em avaliação...</span>`
-                    : 
-                        `<span class="text-xs text-gray-500 bg-gray-100 font-bold px-2 py-1 rounded-lg border border-gray-200 shrink-0">Em andamento...</span>`
-                    }
+                    <button onclick="prepareChallenge('${c.id}')" class="bg-amber-500 hover:bg-amber-600 text-white font-extrabold py-2.5 px-4 rounded-xl shadow-sm text-sm w-full sm:w-auto transition shrink-0">
+                        Participar
+                    </button>
                 </div>
             `).join('');
+        };
+
+        window.prepareChallenge = function(id) {
+            const chal = window.cachedChallenges.find(c => c.id === id);
+            if(!chal) return;
+            document.getElementById('chal-start-id').value = id;
+            document.getElementById('modal-start-challenge').classList.replace('hidden', 'flex');
+        };
+
+        window.confirmStartChallenge = function(e) {
+            e.preventDefault();
+            const id = document.getElementById('chal-start-id').value;
+            const chal = window.cachedChallenges.find(c => c.id === id);
+            
+            const state = {
+                challenge_id: id,
+                title: chal.title,
+                plants_to_find: [...chal.plants], // copia array
+                score: 0,
+                total_questions: 0,
+                start_time: new Date().toISOString(),
+                group: {
+                    name: document.getElementById('chal-group-name').value,
+                    class: document.getElementById('chal-class').value,
+                    members: document.getElementById('chal-members').value
+                }
+            };
+
+            localStorage.setItem('botanica_active_challenge', JSON.stringify(state));
+            closeModals();
+            window.checkActiveChallengeState();
+            showToast("Cronómetro a contar! Boa sorte à equipa!", false);
+        };
+
+        window.checkActiveChallengeState = function() {
+            const stateStr = localStorage.getItem('botanica_active_challenge');
+            const hud = document.getElementById('active-challenge-hud');
+            const mainHeader = document.getElementById('main-header');
+
+            if (stateStr) {
+                const state = JSON.parse(stateStr);
+                document.getElementById('hud-text').innerHTML = `<strong>${state.group.name}:</strong> Faltam ${state.plants_to_find.length} planta(s)!`;
+                hud.classList.remove('hidden');
+                hud.classList.add('flex');
+                if(mainHeader) mainHeader.classList.add('mt-14'); 
+            } else {
+                hud.classList.remove('flex');
+                hud.classList.add('hidden');
+                if(mainHeader) mainHeader.classList.remove('mt-14');
+            }
+        };
+
+        window.abandonChallenge = function() {
+            if(confirm("Tem certeza que deseja desistir deste desafio? Todo o progresso da equipa será perdido.")) {
+                localStorage.removeItem('botanica_active_challenge');
+                window.checkActiveChallengeState();
+                showToast("Desafio abandonado.", true);
+            }
+        };
+
+        window.showChallengeStatus = function() {
+            const state = JSON.parse(localStorage.getItem('botanica_active_challenge'));
+            if(state) alert(`Plantas a localizar (Nomes Científicos):\n- ${state.plants_to_find.join('\n- ')}`);
+        };
+
+        // --- 5. EXIBIÇÃO DA PLANTA & AVALIAÇÃO DO QUIZ ---
+        let currentQuizData = []; 
+
+        window.loadStudentView = function(plantData) {
+            document.getElementById('plant-title').textContent = plantData.nome; 
+            document.getElementById('plant-scientific').textContent = plantData.cientifico;
+            
+            const chalStateStr = localStorage.getItem('botanica_active_challenge');
+            if(chalStateStr) {
+                const s = JSON.parse(chalStateStr);
+                document.getElementById('student-name').value = s.group.name;
+                document.getElementById('student-class').value = s.group.class;
+                document.getElementById('student-date').valueAsDate = new Date();
+            } else {
+                document.getElementById('student-name').value = ''; 
+                document.getElementById('student-class').value = '';
+                document.getElementById('student-date').valueAsDate = new Date();
+            }
+
+            document.getElementById('quiz-result').classList.add('hidden'); 
+            document.getElementById('btn-submit-quiz').classList.remove('hidden');
+
+            const infoCardContainer = document.getElementById('plant-info-container');
+            if (plantData.info_url) { document.getElementById('plant-info-image').src = plantData.info_url; document.getElementById('btn-open-info-link').href = plantData.info_url; infoCardContainer.classList.remove('hidden'); } 
+            else infoCardContainer.classList.add('hidden');
+
+            const plantImageContainer = document.getElementById('plant-image-container');
+            let imagesToRender = plantData.image_urls && plantData.image_urls.length > 0 ? plantData.image_urls : (plantData.url ? [plantData.url] : []);
+            if(imagesToRender.length > 0) {
+                let galleryHTML = `<div class="flex overflow-x-auto w-full gap-4 snap-x p-2">`;
+                imagesToRender.forEach(imgUrl => { galleryHTML += `<div class="shrink-0 w-56 sm:w-64 snap-center flex flex-col items-center bg-white p-2 rounded-3xl border border-emerald-100 shadow-sm"><img src="${imgUrl}" class="w-full h-56 sm:h-64 object-cover rounded-2xl border-2 border-emerald-300"><a href="${imgUrl}" target="_blank" class="mt-3 text-[10px] sm:text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 py-2 px-4 rounded-full flex justify-center shadow-sm" style="text-decoration: none !important;">Ampliar</a></div>`; });
+                plantImageContainer.innerHTML = galleryHTML + `</div>` + (imagesToRender.length > 1 ? `<p class="text-xs text-green-700 font-bold mt-3 animate-pulse">Deslize para ver mais</p>` : '');
+            } else plantImageContainer.innerHTML = '';
+
+            const locationCard = document.getElementById('plant-location-card');
+            if (plantData.latitude && plantData.longitude) {
+                const lat = parseFloat(plantData.latitude); const lng = parseFloat(plantData.longitude);
+                document.getElementById('detail-coords-text').textContent = `${lat}, ${lng}`;
+                document.getElementById('btn-google-maps-nav').href = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+                locationCard.classList.remove('hidden');
+                stopGPSTracking();
+                
+                setTimeout(() => {
+                    if (typeof L === 'undefined') return;
+                    const container = L.DomUtil.get('plant-detail-map');
+                    if (container && container._leaflet_id) { if (window.detailLeafletMap) try{window.detailLeafletMap.remove();}catch(e){} window.detailLeafletMap = null; container._leaflet_id = null; }
+                    
+                    const busyPlants = {}; if(window.cachedGuardians) window.cachedGuardians.forEach(g => { if(['pendente','aprovado','relatorio_enviado'].includes(g.status)) g.plants.forEach(pId => busyPlants[pId]=true); });
+                    const iconColor = busyPlants[plantData.cientifico] ? 'red' : 'green';
+
+                    window.detailLeafletMap = L.map('plant-detail-map', { zoomControl: false }).setView([lat, lng], 18);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(window.detailLeafletMap);
+                    
+                    const dIcon = L.icon({iconUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-${iconColor}.png`, shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png', iconSize: [25, 41], iconAnchor: [12, 41]});
+                    window.detailMarker = L.marker([lat, lng], { icon: dIcon }).addTo(window.detailLeafletMap);
+                    window.detailLeafletMap.invalidateSize();
+
+                    if (navigator.geolocation) {
+                        userWatchId = navigator.geolocation.watchPosition(
+                            (pos) => {
+                                const uLat = pos.coords.latitude; const uLng = pos.coords.longitude;
+                                smoothUserLat = smoothUserLat === null ? uLat : (ALPHA*uLat) + ((1-ALPHA)*smoothUserLat);
+                                smoothUserLng = smoothUserLng === null ? uLng : (ALPHA*uLng) + ((1-ALPHA)*smoothUserLng);
+                                const dist = calculateDistance(smoothUserLat, smoothUserLng, lat, lng);
+                                document.getElementById('radar-distance').textContent = `${dist.toFixed(1)} m`;
+
+                                const dirEl = document.getElementById('radar-direction');
+                                if(lastDistance !== null) {
+                                    const diff = dist - lastDistance;
+                                    if (Math.abs(diff) > 1.5) dirEl.innerHTML = diff < 0 ? '<span class="text-orange-600 font-extrabold text-sm"><i class="ph-fill ph-fire animate-bounce"></i> Quente! Aproximando!</span>' : '<span class="text-blue-600 font-semibold text-sm"><i class="ph-fill ph-snowflake"></i> Esfriou... Afastando.</span>';
+                                }
+                                lastDistance = dist;
+
+                                const uIcon = L.icon({iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png', iconSize: [25, 41], iconAnchor: [12, 41]});
+                                if (!userMarkerDetail) { userMarkerDetail = L.marker([smoothUserLat, smoothUserLng], {icon: uIcon}).addTo(window.detailLeafletMap); window.detailLeafletMap.fitBounds(L.latLngBounds([[smoothUserLat, smoothUserLng], [lat, lng]]), {padding: [45,45]}); } 
+                                else userMarkerDetail.setLatLng([smoothUserLat, smoothUserLng]);
+                            }, (err) => {}, { enableHighAccuracy: true, timeout: 6000, maximumAge: 0 }
+                        );
+                    }
+                }, 300);
+            } else locationCard.classList.add('hidden');
+
+            const quizContainer = document.getElementById('quiz-questions-container');
+            const studentFormSection = document.getElementById('student-form-section');
+            quizContainer.innerHTML = ''; currentQuizData = plantData.quiz || [];
+            
+            if (currentQuizData.length > 0) {
+                studentFormSection.classList.remove('hidden');
+                currentQuizData.forEach((item, index) => {
+                    let optsHtml = '';
+                    item.opts.forEach((opt, oIdx) => { optsHtml += `<label class="flex items-center p-3 border-2 border-green-100 rounded-xl bg-white cursor-pointer has-[:checked]:bg-emerald-100"><input type="radio" name="question_${index}" value="${oIdx}" class="w-5 h-5 mr-3"><div class="font-medium flex-1">${['A','B','C','D','E'][oIdx]}) ${opt}</div></label>`; });
+                    quizContainer.innerHTML += `<div class="bg-white p-4 rounded-2xl shadow-sm border border-green-100" id="q-block-${index}"><p class="font-extrabold text-green-900 mb-4">${index + 1}. ${item.q}</p><div class="space-y-2 flex flex-col">${optsHtml}</div></div>`;
+                });
+            } else {
+                studentFormSection.classList.add('hidden');
+                quizContainer.innerHTML = '<p class="text-center font-bold p-4 text-gray-500">Apenas informativa.</p>';
+                document.getElementById('btn-submit-quiz').classList.add('hidden');
+            }
+
+            document.getElementById('scanner-container').classList.add('hidden'); document.getElementById('intro-section').classList.add('hidden'); document.getElementById('result-section').classList.remove('hidden'); document.getElementById('result-section').scrollIntoView();
         }
-        window.renderApprovedGuardians = renderApprovedGuardians;
+        window.renderQuizResults = function(results) {
+            const list = document.getElementById('admin-quiz-results-list');
+            if (!list) return;
 
-        function renderAdminGuardians(guardians) {
-            const list = document.getElementById('admin-guardians-list');
-            if(!list) return;
-
-            if (guardians.length === 0) {
-                list.innerHTML = '<div class="text-center text-gray-500 italic py-2">Nenhum plano cadastrado.</div>';
+            if (results.length === 0) {
+                list.innerHTML = '<div class="text-center text-sky-600/70 italic py-4 bg-sky-50 rounded-xl font-semibold">Nenhum quiz foi respondido ainda.</div>';
                 return;
             }
 
-            list.innerHTML = guardians.map(g => {
-                let borderColor = 'border-blue-200';
-                let badgeClass = 'bg-blue-100 text-blue-800';
-                let badgeText = 'Aguardando Relatório';
-
-                if (g.status === 'pendente') {
-                    borderColor = 'border-yellow-300'; badgeClass = 'bg-yellow-100 text-yellow-800'; badgeText = 'Aprovar Plano';
-                } else if (g.status === 'relatorio_enviado') {
-                    borderColor = 'border-orange-400'; badgeClass = 'bg-orange-100 text-orange-800'; badgeText = 'Avaliar Relatório';
-                } else if (g.status === 'concluido') {
-                    borderColor = 'border-emerald-400'; badgeClass = 'bg-emerald-100 text-emerald-800'; badgeText = 'Concluído';
-                }
-
+            list.innerHTML = results.map(r => {
+                const dateObj = new Date(r.created_at);
+                const timeString = dateObj.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                const dateString = dateObj.toLocaleDateString('pt-BR');
+                const isGoodScore = r.score >= (r.total / 2);
+                
                 return `
-                <div class="bg-white border ${borderColor} p-4 rounded-xl shadow-sm">
-                    <div class="flex justify-between items-start mb-2">
-                        <h4 class="font-bold text-gray-800">${g.student_name} (${g.student_class})</h4>
-                        <span class="text-xs font-bold px-2 py-1 rounded ${badgeClass} uppercase">${badgeText}</span>
+                <div class="bg-white border ${isGoodScore ? 'border-sky-300' : 'border-red-300'} p-3 rounded-xl shadow-sm flex flex-col justify-between mb-2 transition-all hover:shadow-md">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h4 class="font-bold text-gray-800 text-sm sm:text-base">${r.student_name} <span class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded ml-1">${r.student_class}</span></h4>
+                            <p class="text-xs text-sky-700 font-bold mt-1"><i class="ph-bold ph-plant mr-1"></i>${r.plant_name || 'Planta Desconhecida'}</p>
+                        </div>
+                        <div class="text-right flex flex-col items-end gap-1">
+                            <span class="text-lg font-extrabold ${isGoodScore ? 'text-sky-600' : 'text-red-500'} bg-gray-50 px-2 py-1 rounded-lg">${r.score}/${r.total}</span>
+                            <button id="del-quiz-${r.id}" onclick="deleteQuizResult('${r.id}', 'del-quiz-${r.id}')" class="bg-red-50 hover:bg-red-100 text-red-600 px-2 py-1 rounded-lg text-[10px] font-bold transition-colors border border-red-100"><i class="ph-bold ph-trash"></i> Excluir</button>
+                        </div>
                     </div>
-                    ${g.accompanying_teacher ? `<p class="text-sm text-gray-800 mb-2 font-bold"><i class="ph-bold ph-chalkboard-teacher mr-1 text-gray-500"></i> Prof(a). Acompanhante: ${g.accompanying_teacher}</p>` : ''}
-                    <p class="text-sm text-gray-600 mb-2"><strong>Plantas:</strong> ${g.plants.join(', ')}</p>
-                    <p class="text-sm text-gray-700 mb-2 whitespace-pre-wrap bg-gray-50 p-3 rounded-lg border border-gray-200 leading-relaxed">${g.action_plan}</p>
-                    <p class="text-sm text-gray-600 mb-3"><strong>Método:</strong> ${g.recording_method}</p>
-                    
-                    <div class="flex flex-wrap gap-2 border-t pt-3 mt-2 items-center">
-                        ${g.status === 'pendente' ? 
-                            `<button id="btn-approve-${g.id}" type="button" onclick="approveGuardian('${g.id}', 'btn-approve-${g.id}')" class="bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold py-1.5 px-3 rounded flex items-center transition-colors"><i class="ph-bold ph-check mr-1"></i> Aprovar Plano</button>` 
-                        : ''}
-                        
-                        ${g.status === 'relatorio_enviado' ? 
-                            `<a href="${g.report_url}" target="_blank" class="bg-blue-500 hover:bg-blue-600 text-white text-xs font-bold py-1.5 px-3 rounded flex items-center"><i class="ph-bold ph-file-pdf mr-1"></i> Abrir Relatório</a>
-                             <button id="btn-approve-rep-${g.id}" type="button" onclick="approveReport('${g.id}', 'btn-approve-rep-${g.id}')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-1.5 px-3 rounded flex items-center transition-colors"><i class="ph-bold ph-check-circle mr-1"></i> Aprovar Missão</button>` 
-                        : ''}
-
-                        ${g.status === 'concluido' ? 
-                            `<a href="${g.report_url}" target="_blank" class="bg-blue-500 hover:bg-blue-600 text-white text-xs font-bold py-1.5 px-3 rounded flex items-center"><i class="ph-bold ph-file-pdf mr-1"></i> Ver Relatório</a>` 
-                        : ''}
-                        
-                        <button id="btn-delete-${g.id}" type="button" onclick="deleteGuardian('${g.id}', 'btn-delete-${g.id}')" class="bg-red-500 hover:bg-red-600 text-white text-xs font-bold py-1.5 px-3 rounded flex items-center transition-colors ml-auto"><i class="ph-bold ph-trash mr-1"></i> Excluir</button>
+                    <div class="text-[10px] text-gray-400 mt-2 font-medium flex items-center border-t border-gray-100 pt-2">
+                        <i class="ph-bold ph-clock mr-1"></i> Entregue em: ${dateString} às ${timeString}
                     </div>
                 </div>
                 `;
             }).join('');
-        }
-        window.renderAdminGuardians = renderAdminGuardians;
+        };
 
-        async function approveGuardian(id, btnId) {            
+        window.deleteQuizResult = async function(id, btnId) {
             const btn = document.getElementById(btnId);
             
+            // Verificação de dois cliques para prevenir acidentes
             if (btn.dataset.confirm !== "true") {
                 btn.dataset.confirm = "true";
                 btn.dataset.originalHtml = btn.innerHTML;
-                btn.innerHTML = '<i class="ph-bold ph-question mr-1"></i> Confirmar?';
-                btn.classList.replace('bg-emerald-500', 'bg-emerald-700');
-                btn.classList.replace('hover:bg-emerald-600', 'hover:bg-emerald-800');
+                btn.innerHTML = 'Confirmar?';
+                btn.classList.replace('bg-red-50', 'bg-red-500');
+                btn.classList.replace('text-red-600', 'text-white');
                 
                 setTimeout(() => {
                     if (btn && btn.dataset.confirm === "true") {
                         btn.dataset.confirm = "false";
                         btn.innerHTML = btn.dataset.originalHtml;
-                        btn.classList.replace('bg-emerald-700', 'bg-emerald-500');
-                        btn.classList.replace('hover:bg-emerald-800', 'hover:bg-emerald-600');
+                        btn.classList.replace('bg-red-500', 'bg-red-50');
+                        btn.classList.replace('text-white', 'text-red-600');
                     }
                 }, 3000);
                 return;
             }
 
             btn.dataset.confirm = "false";
-            btn.innerHTML = '<i class="ph-bold ph-spinner animate-spin mr-1"></i> Aprovando...';
+            btn.innerHTML = '...';
             btn.disabled = true;
 
             try {
-                const { data, error } = await window.supabase
-                    .from('guardians')
-                    .update({ status: 'aprovado' })
-                    .eq('id', id)
-                    .select(); 
-                    
+                const { error } = await window.supabase.from('quiz_results').delete().eq('id', id);
                 if (error) throw error;
-                if (!data || data.length === 0) throw new Error("Permissão Negada.");
-                
-                showToast("Plano aprovado! O aluno já é um Guardião.", false);
-                if(window.syncGuardians) await window.syncGuardians(); 
+                showToast("Resultado do quiz excluído com sucesso!", false);
+                window.syncQuizResults(); // Sincroniza em tempo real!
             } catch(e) { 
-                showToast("Erro: " + e.message, true);
+                showToast("Erro ao excluir.", true); 
                 btn.innerHTML = btn.dataset.originalHtml;
                 btn.disabled = false;
-                btn.classList.replace('bg-emerald-700', 'bg-emerald-50');
+                btn.classList.replace('bg-red-500', 'bg-red-50');
+                btn.classList.replace('text-white', 'text-red-600');
             }
-        }
-        window.approveGuardian = approveGuardian;
+        };
 
-        async function approveReport(id, btnId) {            
-            const btn = document.getElementById(btnId);
+        window.handleManualSelection = function() { const id = document.getElementById('select-scientific').value; if(id) loadStudentView(JSON.parse(localStorage.getItem('botanica_plants'))[id]); };
+        window.resetScanner = function() { stopGPSTracking(); document.getElementById('result-section').classList.add('hidden'); document.getElementById('intro-section').classList.remove('hidden'); document.getElementById('scanner-container').classList.remove('hidden'); window.scrollTo(0,0); window.checkActiveChallengeState(); };
+        window.handleCodeScan = function(txt) { let s = txt.includes('#id=') ? decodeURIComponent(txt.split('#id=')[1]) : null; if(s) loadStudentView(JSON.parse(localStorage.getItem('botanica_plants'))[s]); };
+
+        // --- 6. SISTEMA DE GUARDIÕES (LÓGICA) ---
+        window.openPlanModal = async function() {
+            if(window.syncGuardians) await window.syncGuardians();
+            const plants = JSON.parse(localStorage.getItem('botanica_plants') || '{}');
+            const listDiv = document.getElementById('plan-plants-list');
+            listDiv.innerHTML = '';
+            const busyPlants = {};
+            if (window.cachedGuardians) window.cachedGuardians.forEach(g => { if (['pendente', 'aprovado', 'relatorio_enviado'].includes(g.status)) g.plants.forEach(pId => busyPlants[pId] = g); });
             
-            if (btn.dataset.confirm !== "true") {
-                btn.dataset.confirm = "true";
-                btn.dataset.originalHtml = btn.innerHTML;
-                btn.innerHTML = '<i class="ph-bold ph-question mr-1"></i> Confirmar?';
-                btn.classList.replace('bg-emerald-600', 'bg-emerald-800');
-                btn.classList.replace('hover:bg-emerald-700', 'hover:bg-emerald-900');
-                
-                setTimeout(() => {
-                    if (btn && btn.dataset.confirm === "true") {
-                        btn.dataset.confirm = "false";
-                        btn.innerHTML = btn.dataset.originalHtml;
-                        btn.classList.replace('bg-emerald-800', 'bg-emerald-600');
-                        btn.classList.replace('hover:bg-emerald-900', 'hover:bg-emerald-700');
-                    }
-                }, 3000);
-                return;
-            }
-
-            btn.dataset.confirm = "false";
-            btn.innerHTML = '<i class="ph-bold ph-spinner animate-spin mr-1"></i> Concluindo...';
-            btn.disabled = true;
-
-            try {
-                const { data, error } = await window.supabase
-                    .from('guardians')
-                    .update({ status: 'concluido' })
-                    .eq('id', id)
-                    .select(); 
-                    
-                if (error) throw error;
-                if (!data || data.length === 0) throw new Error("Permissão Negada.");
-                
-                showToast("Relatório aprovado! O Guardião concluiu a sua missão.", false);
-                if(window.syncGuardians) await window.syncGuardians(); 
-            } catch(e) { 
-                showToast("Erro: " + e.message, true);
-                btn.innerHTML = btn.dataset.originalHtml;
-                btn.disabled = false;
-                btn.classList.replace('bg-emerald-800', 'bg-emerald-600');
-            }
-        }
-        window.approveReport = approveReport;
-
-        async function deleteGuardian(id, btnId) {
-            const btn = document.getElementById(btnId);
-            
-            if (btn.dataset.confirm !== "true") {
-                btn.dataset.confirm = "true";
-                btn.dataset.originalHtml = btn.innerHTML;
-                btn.innerHTML = '<i class="ph-bold ph-warning mr-1"></i> Confirmar Exclusão?';
-                btn.classList.replace('bg-red-500', 'bg-red-700');
-                btn.classList.replace('hover:bg-red-600', 'hover:bg-red-800');
-                
-                setTimeout(() => {
-                    if (btn && btn.dataset.confirm === "true") {
-                        btn.dataset.confirm = "false";
-                        btn.innerHTML = btn.dataset.originalHtml;
-                        btn.classList.replace('bg-red-700', 'bg-red-50');
-                        btn.classList.replace('hover:bg-red-800', 'hover:bg-red-600');
-                    }
-                }, 3000);
-                return;
-            }
-
-            btn.dataset.confirm = "false";
-            btn.innerHTML = '<i class="ph-bold ph-spinner animate-spin"></i> Excluindo...';
-            btn.disabled = true;
-
-            try {
-                const { data, error } = await window.supabase
-                    .from('guardians')
-                    .delete()
-                    .eq('id', id)
-                    .select(); 
-                    
-                if (error) throw error;
-                
-                if (!data || data.length === 0) {
-                    throw new Error("Permissão Negada. O seu utilizador não é reconhecido como Administrador.");
-                }
-                
-                showToast("Plano excluído com sucesso!", false);
-                
-                if(window.syncGuardians) {
-                    await window.syncGuardians(); 
-                }
-            } catch(e) { 
-                console.error("Erro do Supabase:", e.message || e);
-                showToast("Erro: " + e.message, true);
-                btn.innerHTML = btn.dataset.originalHtml;
-                btn.disabled = false;
-                btn.classList.replace('bg-red-700', 'bg-red-50');
-                btn.classList.replace('hover:bg-red-800', 'hover:bg-red-600');
-            }
-        }
-        window.deleteGuardian = deleteGuardian;
-
-
-        let isLoggedIn = false;
-        const authSection = document.getElementById('auth-section');
-        const createSection = document.getElementById('create-section');
-        const loginError = document.getElementById('login-error');
-
-        function buildQuestionsForm() {
-            const container = document.getElementById('questions-builder-container');
-            container.innerHTML = '';
-            for(let i = 1; i <= 5; i++) {
-                container.innerHTML += `
-                    <div class="bg-white border-2 border-emerald-100 p-4 sm:p-5 rounded-2xl shadow-sm">
-                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-3">
-                            <h4 class="font-extrabold text-emerald-700 flex items-center text-base sm:text-lg">
-                                <span class="bg-emerald-100 text-emerald-800 w-8 h-8 rounded-full flex items-center justify-center mr-2 text-sm sm:text-base">${i}</span> 
-                                Questão <span class="text-xs font-normal text-emerald-600 ml-2">(Opcional)</span>
-                            </h4>
-                        </div>
-                        <div class="space-y-3">
-                            <textarea id="q${i}-text" rows="2" placeholder="Digite a pergunta..." class="w-full p-3 rounded-xl border border-gray-300 bg-gray-50 focus:border-emerald-500 font-medium text-sm sm:text-base resize-none"></textarea>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 pl-1 sm:pl-3">
-                                <div class="flex items-center"><span class="font-bold text-gray-400 w-6">A)</span> <input type="text" id="q${i}-o0" class="w-full p-2 rounded-lg border border-gray-200"></div>
-                                <div class="flex items-center"><span class="font-bold text-gray-400 w-6">B)</span> <input type="text" id="q${i}-o1" class="w-full p-2 rounded-lg border border-gray-200"></div>
-                                <div class="flex items-center"><span class="font-bold text-gray-400 w-6">C)</span> <input type="text" id="q${i}-o2" class="w-full p-2 rounded-lg border border-gray-200"></div>
-                                <div class="flex items-center"><span class="font-bold text-gray-400 w-6">D)</span> <input type="text" id="q${i}-o3" class="w-full p-2 rounded-lg border border-gray-200"></div>
-                                <div class="flex items-center sm:col-span-2"><span class="font-bold text-gray-400 w-6">E)</span> <input type="text" id="q${i}-o4" class="w-full p-2 rounded-lg border border-gray-200"></div>
+            Object.values(plants).forEach((p, idx) => {
+                const isBusy = !!busyPlants[p.cientifico];
+                listDiv.innerHTML += `
+                    <div class="border ${isBusy ? 'border-red-200 bg-red-50/10' : 'border-green-200 bg-white'} rounded-lg p-2 mb-2 transition-all">
+                        <label class="flex items-start space-x-2 text-sm ${isBusy ? 'cursor-not-allowed' : 'cursor-pointer'}">
+                            <input type="checkbox" value="${p.cientifico}" data-name="${p.nome}" data-idx="${idx}" ${isBusy ? 'disabled' : ''} class="plan-plant-checkbox rounded" onchange="togglePlantActions(${idx})">
+                            <div>
+                                <span class="${isBusy ? 'line-through text-gray-400' : 'text-green-800 font-bold'}">${p.nome}</span>
+                                ${isBusy ? `<span class="block text-[10px] text-red-600 font-bold mt-1">Guardião: ${busyPlants[p.cientifico].student_name}</span>` : ''}
                             </div>
-                            <div class="mt-4 bg-emerald-50 p-3 sm:p-4 rounded-xl border border-emerald-100 flex flex-col sm:flex-row sm:items-center gap-2">
-                                <label class="text-sm font-bold text-emerald-800">Alternativa Correta:</label>
-                                <select id="q${i}-ans" class="w-full sm:flex-grow p-2 sm:p-3 rounded-lg border border-emerald-300 font-bold text-emerald-700 bg-white cursor-pointer">
-                                    <option value="0">Letra A</option><option value="1">Letra B</option><option value="2">Letra C</option><option value="3">Letra D</option><option value="4">Letra E</option>
-                                </select>
+                        </label>
+                        <div id="actions-${idx}" class="hidden ml-6 mt-3 space-y-2 text-xs border-t pt-2">
+                            <p class="font-bold text-emerald-700">Ações de cuidado:</p>
+                            <div class="flex flex-wrap gap-2">
+                                ${['Agoar','Adubar','Podar','Tratar praga','Replantar','Adequar exposição'].map(a => `<label class="bg-gray-50 border p-1 rounded"><input type="checkbox" class="action-cb-${idx}" value="${a}"> ${a}</label>`).join('')}
                             </div>
                         </div>
+                    </div>`;
+            });
+            document.getElementById('modal-plan').classList.replace('hidden', 'flex');
+        };
+
+        window.togglePlantActions = function(idx) {
+            const div = document.getElementById(`actions-${idx}`); const cb = document.querySelector(`input[data-idx="${idx}"]`);
+            if(cb && cb.checked) div.classList.remove('hidden'); else { div.classList.add('hidden'); document.querySelectorAll(`.action-cb-${idx}`).forEach(el => el.checked = false); }
+        };
+
+        window.openReportModal = function() { if(window.syncGuardians) window.syncGuardians(); document.getElementById('modal-report').classList.replace('hidden', 'flex'); };
+
+        window.populateReportSelect = function(guardians) {
+            const select = document.getElementById('report-guardian-id');
+            const el = guardians.filter(g => g.status === 'aprovado' && !g.report_url);
+            select.innerHTML = el.length ? '<option value="">-- Escolha --</option>' + el.map(g => `<option value="${g.id}">${g.student_name}</option>`).join('') : '<option value="">Nenhum ativo</option>';
+        };
+
+        window.submitGuardianPlan = async function(e) {
+            e.preventDefault(); const btn = document.getElementById('btn-submit-plan'); btn.innerHTML = 'Enviando...'; btn.disabled = true;
+            try {
+                const selected = Array.from(document.querySelectorAll('.plan-plant-checkbox:checked'));
+                if(!selected.length) throw new Error("Selecione uma planta.");
+                const methods = Array.from(document.querySelectorAll('.plan-method-checkbox:checked')).map(cb => cb.value);
+                if(!methods.length) throw new Error("Selecione o método.");
+                
+                let planText = `Período: ${document.getElementById('plan-start-date').value} a ${document.getElementById('plan-end-date').value}\n\nCuidados:\n`;
+                selected.forEach(cb => {
+                    const acts = Array.from(document.querySelectorAll(`.action-cb-${cb.dataset.idx}:checked`)).map(a => a.value);
+                    if(!acts.length) throw new Error("Selecione os cuidados.");
+                    planText += `• ${cb.dataset.name}: ${acts.join(', ')}\n`;
+                });
+
+                await window.supabase.from('guardians').insert([{
+                    student_name: document.getElementById('plan-name').value, student_class: document.getElementById('plan-class').value,
+                    accompanying_teacher: document.getElementById('plan-teacher').value, action_plan: planText, recording_method: methods.join(' e '), plants: selected.map(c=>c.value), status: 'pendente'
+                }]);
+                showToast("Enviado para aprovação!", false); closeModals(); window.syncGuardians();
+            } catch (err) { showToast(err.message, true); } finally { btn.innerHTML = 'Enviar para Aprovação'; btn.disabled = false; }
+        };
+
+        window.submitGuardianReport = async function(e) {
+            e.preventDefault(); const btn = document.getElementById('btn-submit-report'); btn.innerHTML = 'Enviando...'; btn.disabled = true;
+            try {
+                const id = document.getElementById('report-guardian-id').value; const file = document.getElementById('report-file').files[0];
+                if(!id || !file) throw new Error("Preencha todos os campos.");
+                const fname = `${Date.now()}_${file.name}`;
+                await window.supabase.storage.from('reports').upload(fname, file);
+                const purl = window.supabase.storage.from('reports').getPublicUrl(fname).data.publicUrl;
+                await window.supabase.from('guardians').update({ report_url: purl, status: 'relatorio_enviado' }).eq('id', id);
+                showToast("Relatório enviado!", false); closeModals(); window.syncGuardians();
+            } catch(err) { showToast("Erro no envio.", true); } finally { btn.innerHTML = 'Enviar PDF'; btn.disabled = false; }
+        };
+
+        window.renderApprovedGuardians = function(guardians) {
+            const list = document.getElementById('approved-guardians-list');
+            const active = guardians.filter(g => ['aprovado', 'relatorio_enviado', 'concluido'].includes(g.status));
+            list.innerHTML = active.length ? active.map(g => `<div class="bg-emerald-50 p-4 rounded-2xl mb-2"><h4 class="font-extrabold text-emerald-800">${g.student_name} (${g.student_class})</h4><p class="text-xs text-gray-700 mt-2">${g.status.toUpperCase()}</p></div>`).join('') : '<p class="text-center">Nenhum Guardião.</p>';
+        };
+
+        window.renderAdminGuardians = function(guardians) {
+            const list = document.getElementById('admin-guardians-list'); if(!list) return;
+            list.innerHTML = guardians.map(g => `<div class="border p-4 mb-2"><h4 class="font-bold">${g.student_name}</h4><p class="text-xs">${g.status}</p>
+                <div class="mt-2 flex gap-2">
+                    ${g.status==='pendente'?`<button onclick="approveGuardian('${g.id}','btn-${g.id}')" id="btn-${g.id}" class="bg-emerald-500 text-white text-xs p-1 rounded">Aprovar Plano</button>`:''}
+                    ${g.status==='relatorio_enviado'?`<button onclick="approveReport('${g.id}','btn-${g.id}')" id="btn-${g.id}" class="bg-blue-500 text-white text-xs p-1 rounded">Aprovar Relatório</button>`:''}
+                    <button onclick="deleteGuardian('${g.id}','del-${g.id}')" id="del-${g.id}" class="bg-red-500 text-white text-xs p-1 rounded">Excluir</button>
+                </div></div>`).join('');
+        };
+
+        window.approveGuardian = async function(id, btnId) { await window.supabase.from('guardians').update({status:'aprovado'}).eq('id', id); window.syncGuardians(); showToast("Aprovado!",false); };
+        window.approveReport = async function(id, btnId) { await window.supabase.from('guardians').update({status:'concluido'}).eq('id', id); window.syncGuardians(); showToast("Concluído!",false); };
+        window.deleteGuardian = async function(id, btnId) { await window.supabase.from('guardians').delete().eq('id', id); window.syncGuardians(); showToast("Excluído!",false); };
+
+        // --- 7. ADMIN - DESAFIOS (CRIAR E PÓDIO) ---
+        window.populateChallengePlants = function(plants) {
+            const list = document.getElementById('challenge-plants-list');
+            if(!list) return;
+            list.innerHTML = plants.map(p => `
+                <label class="flex items-center space-x-2 text-sm bg-white border border-amber-100 p-2 rounded-lg cursor-pointer hover:bg-amber-50">
+                    <input type="checkbox" value="${p.cientifico}" class="chal-plant-cb text-amber-500 rounded focus:ring-amber-400 h-4 w-4">
+                    <span class="font-bold text-amber-900">${p.nome} <span class="text-[10px] text-gray-400 font-normal">(${p.cientifico})</span></span>
+                </label>
+            `).join('');
+        };
+
+        window.submitNewChallenge = async function(e) {
+            e.preventDefault(); const btn = document.getElementById('btn-submit-challenge'); btn.innerHTML = 'Criando...'; btn.disabled = true;
+            try {
+                const selected = Array.from(document.querySelectorAll('.chal-plant-cb:checked')).map(cb => cb.value);
+                if(selected.length === 0) throw new Error("Selecione pelo menos uma planta.");
+                
+                await window.supabase.from('challenges').insert([{
+                    title: document.getElementById('challenge-title').value,
+                    deadline: new Date(document.getElementById('challenge-deadline').value).toISOString(),
+                    plants: selected
+                }]);
+                showToast("Desafio criado com sucesso!", false);
+                document.getElementById('challenge-title').value = '';
+                document.querySelectorAll('.chal-plant-cb').forEach(c => c.checked=false);
+                window.syncChallenges();
+            } catch(e) { showToast(e.message, true); } finally { btn.innerHTML = 'Criar Desafio'; btn.disabled = false; }
+        };
+
+        window.renderAdminChallengesList = function(challenges) {
+            const list = document.getElementById('admin-challenges-list');
+            if(!list) return;
+            if(challenges.length === 0) { list.innerHTML = '<div class="text-center text-gray-500 text-sm">Nenhum desafio criado.</div>'; return; }
+            
+            const now = new Date();
+            list.innerHTML = challenges.map(c => {
+                const isActive = new Date(c.deadline) > now;
+                return `
+                <div class="bg-white border ${isActive ? 'border-amber-400' : 'border-gray-200 opacity-70'} p-3 rounded-xl flex justify-between items-center shadow-sm mb-2">
+                    <div>
+                        <h4 class="font-bold text-sm text-gray-800">${c.title}</h4>
+                        <p class="text-[10px] ${isActive ? 'text-amber-600' : 'text-gray-500'} font-bold">Vence em: ${new Date(c.deadline).toLocaleString('pt-BR')}</p>
                     </div>
+                    <div class="flex gap-2">
+                        <button onclick="viewPodium('${c.id}', '${c.title}')" class="bg-amber-100 hover:bg-amber-200 text-amber-800 px-3 py-1.5 rounded-lg text-xs font-bold transition">Ver Pódio</button>
+                        <button id="del-chal-${c.id}" onclick="deleteChallenge('${c.id}', 'del-chal-${c.id}')" class="bg-red-100 hover:bg-red-200 text-red-700 px-3 py-1.5 rounded-lg text-xs font-bold transition">Excluir</button>
+                    </div>
+                </div>
                 `;
+            }).join('');
+        };
+
+        window.deleteChallenge = async function(id, btnId) {
+            const btn = document.getElementById(btnId);
+            
+            // Confirmação em 2 passos para evitar apagamentos acidentais
+            if (btn.dataset.confirm !== "true") {
+                btn.dataset.confirm = "true";
+                btn.dataset.originalHtml = btn.innerHTML;
+                btn.innerHTML = 'Confirmar?';
+                btn.classList.replace('bg-red-100', 'bg-red-500');
+                btn.classList.replace('text-red-700', 'text-white');
+                btn.classList.replace('hover:bg-red-200', 'hover:bg-red-600');
+                
+                setTimeout(() => {
+                    if (btn && btn.dataset.confirm === "true") {
+                        btn.dataset.confirm = "false";
+                        btn.innerHTML = btn.dataset.originalHtml;
+                        btn.classList.replace('bg-red-500', 'bg-red-100');
+                        btn.classList.replace('text-white', 'text-red-700');
+                        btn.classList.replace('hover:bg-red-600', 'hover:bg-red-200');
+                    }
+                }, 3000);
+                return;
             }
-        }
 
-        function showCreateSection() {
-            isLoggedIn = true; loginError.classList.add('hidden'); authSection.classList.add('hidden');
-            createSection.classList.remove('hidden'); createSection.classList.add('fade-in');
-            buildQuestionsForm(); 
-            document.getElementById('input-login').value = ''; document.getElementById('input-password').value = '';
-            if(window.syncGuardians) window.syncGuardians();
-        }
-        window.showCreateSection = showCreateSection;
+            btn.dataset.confirm = "false";
+            btn.innerHTML = '...';
+            btn.disabled = true;
 
-        async function handleLogin(event) {
-            event.preventDefault();
+            try {
+                const { error } = await window.supabase.from('challenges').delete().eq('id', id);
+                if (error) throw error;
+                showToast("Desafio e resultados excluídos!", false);
+                window.syncChallenges();
+            } catch(e) { 
+                showToast("Erro ao excluir.", true); 
+                btn.innerHTML = btn.dataset.originalHtml;
+                btn.disabled = false;
+                btn.classList.replace('bg-red-500', 'bg-red-100');
+                btn.classList.replace('text-white', 'text-red-700');
+                btn.classList.replace('hover:bg-red-600', 'hover:bg-red-200');
+            }
+        };
+
+        window.viewPodium = async function(id, title) {
+            document.getElementById('podium-title').textContent = title;
+            const list = document.getElementById('podium-list');
+            list.innerHTML = '<div class="text-center"><i class="ph-bold ph-spinner animate-spin text-2xl text-amber-500"></i></div>';
+            document.getElementById('modal-podium').classList.replace('hidden', 'flex');
+
+            try {
+                const { data } = await window.supabase.from('challenge_teams').select('*').eq('challenge_id', id);
+                if(!data || data.length === 0) { list.innerHTML = '<p class="text-center text-sm text-gray-500">Nenhuma equipa terminou este desafio ainda.</p>'; return; }
+                
+                data.sort((a, b) => {
+                    if (b.score !== a.score) return b.score - a.score;
+                    return a.duration_seconds - b.duration_seconds;
+                });
+
+                const medals = ['🥇', '🥈', '🥉'];
+                list.innerHTML = data.map((t, idx) => {
+                    const min = Math.floor(t.duration_seconds / 60); const sec = t.duration_seconds % 60;
+                    return `
+                    <div class="bg-amber-50 border border-amber-200 p-3 rounded-xl flex items-center shadow-sm">
+                        <div class="text-3xl w-10 text-center">${idx < 3 ? medals[idx] : `<span class="text-lg font-bold text-gray-400">${idx+1}º</span>`}</div>
+                        <div class="flex-grow pl-3 border-l border-amber-200 ml-2">
+                            <h4 class="font-extrabold text-amber-900">${t.group_name} <span class="text-[10px] font-bold bg-amber-200 px-2 py-0.5 rounded text-amber-800">${t.class_name}</span></h4>
+                            <p class="text-[10px] text-gray-600 mt-0.5 line-clamp-1">${t.members}</p>
+                        </div>
+                        <div class="text-right flex flex-col justify-center items-end pr-2">
+                            <span class="text-lg font-black text-green-600">${t.score}/${t.total_questions}</span>
+                            <span class="text-[10px] font-bold text-gray-500"><i class="ph-bold ph-clock"></i> ${min}m ${sec}s</span>
+                        </div>
+                    </div>`;
+                }).join('');
+            } catch(e) { list.innerHTML = '<p class="text-center text-red-500">Erro ao carregar ranking.</p>'; }
+        };
+
+        // --- 8. ADMIN - GERENCIAMENTO DE PLANTAS E AUTH ---
+        let isLoggedIn = false;
+        
+        window.showCreateSection = function() { 
+            isLoggedIn = true; 
+            document.getElementById('auth-section').classList.add('hidden'); 
+            document.getElementById('create-section').classList.remove('hidden'); 
+            window.buildQuestionsForm(); 
+            if(window.syncGuardians) window.syncGuardians(); 
+            if(window.syncQuizResults) window.syncQuizResults(); 
+        };
+
+        window.handleLogin = async function(e) { 
+            e.preventDefault(); 
             const btnSubmit = document.getElementById('btn-login-submit');
             const originalText = btnSubmit.innerHTML;
-            btnSubmit.innerHTML = '<i class="ph-bold ph-spinner animate-spin text-xl font-extrabold"></i>'; btnSubmit.disabled = true;
+            btnSubmit.innerHTML = '<i class="ph-bold ph-spinner animate-spin text-xl font-extrabold"></i>'; 
+            btnSubmit.disabled = true;
 
             try {
                 const { data, error } = await window.supabase.auth.signInWithPassword({
                     email: document.getElementById('input-login').value, password: document.getElementById('input-password').value,
                 });
                 if (error) {
+                    const loginError = document.getElementById('login-error');
                     loginError.textContent = error.message.includes("Email not confirmed") ? "E-mail não confirmado!" : "E-mail ou senha incorretos.";
                     loginError.classList.remove('hidden');
-                } else showCreateSection();
-            } catch (err) { loginError.textContent = "Erro ao conectar."; loginError.classList.remove('hidden'); } 
-            finally { btnSubmit.innerHTML = originalText; btnSubmit.disabled = false; }
-        }
+                } else {
+                    window.showCreateSection();
+                }
+            } catch (err) { 
+                document.getElementById('login-error').textContent = "Erro ao conectar."; 
+                document.getElementById('login-error').classList.remove('hidden'); 
+            } finally { 
+                btnSubmit.innerHTML = originalText; 
+                btnSubmit.disabled = false; 
+            }
+        };
 
-        async function handleLogout() {
-            if(window.supabase) await window.supabase.auth.signOut();
-            isLoggedIn = false; createSection.classList.add('hidden'); authSection.classList.remove('hidden');
-            document.getElementById('plant-form').reset(); document.getElementById('generated-qr-section').classList.add('hidden');
-        }
+        window.handleLogout = async function() { await window.supabase.auth.signOut(); window.location.reload(); };
 
-        function savePlantToLocal(plantData) {
-            let localPlants = JSON.parse(localStorage.getItem('botanica_plants') || '{}');
-            localPlants[plantData.cientifico] = plantData;
-            localStorage.setItem('botanica_plants', JSON.stringify(localPlants));
-        }
+        window.buildQuestionsForm = function() {
+            let html = ''; for(let i=1; i<=5; i++) html += `
+                <div class="bg-white border-2 border-emerald-100 p-4 sm:p-5 rounded-2xl shadow-sm">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-3">
+                        <h4 class="font-extrabold text-emerald-700 flex items-center text-base sm:text-lg">
+                            <span class="bg-emerald-100 text-emerald-800 w-8 h-8 rounded-full flex items-center justify-center mr-2 text-sm sm:text-base">${i}</span> 
+                            Questão <span class="text-xs font-normal text-emerald-600 ml-2">(Opcional)</span>
+                        </h4>
+                    </div>
+                    <div class="space-y-3">
+                        <textarea id="q${i}-text" rows="2" placeholder="Digite a pergunta..." class="w-full p-3 rounded-xl border border-gray-300 bg-gray-50 focus:border-emerald-500 font-medium text-sm sm:text-base resize-none"></textarea>
+                        <div class="flex flex-col gap-2 sm:gap-3 pl-1 sm:pl-3">
+                            <div class="flex items-center"><span class="font-bold text-gray-400 w-6 shrink-0">A)</span> <input type="text" id="q${i}-o0" class="w-full p-2 rounded-lg border border-gray-200"></div>
+                            <div class="flex items-center"><span class="font-bold text-gray-400 w-6 shrink-0">B)</span> <input type="text" id="q${i}-o1" class="w-full p-2 rounded-lg border border-gray-200"></div>
+                            <div class="flex items-center"><span class="font-bold text-gray-400 w-6 shrink-0">C)</span> <input type="text" id="q${i}-o2" class="w-full p-2 rounded-lg border border-gray-200"></div>
+                            <div class="flex items-center"><span class="font-bold text-gray-400 w-6 shrink-0">D)</span> <input type="text" id="q${i}-o3" class="w-full p-2 rounded-lg border border-gray-200"></div>
+                            <div class="flex items-center"><span class="font-bold text-gray-400 w-6 shrink-0">E)</span> <input type="text" id="q${i}-o4" class="w-full p-2 rounded-lg border border-gray-200"></div>
+                        </div>
+                        <div class="mt-4 bg-emerald-50 p-3 sm:p-4 rounded-xl border border-emerald-100 flex flex-col sm:flex-row sm:items-center gap-2">
+                            <label class="text-sm font-bold text-emerald-800">Alternativa Correta:</label>
+                            <select id="q${i}-ans" class="w-full sm:flex-grow p-2 sm:p-3 rounded-lg border border-emerald-300 font-bold text-emerald-700 bg-white cursor-pointer">
+                                <option value="0">Letra A</option><option value="1">Letra B</option><option value="2">Letra C</option><option value="3">Letra D</option><option value="4">Letra E</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.getElementById('questions-builder-container').innerHTML = html;
+        };
 
-        function updateDropdown() {
-            const selectEl = document.getElementById('select-scientific');
-            const selectEditEl = document.getElementById('select-edit-plant');
-            let localPlants = JSON.parse(localStorage.getItem('botanica_plants') || '{}');
-            const optionsHtml = Object.values(localPlants).map(p => `<option value="${p.cientifico}">${p.cientifico} (${p.nome})</option>`).join('');
-            if(selectEl) selectEl.innerHTML = '<option value="">-- Selecione uma planta registrada --</option>' + optionsHtml;
-            if(selectEditEl) selectEditEl.innerHTML = '<option value="">-- Criar Nova Planta (Formulário Limpo) --</option>' + optionsHtml;
-        }
-        window.updateDropdown = updateDropdown;
+        window.updateDropdown = function() {
+            const plants = JSON.parse(localStorage.getItem('botanica_plants') || '{}');
+            const html = Object.values(plants).map(p => `<option value="${p.cientifico}">${p.cientifico}</option>`).join('');
+            if(document.getElementById('select-scientific')) document.getElementById('select-scientific').innerHTML = '<option value="">-- Selecione --</option>' + html;
+            if(document.getElementById('select-edit-plant')) document.getElementById('select-edit-plant').innerHTML = '<option value="">-- Nova Planta --</option>' + html;
+        };
 
-        function clearForm() {
-            document.getElementById('plant-form').reset();
-            document.getElementById('select-edit-plant').value = "";
-            document.getElementById('qrcode-display').innerHTML = "";
-            document.getElementById('input-latitude').value = "";
-            document.getElementById('input-longitude').value = "";
-            document.getElementById('input-file-plant').value = "";
-            document.getElementById('input-file-info').value = "";
-            document.getElementById('generated-qr-section').classList.add('hidden');
-        }
-        window.clearForm = clearForm;
+        window.clearForm = function() { document.getElementById('plant-form').reset(); };
 
-        function loadPlantForEditing() {
-            const scientificName = document.getElementById('select-edit-plant').value;
-            if (!scientificName) { clearForm(); return; }
-            const plantData = JSON.parse(localStorage.getItem('botanica_plants') || '{}')[scientificName];
-            if (!plantData) return;
-
-            document.getElementById('input-name').value = plantData.nome || "";
-            document.getElementById('input-scientific').value = plantData.cientifico || "";
+        window.loadPlantForEditing = function() {
+            const id = document.getElementById('select-edit-plant').value; if(!id) { window.clearForm(); return; }
+            const p = JSON.parse(localStorage.getItem('botanica_plants'))[id];
+            document.getElementById('input-name').value = p.nome; document.getElementById('input-scientific').value = p.cientifico;
+            document.getElementById('input-url').value = p.url || ''; document.getElementById('input-url-info').value = p.info_url || '';
+            document.getElementById('input-latitude').value = p.latitude || ''; document.getElementById('input-longitude').value = p.longitude || '';
             
-            // Para edição, tentaremos preencher a url primária se houver, ou limpar
-            document.getElementById('input-url').value = plantData.url || "";
-            document.getElementById('input-url-info').value = plantData.info_url || "";
-            document.getElementById('input-latitude').value = plantData.latitude !== undefined && plantData.latitude !== null ? plantData.latitude : "";
-            document.getElementById('input-longitude').value = plantData.longitude !== undefined && plantData.longitude !== null ? plantData.longitude : "";
-            document.getElementById('input-file-plant').value = "";
-            document.getElementById('input-file-info').value = "";
-
             for(let i = 1; i <= 5; i++) {
                 document.getElementById(`q${i}-text`).value = "";
                 document.getElementById(`q${i}-o0`).value = ""; document.getElementById(`q${i}-o1`).value = ""; document.getElementById(`q${i}-o2`).value = ""; document.getElementById(`q${i}-o3`).value = ""; document.getElementById(`q${i}-o4`).value = ""; document.getElementById(`q${i}-ans`).value = "0";
             }
-            if (plantData.quiz && plantData.quiz.length > 0) {
-                plantData.quiz.forEach((q, idx) => {
+            if (p.quiz && p.quiz.length > 0) {
+                p.quiz.forEach((q, idx) => {
                     const i = idx + 1;
                     if (i <= 5) {
                         document.getElementById(`q${i}-text`).value = q.q || "";
@@ -1546,75 +1429,25 @@
                     }
                 });
             }
-
-            const finalUrl = `${plantData.url}#id=${encodeURIComponent(plantData.cientifico)}`;
+            const finalUrl = `${p.url}#id=${encodeURIComponent(p.cientifico)}`;
             const qrCodeDisplay = document.getElementById('qrcode-display');
             qrCodeDisplay.innerHTML = "";
             new QRCode(qrCodeDisplay, { text: finalUrl, width: 200, height: 200, colorDark : "#166534", colorLight : "#ffffff" });
             document.getElementById('generated-qr-section').classList.remove('hidden');
-        }
-        window.loadPlantForEditing = loadPlantForEditing;
+        };
 
-        async function generateQRCode(event) {
-            event.preventDefault();
-            const btn = document.getElementById('btn-generate');
-            const originalText = btn.innerHTML;
-            btn.innerHTML = '<i class="ph-bold ph-spinner animate-spin mr-2"></i> Salvando dados e imagens...';
-            btn.disabled = true;
-
+        window.generateQRCode = async function(e) {
+            e.preventDefault(); const btn = document.getElementById('btn-generate'); btn.innerHTML = 'Salvando...'; btn.disabled = true;
             try {
-                const scientificText = document.getElementById('input-scientific').value.trim();
-                if (!scientificText) {
-                    showToast("Por favor, preencha o Nome Científico.", true);
-                    btn.innerHTML = originalText; btn.disabled = false;
-                    return;
-                }
-                const cleanScientific = scientificText.toLowerCase().replace(/[^a-z0-9]/g, '_');
+                const id = document.getElementById('input-scientific').value.trim(); const cleanId = id.replace(/[^a-z0-9]/gi,'_');
+                
+                let urls = []; const fInput = document.getElementById('input-file-plant');
+                if(fInput.files.length) { for(let f of fInput.files) { await window.supabase.storage.from('plants').upload(`r_${cleanId}_${Date.now()}`, f); urls.push(window.supabase.storage.from('plants').getPublicUrl(`r_${cleanId}_${Date.now()}`).data.publicUrl); } }
+                if(document.getElementById('input-url').value) urls.push(document.getElementById('input-url').value);
+                if(!urls.length) throw new Error("Adicione foto.");
 
-                // 1. Processamento das FOTOS REAIS (Múltiplas)
-                const fileInput = document.getElementById('input-file-plant');
-                let imageURLs = [];
-                let externalUrl = document.getElementById('input-url').value.trim();
-
-                if (fileInput && fileInput.files.length > 0) {
-                    for(let i=0; i<fileInput.files.length; i++) {
-                        const file = fileInput.files[i];
-                        const fileExt = file.name.split('.').pop();
-                        const fileName = `real_${cleanScientific}_${Date.now()}_${i}.${fileExt}`;
-
-                        const { error: uploadError } = await window.supabase.storage.from('plants').upload(fileName, file);
-                        if (uploadError) throw uploadError;
-
-                        const { data: publicUrlData } = window.supabase.storage.from('plants').getPublicUrl(fileName);
-                        imageURLs.push(publicUrlData.publicUrl);
-                    }
-                }
-
-                if (externalUrl) {
-                    imageURLs.push(externalUrl);
-                }
-
-                if (imageURLs.length === 0) {
-                    showToast("Adicione pelo menos uma Foto Real.", true);
-                    btn.innerHTML = originalText; btn.disabled = false;
-                    return;
-                }
-
-                // 2. Processamento do FOLHETO INFORMATIVO
-                const fileInputInfo = document.getElementById('input-file-info');
-                let infoUrl = document.getElementById('input-url-info').value.trim();
-
-                if (fileInputInfo && fileInputInfo.files.length > 0) {
-                    const fileInfo = fileInputInfo.files[0];
-                    const fileExtInfo = fileInfo.name.split('.').pop();
-                    const fileInfoName = `info_${cleanScientific}_${Date.now()}.${fileExtInfo}`;
-
-                    const { error: uploadInfoError } = await window.supabase.storage.from('plants').upload(fileInfoName, fileInfo);
-                    if (uploadInfoError) throw uploadInfoError;
-
-                    const { data: publicInfoUrlData } = window.supabase.storage.from('plants').getPublicUrl(fileInfoName);
-                    infoUrl = publicInfoUrlData.publicUrl;
-                }
+                let infoUrl = document.getElementById('input-url-info').value; const iInput = document.getElementById('input-file-info');
+                if(iInput.files.length) { await window.supabase.storage.from('plants').upload(`i_${cleanId}`, iInput.files[0]); infoUrl = window.supabase.storage.from('plants').getPublicUrl(`i_${cleanId}`).data.publicUrl; }
 
                 let questionsArray = [];
                 for(let i = 1; i <= 5; i++) {
@@ -1622,348 +1455,168 @@
                     if (qText) {
                         questionsArray.push({
                             q: qText,
-                            opts: [ 
-                                document.getElementById(`q${i}-o0`).value, 
-                                document.getElementById(`q${i}-o1`).value, 
-                                document.getElementById(`q${i}-o2`).value, 
-                                document.getElementById(`q${i}-o3`).value, 
-                                document.getElementById(`q${i}-o4`).value 
-                            ],
+                            opts: [ document.getElementById(`q${i}-o0`).value, document.getElementById(`q${i}-o1`).value, document.getElementById(`q${i}-o2`).value, document.getElementById(`q${i}-o3`).value, document.getElementById(`q${i}-o4`).value ],
                             ans: parseInt(document.getElementById(`q${i}-ans`).value)
                         });
                     }
                 }
 
-                const latVal = document.getElementById('input-latitude').value;
-                const lngVal = document.getElementById('input-longitude').value;
-
-                // Para compatibilidade, guardamos a primeira imagem no campo 'url'
-                const mainUrl = imageURLs[0];
-
-                const plantData = { 
-                    nome: document.getElementById('input-name').value, 
-                    cientifico: scientificText, 
-                    url: mainUrl, 
-                    image_urls: imageURLs,
-                    info_url: infoUrl || null,
-                    quiz: questionsArray,
-                    latitude: latVal ? parseFloat(latVal) : null,
-                    longitude: lngVal ? parseFloat(lngVal) : null
-                };
+                const pData = { nome: document.getElementById('input-name').value, cientifico: id, url: urls[0], image_urls: urls, info_url: infoUrl, quiz: questionsArray, latitude: parseFloat(document.getElementById('input-latitude').value) || null, longitude: parseFloat(document.getElementById('input-longitude').value) || null };
+                if(window.savePlantToCloud) await window.savePlantToCloud(pData); window.updateDropdown();
                 
-                savePlantToLocal(plantData);
-                if(window.savePlantToCloud) await window.savePlantToCloud(plantData);
-                updateDropdown();
+                const qrDiv = document.getElementById('qrcode-display'); qrDiv.innerHTML = ''; new QRCode(qrDiv, `${pData.url}#id=${encodeURIComponent(id)}`);
+                document.getElementById('generated-qr-section').classList.remove('hidden'); showToast("Salvo!");
+            } catch(e) { showToast(e.message, true); } finally { btn.innerHTML = 'Salvar Planta'; btn.disabled = false; }
+        };
 
-                const finalUrl = `${plantData.url}#id=${encodeURIComponent(scientificText)}`;
-                const qrCodeDisplay = document.getElementById('qrcode-display');
-                qrCodeDisplay.innerHTML = "";
-                new QRCode(qrCodeDisplay, { text: finalUrl, width: 200, height: 200, colorDark : "#166534", colorLight : "#ffffff" });
-                document.getElementById('generated-qr-section').classList.remove('hidden');
-                document.getElementById('generated-qr-section').scrollIntoView({ behavior: 'smooth', block: 'end' });
-                showToast("Dados salvos com sucesso!", false);
-                
-                if (fileInput) fileInput.value = "";
-                if (fileInputInfo) fileInputInfo.value = "";
-            } catch (err) {
-                console.error(err);
-                showToast("Erro ao processar o salvamento: " + (err.message || err), true);
-            } finally {
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-            }
-        }
-        window.generateQRCode = generateQRCode;
-
-        // --- SISTEMA SCAN E QUIZ ---
-        let currentQuizData = []; 
-        document.getElementById('student-date').valueAsDate = new Date();
-
-        function loadStudentView(plantData) {
-            document.getElementById('plant-title').textContent = plantData.nome; 
-            document.getElementById('plant-scientific').textContent = plantData.cientifico;
+        // --- 9. ADMIN - SISTEMA DE IMPRESSÃO ---
+        window.printBiodiversityReport = function() {
+            const plants = JSON.parse(localStorage.getItem('botanica_plants') || '{}');
+            const guardians = window.cachedGuardians || [];
             
-            document.getElementById('student-name').value = ''; 
-            document.getElementById('student-class').value = '';
-            document.getElementById('quiz-result').classList.add('hidden'); 
-            document.getElementById('btn-submit-quiz').classList.remove('hidden');
-
-            const quizContainer = document.getElementById('quiz-questions-container');
-            const studentFormSection = document.getElementById('student-form-section');
-            quizContainer.innerHTML = ''; currentQuizData = plantData.quiz || [];
-
-            // 1. CONTROLE DO FOLHETO INFORMATIVO (Agora no topo, logo após os títulos)
-            const infoCardContainer = document.getElementById('plant-info-container');
-            if (plantData.info_url) {
-                document.getElementById('plant-info-image').src = plantData.info_url;
-                document.getElementById('btn-open-info-link').href = plantData.info_url;
-                infoCardContainer.classList.remove('hidden');
-            } else {
-                infoCardContainer.classList.add('hidden');
-            }
-
-            // 2. FOTO(S) REAL(IS) - CARROSSEL (Agora abaixo do folheto)
-            const plantImageContainer = document.getElementById('plant-image-container');
-            let imagesToRender = plantData.image_urls && plantData.image_urls.length > 0 ? plantData.image_urls : (plantData.url ? [plantData.url] : []);
-            
-            if(imagesToRender.length > 0) {
-                let galleryHTML = `<div class="flex overflow-x-auto w-full gap-4 snap-x p-2">`;
-                imagesToRender.forEach(imgUrl => {
-                    galleryHTML += `
-                        <div class="shrink-0 w-56 sm:w-64 snap-center flex flex-col items-center bg-white p-2 rounded-3xl border border-emerald-100 shadow-sm">
-                            <img src="${imgUrl}" alt="Foto Real da Planta" class="w-full h-56 sm:h-64 object-cover rounded-2xl border-2 border-emerald-300">
-                            <a href="${imgUrl}" target="_blank" class="mt-3 text-[10px] sm:text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 py-2 px-4 rounded-full flex items-center transition-colors text-center w-full justify-center shadow-sm" style="text-decoration: none !important;">
-                                <i class="ph-bold ph-arrows-out mr-1.5"></i> Ampliar Foto
-                            </a>
-                        </div>
-                    `;
-                });
-                galleryHTML += `</div>`;
-                if(imagesToRender.length > 1) {
-                    galleryHTML += `<p class="text-xs text-green-700 font-bold mt-3 animate-pulse"><i class="ph-bold ph-arrows-left-right mr-1"></i> Deslize para o lado para ver mais fotos</p>`;
+            const busyPlants = {};
+            guardians.forEach(g => {
+                if (['pendente', 'aprovado', 'relatorio_enviado', 'concluido'].includes(g.status)) {
+                    const plantIds = Array.isArray(g.plants) ? g.plants : [];
+                    plantIds.forEach(pId => { busyPlants[pId] = g; });
                 }
-                plantImageContainer.innerHTML = galleryHTML;
-            } else {
-                plantImageContainer.innerHTML = '';
-            }
-
-            // 3. Controle do Mapa Individual da Planta (Abaixo das fotos reais)
-            const locationCard = document.getElementById('plant-location-card');
-            if (plantData.latitude && plantData.longitude) {
-                const lat = parseFloat(plantData.latitude);
-                const lng = parseFloat(plantData.longitude);
-                // Exibe as coordenadas completas na interface sem truncagem
-                document.getElementById('detail-coords-text').textContent = `${lat}, ${lng}`;
-                locationCard.classList.remove('hidden');
-                
-                // Configura o link de navegação do botão no card detalhado
-                const btnGmapsNav = document.getElementById('btn-google-maps-nav');
-                if (btnGmapsNav) {
-                    btnGmapsNav.href = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
-                }
-
-                stopGPSTracking();
-
-                setTimeout(() => {
-                    if (typeof L === 'undefined') return;
-
-                    const container = L.DomUtil.get('plant-detail-map');
-                    if (container && container._leaflet_id) {
-                        if (window.detailLeafletMap) {
-                            try { window.detailLeafletMap.remove(); } catch(e){}
-                        }
-                        window.detailLeafletMap = null;
-                        container._leaflet_id = null;
-                    }
-
-                    const busyPlants = {};
-                    if (window.cachedGuardians) {
-                        window.cachedGuardians.forEach(g => {
-                            if (['pendente', 'aprovado', 'relatorio_enviado'].includes(g.status)) {
-                                const plantIds = Array.isArray(g.plants) ? g.plants : [];
-                                plantIds.forEach(pId => {
-                                    busyPlants[pId] = true;
-                                });
-                            }
-                        });
-                    }
-                    const isBusy = !!busyPlants[plantData.cientifico];
-                    const iconColor = isBusy ? 'red' : 'green';
-
-                    if (!window.detailLeafletMap) {
-                        window.detailLeafletMap = L.map('plant-detail-map', { zoomControl: false }).setView([lat, lng], 18);
-                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                            maxZoom: 19
-                        }).addTo(window.detailLeafletMap);
-                        
-                        const detailIcon = L.icon({
-                            iconUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-${iconColor}.png`,
-                            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-                            iconSize: [25, 41],
-                            iconAnchor: [12, 41],
-                            shadowSize: [41, 41]
-                        });
-                        window.detailMarker = L.marker([lat, lng], { icon: detailIcon }).addTo(window.detailLeafletMap);
-                    } else {
-                        window.detailLeafletMap.setView([lat, lng], 18);
-                        
-                        const newIcon = L.icon({
-                            iconUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-${iconColor}.png`,
-                            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-                            iconSize: [25, 41],
-                            iconAnchor: [12, 41],
-                            shadowSize: [41, 41]
-                        });
-                        window.detailMarker.setIcon(newIcon);
-                        window.detailMarker.setLatLng([lat, lng]);
-                    }
-                    window.detailLeafletMap.invalidateSize();
-
-                    if (navigator.geolocation) {
-                        userWatchId = navigator.geolocation.watchPosition(
-                            (position) => {
-                                const userLat = position.coords.latitude;
-                                const userLng = position.coords.longitude;
-                                
-                                if (smoothUserLat === null || smoothUserLng === null) {
-                                    smoothUserLat = userLat;
-                                    smoothUserLng = userLng;
-                                } else {
-                                    smoothUserLat = (ALPHA * userLat) + ((1 - ALPHA) * smoothUserLat);
-                                    smoothUserLng = (ALPHA * userLng) + ((1 - ALPHA) * smoothUserLng);
-                                }
-                                
-                                const distance = calculateDistance(smoothUserLat, smoothUserLng, lat, lng);
-                                
-                                const distEl = document.getElementById('radar-distance');
-                                const dirEl = document.getElementById('radar-direction');
-                                
-                                if(distEl) {
-                                    distEl.textContent = `${distance.toFixed(1)} metros`;
-                                }
-
-                                if(dirEl) {
-                                    if(lastDistance !== null) {
-                                        const diff = distance - lastDistance;
-                                        if (Math.abs(diff) > 1.5) { 
-                                            if (diff < 0) {
-                                                dirEl.innerHTML = '<span class="text-orange-600 flex items-center justify-center font-extrabold text-sm sm:text-base"><i class="ph-fill ph-fire mr-1 text-xl animate-bounce"></i> Quente! Você está se aproximando!</span>';
-                                            } else {
-                                                dirEl.innerHTML = '<span class="text-blue-600 flex items-center justify-center font-semibold text-sm sm:text-base"><i class="ph-fill ph-snowflake mr-1 text-xl"></i> Esfriou... Você está se afastando.</span>';
-                                            }
-                                        }
-                                    } else {
-                                        dirEl.textContent = "Dica: Dê alguns passos para calibrar o sensor de direção!";
-                                    }
-                                }
-
-                                lastDistance = distance;
-
-                                const userIcon = L.icon({
-                                    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
-                                    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-                                    iconSize: [25, 41],
-                                    iconAnchor: [12, 41],
-                                    shadowSize: [41, 41]
-                                });
-
-                                if (!userMarkerDetail) {
-                                    userMarkerDetail = L.marker([smoothUserLat, smoothUserLng], { icon: userIcon }).addTo(window.detailLeafletMap)
-                                        .bindPopup("Sua Localização Atual");
-                                    
-                                    const bounds = L.latLngBounds([[smoothUserLat, smoothUserLng], [lat, lng]]);
-                                    window.detailLeafletMap.fitBounds(bounds, { padding: [45, 45] });
-                                } else {
-                                    userMarkerDetail.setLatLng([smoothUserLat, smoothUserLng]);
-                                }
-                            },
-                            (error) => {
-                                console.warn("Erro no watch GPS:", error);
-                                const dirEl = document.getElementById('radar-direction');
-                                if(dirEl) dirEl.textContent = "Sinal do GPS fraco ou permissão não concedida.";
-                            },
-                            { enableHighAccuracy: true, timeout: 6000, maximumAge: 0 }
-                        );
-                    }
-
-                }, 300);
-            } else {
-                locationCard.classList.add('hidden');
-            }
-
-            // 4. QUIZ DE CONHECIMENTOS (Último na tela)
-            if (currentQuizData.length > 0) {
-                studentFormSection.classList.remove('hidden');
-                currentQuizData.forEach((item, index) => {
-                    let optionsHtml = ''; const letters = ['A', 'B', 'C', 'D', 'E'];
-                    item.opts.forEach((opt, optIndex) => {
-                        optionsHtml += `
-                            <label class="flex items-center p-3 sm:p-4 border-2 border-green-100 rounded-xl bg-white cursor-pointer hover:bg-green-50 transition-colors has-[:checked]:bg-emerald-100 has-[:checked]:border-emerald-500">
-                                <input type="radio" name="question_${index}" value="${optIndex}" class="w-5 h-5 text-emerald-600 border-gray-300 focus:ring-emerald-500 mr-3 flex-shrink-0">
-                                <div class="flex items-center w-full break-words"><span class="font-bold text-gray-700 mr-2">${letters[optIndex]})</span> <span class="text-gray-800 font-medium">${opt}</span></div>
-                            </label>`;
-                    });
-                    quizContainer.innerHTML += `<div class="bg-white p-4 sm:p-5 rounded-2xl shadow-sm border border-green-100" id="q-block-${index}"><p class="font-extrabold text-green-900 mb-4"><span class="text-emerald-500">${index + 1}.</span> ${item.q}</p><div class="space-y-2">${optionsHtml}</div></div>`;
-                });
-            } else {
-                studentFormSection.classList.add('hidden');
-                quizContainer.innerHTML = '<p class="text-center text-gray-500 font-bold p-4">Placa apenas informativa.</p>';
-                document.getElementById('btn-submit-quiz').classList.add('hidden');
-            }
-
-            document.getElementById('scanner-container').classList.add('hidden'); document.getElementById('intro-section').classList.add('hidden');
-            document.getElementById('result-section').classList.remove('hidden');
-            document.getElementById('result-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-
-        function evaluateQuiz() {
-            const studentName = document.getElementById('student-name').value;
-            if(!studentName || !document.getElementById('student-class').value || !document.getElementById('student-date').value) { showToast("Preencha seus dados!", true); return; }
-
-            let correctCount = 0;
-            currentQuizData.forEach((item, index) => {
-                const sel = document.querySelector(`input[name="question_${index}"]:checked`);
-                const block = document.getElementById(`q-block-${index}`);
-                if (sel) {
-                    if (parseInt(sel.value) === item.ans) { correctCount++; block.classList.add('border-green-400', 'bg-green-50'); } 
-                    else { block.classList.add('border-red-400', 'bg-red-50'); block.innerHTML += `<p class="mt-2 text-sm text-red-600 font-bold">Correta: ${['A', 'B', 'C', 'D', 'E'][item.ans]}</p>`; }
-                } else block.classList.add('border-yellow-400', 'bg-yellow-50');
-                block.querySelectorAll('input').forEach(i => i.disabled = true);
             });
 
-            const rDiv = document.getElementById('quiz-result'); rDiv.classList.remove('hidden');
-            rDiv.className = `mt-6 p-5 rounded-2xl text-center font-extrabold text-lg shadow-inner ${correctCount >= currentQuizData.length/2 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`;
-            rDiv.innerHTML = `${studentName}, você acertou ${correctCount} de ${currentQuizData.length}!`;
-            document.getElementById('btn-submit-quiz').classList.add('hidden');
-        }
-        window.loadStudentView = loadStudentView;
+            let html = `
+                <!DOCTYPE html>
+                <html><head><title>Mapa de Biodiversidade Detalhado</title>
+                <style>
+                    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 30px; color: #333; }
+                    h1 { color: #166534; text-align: center; margin-bottom: 5px; }
+                    h2 { color: #047857; text-align: center; font-size: 16px; margin-top: 0; margin-bottom: 30px; border-bottom: 2px solid #166534; padding-bottom: 15px; }
+                    table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 12px; }
+                    th, td { border: 1px solid #d1d5db; padding: 10px; text-align: left; }
+                    th { background-color: #ecfdf5; color: #065f46; font-weight: bold; }
+                    tr:nth-child(even) { background-color: #f9fafb; }
+                    .status-livre { color: #059669; font-weight: bold; }
+                    .status-ocupada { color: #dc2626; font-weight: bold; }
+                </style>
+                </head><body>
+                <h1>Relatório do Mapa de Biodiversidade Monitorada</h1>
+                <h2>EEEP Aderson Borges de Carvalho - Gerado em: ${new Date().toLocaleDateString('pt-BR')}</h2>
+                <table>
+                <tr>
+                    <th style="width: 25%;">Planta (Popular e Científico)</th>
+                    <th style="width: 20%;">Localização (GPS)</th>
+                    <th style="width: 25%;">Guardião Responsável</th>
+                    <th style="width: 10%;">Turma</th>
+                    <th style="width: 20%;">Prof. Acompanhante</th>
+                </tr>
+            `;
 
-        function handleManualSelection() {
-            const sciName = document.getElementById('select-scientific').value;
-            if(sciName) {
-                const plant = JSON.parse(localStorage.getItem('botanica_plants') || '{}')[sciName];
-                if(plant) loadStudentView(plant);
+            Object.values(plants).forEach(p => {
+                const g = busyPlants[p.cientifico];
+                const coords = p.latitude && p.longitude ? `${p.latitude},<br>${p.longitude}` : '<span style="color:#9ca3af;">Não mapeada</span>';
+                
+                html += `<tr>
+                    <td><strong>${p.nome}</strong><br><i style="color:#4b5563;">${p.cientifico}</i></td>
+                    <td>${coords}</td>
+                    ${g ? `
+                        <td class="status-ocupada">${g.student_name}</td>
+                        <td>${g.student_class}</td>
+                        <td>${g.accompanying_teacher || '-'}</td>
+                    ` : `
+                        <td class="status-livre">Planta sem guardião</td>
+                        <td>-</td>
+                        <td>-</td>
+                    `}
+                </tr>`;
+            });
+
+            html += `</table></body></html>`;
+
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(html);
+            printWindow.document.close();
+            printWindow.focus();
+            setTimeout(() => { printWindow.print(); printWindow.close(); }, 800);
+        };
+
+        window.printPlansReport = function(type) {
+            const guardians = window.cachedGuardians || [];
+            let filtered = [];
+            let title = "";
+            let colorTheme = "";
+
+            if(type === 'andamento') {
+                filtered = guardians.filter(g => g.status === 'aprovado');
+                title = "Planos de Ação em Andamento";
+                colorTheme = "#059669"; 
+            } else if(type === 'concluidos') {
+                filtered = guardians.filter(g => ['relatorio_enviado', 'concluido'].includes(g.status));
+                title = "Planos de Ação Concluídos (Relatórios)";
+                colorTheme = "#2563eb"; 
             }
-        }
 
-        function resetScanner() {
-            document.getElementById('result-section').classList.add('hidden'); document.getElementById('intro-section').classList.remove('hidden'); document.getElementById('scanner-container').classList.remove('hidden');
-            document.getElementById('select-scientific').value = ""; isScanningActive = true; window.scrollTo(0,0);
-        }
+            let html = `
+                <!DOCTYPE html>
+                <html><head><title>${title}</title>
+                <style>
+                    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 30px; color: #333; }
+                    h1 { color: ${colorTheme}; text-align: center; margin-bottom: 5px; }
+                    h2 { color: #4b5563; text-align: center; font-size: 16px; margin-top: 0; margin-bottom: 30px; border-bottom: 2px solid ${colorTheme}; padding-bottom: 15px; }
+                    .card { border: 2px solid #e5e7eb; border-radius: 12px; padding: 20px; margin-bottom: 20px; page-break-inside: avoid; }
+                    .header-card { border-bottom: 1px solid #e5e7eb; padding-bottom: 10px; margin-bottom: 15px; }
+                    .header-card h3 { margin: 0; color: #1f2937; font-size: 18px; }
+                    .badge { background: ${colorTheme}; color: white; padding: 4px 8px; border-radius: 4px; font-size: 10px; font-weight: bold; text-transform: uppercase; float: right; }
+                    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 13px; margin-bottom: 15px; }
+                    .plan-box { background: #f9fafb; padding: 15px; border-radius: 8px; font-size: 13px; white-space: pre-wrap; border: 1px dashed #d1d5db; }
+                    .report-link { color: #2563eb; text-decoration: none; font-weight: bold; }
+                </style>
+                </head><body>
+                <h1>${title}</h1>
+                <h2>EEEP Aderson Borges de Carvalho - Impresso em: ${new Date().toLocaleDateString('pt-BR')}</h2>
+            `;
 
-        function handleCodeScan(decodedText) {
-            let s = "";
-            if (decodedText.includes('#id=')) s = decodeURIComponent(decodedText.split('#id=')[1]);
-            else if (decodedText.includes('?id=')) s = decodeURIComponent(decodedText.split('?id=')[1].split('&')[0]);
-            if (s) {
-                const p = JSON.parse(localStorage.getItem('botanica_plants') || '{}')[s];
-                if (p) loadStudentView(p);
+            if(filtered.length === 0) {
+                html += `<p style="text-align:center; color:#6b7280; font-style:italic;">Nenhum plano encontrado nesta categoria.</p>`;
+            } else {
+                filtered.forEach(g => {
+                    const plantsList = Array.isArray(g.plants) ? g.plants.join(', ') : '';
+                    html += `
+                    <div class="card">
+                        <div class="header-card">
+                            <span class="badge">${g.status}</span>
+                            <h3>${g.student_name} <span style="font-size:14px; color:#6b7280;">(Turma: ${g.student_class})</span></h3>
+                        </div>
+                        <div class="info-grid">
+                            <div><strong>Plantas Selecionadas:</strong><br><span style="color:#4b5563;">${plantsList}</span></div>
+                            <div><strong>Professor Acompanhante:</strong><br><span style="color:#4b5563;">${g.accompanying_teacher || '-'}</span></div>
+                            <div><strong>Método de Registro:</strong><br><span style="color:#4b5563;">${g.recording_method}</span></div>
+                            <div><strong>Relatório PDF:</strong><br>
+                                ${g.report_url ? `<a href="${g.report_url}" target="_blank" class="report-link">Acessar Arquivo Online</a>` : '<span style="color:#9ca3af;">Não enviado</span>'}
+                            </div>
+                        </div>
+                        <div>
+                            <strong>Detalhamento do Plano de Ação:</strong>
+                            <div class="plan-box">${g.action_plan}</div>
+                        </div>
+                    </div>`;
+                });
             }
-        }
-        window.handleCodeScan = handleCodeScan;
 
+            html += `</body></html>`;
+
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(html);
+            printWindow.document.close();
+            printWindow.focus();
+            setTimeout(() => { printWindow.print(); printWindow.close(); }, 800);
+        };
+
+        // --- 10. INICIALIZAÇÃO EVENT LISTENERS ---
         document.addEventListener('DOMContentLoaded', () => {
-            updateDropdown();
-            try {
-                if (typeof Html5QrcodeScanner !== 'undefined') {
-                    const scanType = typeof Html5QrcodeScanType !== 'undefined' ? Html5QrcodeScanType.SCAN_TYPE_CAMERA : 0;
-                    new Html5QrcodeScanner("qr-reader", { 
-                        fps: 10, 
-                        qrbox: { width: 250, height: 250 }, 
-                        aspectRatio: 1.0, 
-                        facingMode: "environment", 
-                        supportedScanTypes: [ scanType ] 
-                    }, false)
-                    .render((t) => handleCodeScan(t), () => {});
-                }
-            } catch (e) {
-                console.warn("Scanner initialization failed:", e);
-            }
-            
-            let extId = new URLSearchParams(window.location.search).get('id') || (window.location.hash.includes('id=') ? decodeURIComponent(window.location.hash.split('id=')[1]) : null);
-            if (extId) {
-                const p = JSON.parse(localStorage.getItem('botanica_plants') || '{}')[extId];
-                if (p) loadStudentView(p);
+            if(window.updateDropdown) window.updateDropdown();
+            if (typeof Html5QrcodeScanner !== 'undefined') {
+                try {
+                    new Html5QrcodeScanner("qr-reader", { fps: 10, qrbox: { width: 250, height: 250 }, aspectRatio: 1.0, facingMode: "environment" }, false)
+                    .render((t) => { if(window.handleCodeScan) window.handleCodeScan(t); }, () => {});
+                } catch(e) { console.warn("Scanner initialization failed:", e); }
             }
         });
     </script>
