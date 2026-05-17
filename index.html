@@ -1180,23 +1180,152 @@
 
         window.renderApprovedGuardians = function(guardians) {
             const list = document.getElementById('approved-guardians-list');
-            const active = guardians.filter(g => ['aprovado', 'relatorio_enviado', 'concluido'].includes(g.status));
-            list.innerHTML = active.length ? active.map(g => `<div class="bg-emerald-50 p-4 rounded-2xl mb-2"><h4 class="font-extrabold text-emerald-800">${g.student_name} (${g.student_class})</h4><p class="text-xs text-gray-700 mt-2">${g.status.toUpperCase()}</p></div>`).join('') : '<p class="text-center">Nenhum Guardião.</p>';
+            const statsContainer = document.getElementById('class-stats-container');
+            const statsList = document.getElementById('class-stats-list');
+            
+            const activeGuardians = guardians.filter(g => ['aprovado', 'relatorio_enviado', 'concluido'].includes(g.status));
+            
+            if (activeGuardians.length > 0) {
+                const classCounts = {};
+                activeGuardians.forEach(g => {
+                    const turma = g.student_class.trim().toUpperCase();
+                    classCounts[turma] = (classCounts[turma] || 0) + 1;
+                });
+
+                const sortedClasses = Object.keys(classCounts).sort();
+                
+                statsList.innerHTML = sortedClasses.map(turma => `
+                    <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 font-extrabold px-3 py-1.5 rounded-full text-xs sm:text-sm flex items-center shadow-sm">
+                        ${turma} 
+                        <span class="bg-emerald-500 text-white rounded-full w-5 h-5 flex items-center justify-center ml-2 text-xs shadow-inner">${classCounts[turma]}</span>
+                    </div>
+                `).join('');
+                statsContainer.classList.remove('hidden');
+            } else {
+                statsContainer.classList.add('hidden');
+            }
+            
+            if (activeGuardians.length === 0) {
+                list.innerHTML = '<div class="text-center text-emerald-600/70 italic py-4 bg-emerald-50 rounded-xl">Seja o primeiro Guardião da Flora! Proponha seu plano acima.</div>';
+                return;
+            }
+
+            list.innerHTML = activeGuardians.map(g => `
+                <div class="bg-emerald-50 border border-emerald-100 p-4 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-3 transition-all hover:shadow-md">
+                    <div class="flex-grow w-full">
+                        <h4 class="font-extrabold text-emerald-800 flex items-center">
+                            <i class="ph-fill ph-medal text-yellow-500 mr-2 text-xl"></i> ${g.student_name} <span class="text-xs bg-emerald-200 text-emerald-800 px-2 py-1 rounded ml-2">${g.student_class}</span>
+                        </h4>
+                        <div class="flex flex-wrap gap-x-4 gap-y-1 mt-1 mb-2">
+                            <p class="text-xs text-emerald-600 font-medium flex items-center"><i class="ph-bold ph-plant mr-1"></i> ${g.plants.length} espécie(s)</p>
+                            ${g.accompanying_teacher ? `<p class="text-xs text-emerald-700 font-bold flex items-center"><i class="ph-bold ph-chalkboard-teacher mr-1"></i> Prof. ${g.accompanying_teacher}</p>` : ''}
+                        </div>
+                        <p class="text-sm text-gray-700 font-medium bg-white p-3 rounded-xl border border-emerald-100 whitespace-pre-wrap leading-relaxed shadow-sm">${g.action_plan}</p>
+                    </div>
+                    
+                    ${g.status === 'concluido' ? 
+                        `<div class="flex flex-col sm:flex-row items-end gap-2 shrink-0">
+                            <span class="text-xs text-green-700 bg-green-100 font-bold px-2 py-1 rounded-lg flex items-center border border-green-200"><i class="ph-bold ph-check-circle mr-1"></i> Concluído</span>
+                            <a href="${g.report_url}" target="_blank" class="bg-blue-100 text-blue-700 font-bold px-3 py-2 rounded-lg text-xs flex items-center hover:bg-blue-200"><i class="ph-bold ph-file-pdf mr-1 text-lg"></i> Ver PDF</a>
+                        </div>` 
+                    : g.status === 'relatorio_enviado' ? 
+                        `<span class="text-xs text-yellow-700 bg-yellow-100 font-bold px-2 py-1 rounded-lg border border-yellow-200 shrink-0">Em avaliação...</span>`
+                    : 
+                        `<span class="text-xs text-gray-500 bg-gray-100 font-bold px-2 py-1 rounded-lg border border-gray-200 shrink-0">Em andamento...</span>`
+                    }
+                </div>
+            `).join('');
         };
 
         window.renderAdminGuardians = function(guardians) {
-            const list = document.getElementById('admin-guardians-list'); if(!list) return;
-            list.innerHTML = guardians.map(g => `<div class="border p-4 mb-2"><h4 class="font-bold">${g.student_name}</h4><p class="text-xs">${g.status}</p>
-                <div class="mt-2 flex gap-2">
-                    ${g.status==='pendente'?`<button onclick="approveGuardian('${g.id}','btn-${g.id}')" id="btn-${g.id}" class="bg-emerald-500 text-white text-xs p-1 rounded">Aprovar Plano</button>`:''}
-                    ${g.status==='relatorio_enviado'?`<button onclick="approveReport('${g.id}','btn-${g.id}')" id="btn-${g.id}" class="bg-blue-500 text-white text-xs p-1 rounded">Aprovar Relatório</button>`:''}
-                    <button onclick="deleteGuardian('${g.id}','del-${g.id}')" id="del-${g.id}" class="bg-red-500 text-white text-xs p-1 rounded">Excluir</button>
-                </div></div>`).join('');
+            const list = document.getElementById('admin-guardians-list');
+            if(!list) return;
+
+            if (guardians.length === 0) {
+                list.innerHTML = '<div class="text-center text-gray-500 italic py-2">Nenhum plano cadastrado.</div>';
+                return;
+            }
+
+            list.innerHTML = guardians.map(g => {
+                let borderColor = 'border-blue-200';
+                let badgeClass = 'bg-blue-100 text-blue-800';
+                let badgeText = 'Aguardando Relatório';
+
+                if (g.status === 'pendente') {
+                    borderColor = 'border-yellow-300'; badgeClass = 'bg-yellow-100 text-yellow-800'; badgeText = 'Aprovar Plano';
+                } else if (g.status === 'relatorio_enviado') {
+                    borderColor = 'border-orange-400'; badgeClass = 'bg-orange-100 text-orange-800'; badgeText = 'Avaliar Relatório';
+                } else if (g.status === 'concluido') {
+                    borderColor = 'border-emerald-400'; badgeClass = 'bg-emerald-100 text-emerald-800'; badgeText = 'Concluído';
+                }
+
+                return `
+                <div class="bg-white border ${borderColor} p-4 rounded-xl shadow-sm mb-3">
+                    <div class="flex justify-between items-start mb-2">
+                        <h4 class="font-bold text-gray-800">${g.student_name} (${g.student_class})</h4>
+                        <span class="text-xs font-bold px-2 py-1 rounded ${badgeClass} uppercase">${badgeText}</span>
+                    </div>
+                    ${g.accompanying_teacher ? `<p class="text-sm text-gray-800 mb-2 font-bold"><i class="ph-bold ph-chalkboard-teacher mr-1 text-gray-500"></i> Prof(a). Acompanhante: ${g.accompanying_teacher}</p>` : ''}
+                    <p class="text-sm text-gray-600 mb-2"><strong>Plantas:</strong> ${g.plants.join(', ')}</p>
+                    <p class="text-sm text-gray-700 mb-2 whitespace-pre-wrap bg-gray-50 p-3 rounded-lg border border-gray-200 leading-relaxed">${g.action_plan}</p>
+                    <p class="text-sm text-gray-600 mb-3"><strong>Método:</strong> ${g.recording_method}</p>
+                    
+                    <div class="flex flex-wrap gap-2 border-t pt-3 mt-2 items-center">
+                        ${g.status === 'pendente' ? 
+                            `<button id="btn-approve-${g.id}" type="button" onclick="approveGuardian('${g.id}', 'btn-approve-${g.id}')" class="bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold py-1.5 px-3 rounded flex items-center transition-colors"><i class="ph-bold ph-check mr-1"></i> Aprovar Plano</button>` 
+                        : ''}
+                        
+                        ${g.status === 'relatorio_enviado' ? 
+                            `<a href="${g.report_url}" target="_blank" class="bg-blue-500 hover:bg-blue-600 text-white text-xs font-bold py-1.5 px-3 rounded flex items-center"><i class="ph-bold ph-file-pdf mr-1"></i> Abrir Relatório</a>
+                             <button id="btn-approve-rep-${g.id}" type="button" onclick="approveReport('${g.id}', 'btn-approve-rep-${g.id}')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-1.5 px-3 rounded flex items-center transition-colors"><i class="ph-bold ph-check-circle mr-1"></i> Aprovar Missão</button>` 
+                        : ''}
+
+                        ${g.status === 'concluido' ? 
+                            `<a href="${g.report_url}" target="_blank" class="bg-blue-500 hover:bg-blue-600 text-white text-xs font-bold py-1.5 px-3 rounded flex items-center"><i class="ph-bold ph-file-pdf mr-1"></i> Ver Relatório</a>` 
+                        : ''}
+                        
+                        <button id="btn-delete-${g.id}" type="button" onclick="deleteGuardian('${g.id}', 'btn-delete-${g.id}')" class="bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 text-xs font-bold py-1.5 px-3 rounded flex items-center transition-colors ml-auto"><i class="ph-bold ph-trash mr-1"></i> Excluir</button>
+                    </div>
+                </div>
+                `;
+            }).join('');
         };
 
-        window.approveGuardian = async function(id, btnId) { await window.supabase.from('guardians').update({status:'aprovado'}).eq('id', id); window.syncGuardians(); showToast("Aprovado!",false); };
-        window.approveReport = async function(id, btnId) { await window.supabase.from('guardians').update({status:'concluido'}).eq('id', id); window.syncGuardians(); showToast("Concluído!",false); };
-        window.deleteGuardian = async function(id, btnId) { await window.supabase.from('guardians').delete().eq('id', id); window.syncGuardians(); showToast("Excluído!",false); };
+        window.approveGuardian = async function(id, btnId) {
+            const btn = document.getElementById(btnId);
+            if (btn.dataset.confirm !== "true") {
+                btn.dataset.confirm = "true"; btn.dataset.originalHtml = btn.innerHTML; btn.innerHTML = '<i class="ph-bold ph-question mr-1"></i> Confirmar?'; btn.classList.replace('bg-emerald-500', 'bg-emerald-700');
+                setTimeout(() => { if (btn && btn.dataset.confirm === "true") { btn.dataset.confirm = "false"; btn.innerHTML = btn.dataset.originalHtml; btn.classList.replace('bg-emerald-700', 'bg-emerald-500'); } }, 3000); return;
+            }
+            btn.dataset.confirm = "false"; btn.innerHTML = '<i class="ph-bold ph-spinner animate-spin mr-1"></i> Aprovando...'; btn.disabled = true;
+            try {
+                await window.supabase.from('guardians').update({status:'aprovado'}).eq('id', id); window.syncGuardians(); showToast("Aprovado!",false);
+            } catch(e) { showToast("Erro.", true); btn.innerHTML = btn.dataset.originalHtml; btn.disabled = false; btn.classList.replace('bg-emerald-700', 'bg-emerald-500'); }
+        };
+
+        window.approveReport = async function(id, btnId) {
+            const btn = document.getElementById(btnId);
+            if (btn.dataset.confirm !== "true") {
+                btn.dataset.confirm = "true"; btn.dataset.originalHtml = btn.innerHTML; btn.innerHTML = '<i class="ph-bold ph-question mr-1"></i> Confirmar?'; btn.classList.replace('bg-emerald-600', 'bg-emerald-800');
+                setTimeout(() => { if (btn && btn.dataset.confirm === "true") { btn.dataset.confirm = "false"; btn.innerHTML = btn.dataset.originalHtml; btn.classList.replace('bg-emerald-800', 'bg-emerald-600'); } }, 3000); return;
+            }
+            btn.dataset.confirm = "false"; btn.innerHTML = '<i class="ph-bold ph-spinner animate-spin mr-1"></i> Concluindo...'; btn.disabled = true;
+            try {
+                await window.supabase.from('guardians').update({status:'concluido'}).eq('id', id); window.syncGuardians(); showToast("Concluído!",false);
+            } catch(e) { showToast("Erro.", true); btn.innerHTML = btn.dataset.originalHtml; btn.disabled = false; btn.classList.replace('bg-emerald-800', 'bg-emerald-600'); }
+        };
+
+        window.deleteGuardian = async function(id, btnId) {
+            const btn = document.getElementById(btnId);
+            if (btn.dataset.confirm !== "true") {
+                btn.dataset.confirm = "true"; btn.dataset.originalHtml = btn.innerHTML; btn.innerHTML = '<i class="ph-bold ph-warning mr-1"></i> Confirmar Exclusão?'; btn.classList.replace('bg-red-50', 'bg-red-500'); btn.classList.replace('text-red-600', 'text-white');
+                setTimeout(() => { if (btn && btn.dataset.confirm === "true") { btn.dataset.confirm = "false"; btn.innerHTML = btn.dataset.originalHtml; btn.classList.replace('bg-red-500', 'bg-red-50'); btn.classList.replace('text-white', 'text-red-600'); } }, 3000); return;
+            }
+            btn.dataset.confirm = "false"; btn.innerHTML = '<i class="ph-bold ph-spinner animate-spin mr-1"></i> Excluindo...'; btn.disabled = true;
+            try {
+                await window.supabase.from('guardians').delete().eq('id', id); window.syncGuardians(); showToast("Excluído!",false);
+            } catch(e) { showToast("Erro.", true); btn.innerHTML = btn.dataset.originalHtml; btn.disabled = false; btn.classList.replace('bg-red-500', 'bg-red-50'); btn.classList.replace('text-white', 'text-red-600'); }
+        };
 
         // --- 7. ADMIN - DESAFIOS (CRIAR E PÓDIO) ---
         window.populateChallengePlants = function(plants) {
