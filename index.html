@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Plantas do Aderson: conhecer para cuidar">
-    <link rel="apple-touch-icon" href="https://placehold.co/180x180/16a34a/ffffff?text=AB">
+    <link class="rounded-full" rel="apple-touch-icon" href="https://placehold.co/180x180/16a34a/ffffff?text=AB">
 
     <title>Plantas do Aderson: conhecer para cuidar</title>
     
@@ -17,6 +17,10 @@
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     
+    <!-- Leaflet Map CDNs -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
         
@@ -58,7 +62,7 @@
             margin-top: 15px; margin-bottom: 10px; transition: all 0.2s; max-width: 90%; white-space: normal;
         }
         #qr-reader button:hover { background-color: #16a34a; transform: translateY(-2px); }
-        #qr-reader a { display: none !important; } /* Esconde links extras nativos */
+        #qr-reader a { display: none !important; } 
         
         #qrcode-display img { margin: 0 auto; border-radius: 0.5rem; padding: 1rem; background: white; border: 2px solid #bbf7d0; max-width: 100%; height: auto; }
 
@@ -66,6 +70,12 @@
         .tab-inactive { background-color: #e2e8f0; color: #475569; }
 
         .modal-overlay { background-color: rgba(0, 0, 0, 0.5); backdrop-filter: blur(4px); z-index: 50; }
+        
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Ajustes de mapa para Leaflet */
+        .leaflet-container { font-family: 'Nunito', sans-serif; }
     </style>
 </head>
 <body class="antialiased selection:bg-green-300 selection:text-green-900">
@@ -82,18 +92,22 @@
         </div>
 
         <div class="flex items-center z-10 text-center">
-            <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight drop-shadow-md flex items-center flex-wrap justify-center">
-                <i class="ph-fill ph-potted-plant mr-2 text-green-200"></i> Plantas do Aderson: conhecer para cuidar
+            <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight drop-shadow-md flex items-center flex-wrap justify-center font-extrabold">
+                <i class="ph-fill ph-potted-plant mr-2 text-green-200 font-extrabold"></i> Plantas do Aderson: conhecer para cuidar
             </h1>
         </div>
     </header>
 
+    <!-- Menu de abas de Navegação -->
     <nav class="flex flex-wrap justify-center gap-2 sm:gap-4 mt-6 px-4 w-full max-w-2xl mx-auto">
-        <button id="btn-tab-scan" onclick="switchTab('scan')" class="tab-active flex-1 min-w-[140px] px-3 sm:px-6 py-3 rounded-full font-bold flex items-center justify-center transition-all duration-300 text-sm sm:text-base">
-            <i class="ph-bold ph-scan text-lg sm:text-xl mr-1 sm:mr-2"></i> Explorar
+        <button id="btn-tab-scan" onclick="switchTab('scan')" class="tab-active flex-1 min-w-[100px] sm:min-w-[140px] px-2 sm:px-6 py-3 rounded-full font-bold flex items-center justify-center transition-all duration-300 text-xs sm:text-base">
+            <i class="ph-bold ph-scan text-base sm:text-xl mr-1 sm:mr-2"></i> Explorar
         </button>
-        <button id="btn-tab-create" onclick="switchTab('create')" class="tab-inactive flex-1 min-w-[140px] px-3 sm:px-6 py-3 rounded-full font-bold flex items-center justify-center transition-all duration-300 text-sm sm:text-base text-center leading-tight">
-            <i class="ph-bold ph-plus-circle text-lg sm:text-xl mr-1 sm:mr-2"></i> Criar / Gerenciar
+        <button id="btn-tab-map" onclick="switchTab('map')" class="tab-inactive flex-1 min-w-[100px] sm:min-w-[140px] px-2 sm:px-6 py-3 rounded-full font-bold flex items-center justify-center transition-all duration-300 text-xs sm:text-base">
+            <i class="ph-bold ph-map-trifold text-base sm:text-xl mr-1 sm:mr-2"></i> Mapa Flora
+        </button>
+        <button id="btn-tab-create" onclick="switchTab('create')" class="tab-inactive flex-1 min-w-[100px] sm:min-w-[140px] px-2 sm:px-6 py-3 rounded-full font-bold flex items-center justify-center transition-all duration-300 text-xs sm:text-base text-center leading-tight">
+            <i class="ph-bold ph-plus-circle text-base sm:text-xl mr-1 sm:mr-2"></i> Painel Adm
         </button>
     </nav>
 
@@ -135,7 +149,7 @@
                     </div>
                 </div>
 
-                <!-- NOVA SEÇÃO: GUARDIÕES DA FLORA -->
+                <!-- SEÇÃO: GUARDIÕES DA FLORA -->
                 <div class="w-full flex flex-col items-center bg-white p-4 sm:p-6 rounded-3xl shadow-xl mt-6 border-2 border-emerald-300 relative overflow-hidden">
                     <div class="absolute -right-6 -top-6 bg-emerald-100 w-24 h-24 rounded-full opacity-50 pointer-events-none"></div>
                     
@@ -152,6 +166,16 @@
                         <button onclick="openReportModal()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl shadow transition duration-300 flex justify-center items-center text-sm sm:text-base">
                             <i class="ph-bold ph-upload-simple mr-2 text-xl"></i> Enviar Relatório (PDF)
                         </button>
+                    </div>
+
+                    <!-- Estatísticas por Turma -->
+                    <div id="class-stats-container" class="w-full mb-5 hidden fade-in">
+                        <h3 class="font-bold text-gray-700 mb-2 border-b-2 border-gray-100 pb-1 text-sm flex items-center">
+                            <i class="ph-fill ph-chart-bar mr-2 text-emerald-500 text-lg"></i> Engajamento por Turma:
+                        </h3>
+                        <div id="class-stats-list" class="flex flex-wrap gap-2 mt-2">
+                            <!-- Badges geradas via JS -->
+                        </div>
                     </div>
 
                     <!-- Lista de Guardiões Aprovados -->
@@ -181,6 +205,15 @@
                             <i class="ph-bold ph-arrow-square-out mr-2 text-lg"></i> Abrir Imagem Completa
                         </a>
                     </div>
+                </div>
+
+                <!-- CARD DE GEOLOCALIZAÇÃO DETALHADA DA PLANTA -->
+                <div id="plant-location-card" class="w-full mt-6 bg-green-50 p-4 rounded-2xl border border-green-200 hidden">
+                    <h4 class="font-bold text-green-800 text-sm sm:text-base mb-2 flex items-center">
+                        <i class="ph-bold ph-map-pin-line mr-2 text-emerald-600 text-xl"></i> Localização da Planta
+                    </h4>
+                    <div id="plant-detail-map" class="h-48 w-full rounded-xl z-10 border border-emerald-300 shadow-sm"></div>
+                    <p class="text-[10px] text-gray-500 mt-1.5 italic text-center">Coordenadas no mapa: <span id="detail-coords-text"></span></p>
                 </div>
 
                 <div id="student-form-section" class="w-full mt-6 pt-6 border-t-2 border-dashed border-green-200">
@@ -217,7 +250,18 @@
         </div>
 
         <!-- ========================================== -->
-        <!-- ABA 2: CRIAR PLACAS E ADMIN GUARDIÕES      -->
+        <!-- NOVO MAPA GLOBAL DA FLORA (ABA 2)          -->
+        <!-- ========================================== -->
+        <div id="view-map" class="w-full hidden flex-col fade-in bg-white p-4 sm:p-6 rounded-3xl shadow-xl border-2 border-green-200">
+            <h2 class="text-xl sm:text-2xl font-extrabold text-green-800 mb-2 flex items-center justify-center text-center">
+                <i class="ph-fill ph-map-trifold mr-2 text-emerald-600 text-3xl animate-bounce"></i> Mapa das Plantas Registradas
+            </h2>
+            <p class="text-xs text-gray-500 mb-4 text-center">Navegue pelas ilhas verdes do campus. Clique em um pin para descobrir a espécie.</p>
+            <div id="global-map" class="w-full h-[400px] sm:h-[480px] rounded-2xl z-10 shadow-inner border border-emerald-300"></div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- ABA 3: CRIAR PLACAS E ADMIN GUARDIÕES      -->
         <!-- ========================================== -->
         <div id="view-create" class="w-full hidden flex-col items-center fade-in">
             
@@ -277,7 +321,7 @@
                 </h3>
 
                 <p class="text-xs sm:text-sm text-blue-700 mb-6 font-medium bg-blue-50 p-4 rounded-xl border border-blue-100 leading-relaxed text-justify">
-                    <i class="ph-bold ph-info float-left mr-2 text-blue-500 text-lg"></i> Preencha a identificação da planta, o link da imagem e as questões (opcional). Os dados serão salvos no aparelho e no QR Code.
+                    <i class="ph-bold ph-info float-left mr-2 text-blue-500 text-lg"></i> Preencha a identificação da planta, o link da imagem, as coordenadas e as questões (opcional). Os dados serão salvos no aparelho e no QR Code.
                 </p>
 
                 <div class="mb-6 bg-blue-50/50 p-4 sm:p-6 rounded-2xl border border-blue-200">
@@ -313,9 +357,33 @@
                         </div>
                     </div>
 
+                    <!-- CADASTRO DE LOCALIZAÇÃO GEOGRÁFICA -->
+                    <div class="space-y-4 bg-green-50/50 p-4 sm:p-6 rounded-2xl border border-green-100">
+                        <h3 class="font-bold text-green-800 text-base sm:text-lg border-b border-green-200 pb-2 mb-2 flex items-center justify-between">
+                            <span>2. Localização Geográfica (Mapa)</span>
+                            <span class="text-sm text-emerald-600 font-medium bg-emerald-100 px-2 py-1 rounded-lg">Opcional</span>
+                        </h3>
+                        <p class="text-xs text-gray-500 leading-relaxed mb-4">Insira as coordenadas exatas da planta. Se estiver ao lado da planta, utilize o botão abaixo para capturar via GPS.</p>
+                        
+                        <div class="flex flex-col sm:flex-row gap-4">
+                            <div class="w-full sm:w-1/2">
+                                <label class="block text-sm font-bold text-green-700 mb-1.5 ml-1">Latitude</label>
+                                <input type="number" step="any" id="input-latitude" placeholder="Ex: -7.224412" class="w-full p-3 sm:p-4 rounded-xl border-2 border-green-200 bg-white focus:outline-none focus:border-green-500 font-semibold text-sm sm:text-base">
+                            </div>
+                            <div class="w-full sm:w-1/2">
+                                <label class="block text-sm font-bold text-green-700 mb-1.5 ml-1">Longitude</label>
+                                <input type="number" step="any" id="input-longitude" placeholder="Ex: -39.314225" class="w-full p-3 sm:p-4 rounded-xl border-2 border-green-200 bg-white focus:outline-none focus:border-green-500 font-semibold text-sm sm:text-base">
+                            </div>
+                        </div>
+
+                        <button type="button" onclick="getGPSCoordinates()" class="w-full bg-blue-100 hover:bg-blue-200 text-blue-800 font-bold py-3 px-4 rounded-xl transition duration-300 flex justify-center items-center text-sm mt-2">
+                            <i class="ph-bold ph-gps mr-2 text-lg"></i> Capturar Coordenadas do GPS Atual
+                        </button>
+                    </div>
+
                     <div class="space-y-4 bg-green-50/50 p-4 sm:p-6 rounded-2xl border border-green-100">
                         <h3 class="font-bold text-green-800 text-base sm:text-lg border-b border-green-200 pb-2 mb-4 flex items-center justify-between">
-                            <span>2. Link da Imagem</span>
+                            <span>3. Link da Imagem</span>
                             <span class="text-sm text-red-600 font-medium bg-red-100 px-2 py-1 rounded-lg">Obrigatório</span>
                         </h3>
                         <div>
@@ -326,7 +394,7 @@
 
                     <div class="space-y-6">
                         <h3 class="font-bold text-green-800 text-base sm:text-lg border-b border-green-200 pb-2 flex items-center justify-between">
-                            <span>3. Cadastro de Questões</span>
+                            <span>4. Cadastro de Questões</span>
                             <span class="text-sm text-emerald-600 font-medium bg-emerald-100 px-2 py-1 rounded-lg">Opcional</span>
                         </h3>
                         <div id="questions-builder-container" class="space-y-6"></div>
@@ -360,21 +428,58 @@
                 </div>
                 <div>
                     <label class="block text-sm font-bold text-green-700 mb-1">Turma</label>
-                    <input type="text" id="plan-class" required class="w-full p-3 rounded-xl border-2 border-green-100 bg-green-50 focus:border-green-500">
+                    <select id="plan-class" required class="w-full p-3 rounded-xl border-2 border-green-100 bg-green-50 focus:border-green-500 font-bold text-green-900 cursor-pointer">
+                        <option value="">-- Selecione sua turma --</option>
+                        <option value="1º A">1º A</option>
+                        <option value="1º B">1º B</option>
+                        <option value="1º C">1º C</option>
+                        <option value="1º D">1º D</option>
+                        <option value="2º A">2º A</option>
+                        <option value="2º B">2º B</option>
+                        <option value="2º C">2º C</option>
+                        <option value="2º D">2º D</option>
+                        <option value="3º A">3º A</option>
+                        <option value="3º B">3º B</option>
+                        <option value="3º C">3º C</option>
+                        <option value="3º D">3º D</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-green-700 mb-1">Professor(es) Acompanhante(s)</label>
+                    <input type="text" id="plan-teacher" required placeholder="Ex: Prof. Lucas Silva" class="w-full p-3 rounded-xl border-2 border-green-100 bg-green-50 focus:border-green-500">
+                    <p class="text-xs text-green-600 mt-1 italic font-semibold">Obrigatório, pois os alunos não podem sair sozinhos da parte central da escola.</p>
                 </div>
                 <div>
                     <label class="block text-sm font-bold text-green-700 mb-1">Plantas que irei cuidar</label>
-                    <div id="plan-plants-list" class="max-h-32 overflow-y-auto border-2 border-green-100 rounded-xl p-2 bg-green-50 space-y-1">
+                    <div id="plan-plants-list" class="max-h-64 overflow-y-auto border-2 border-green-100 rounded-xl p-2 bg-green-50 space-y-1">
                         <!-- Checkboxes renderizados via JS -->
                     </div>
                 </div>
                 <div>
-                    <label class="block text-sm font-bold text-green-700 mb-1">Ações de Cuidado Propostas e Período de Execução do Plano de Ação</label>
-                    <textarea id="plan-actions" required rows="3" placeholder="Ex: Estudar cada planta para descrever os cuidados que proporá..." class="w-full p-3 rounded-xl border-2 border-green-100 bg-green-50 focus:border-green-500 resize-none"></textarea>
+                    <label class="block text-sm font-bold text-green-700 mb-1">Período de Execução do Plano</label>
+                    <div class="flex flex-col sm:flex-row gap-3">
+                        <div class="w-full sm:w-1/2">
+                            <div class="text-xs text-green-600 font-bold mb-1">Data Inicial</div>
+                            <input type="date" id="plan-start-date" required class="w-full p-3 rounded-xl border-2 border-green-100 bg-green-50 focus:border-green-500 text-sm">
+                        </div>
+                        <div class="w-full sm:w-1/2">
+                            <div class="text-xs text-green-600 font-bold mb-1">Data Final</div>
+                            <input type="date" id="plan-end-date" required class="w-full p-3 rounded-xl border-2 border-green-100 bg-green-50 focus:border-green-500 text-sm">
+                        </div>
+                    </div>
                 </div>
                 <div>
-                    <label class="block text-sm font-bold text-green-700 mb-1">Método de Registro (Provas)</label>
-                    <textarea id="plan-method" required rows="2" placeholder="Ex: Tirar fotos de cada ação e anotar a data da ação para fazer o pdf do relatório..." class="w-full p-3 rounded-xl border-2 border-green-100 bg-green-50 focus:border-green-500 resize-none"></textarea>
+                    <label class="block text-sm font-bold text-green-700 mb-1">Método de Registro (a colocar no relatório do plano de ação em pdf)</label>
+                    <div class="flex flex-col gap-2 p-3 rounded-xl border-2 border-green-100 bg-green-50">
+                        <label class="flex items-center space-x-2 text-sm text-green-800 cursor-pointer hover:bg-green-100 p-1.5 rounded transition-colors">
+                            <input type="checkbox" value="Fotos das ações com data" class="plan-method-checkbox rounded text-emerald-600 focus:ring-emerald-500 w-4 h-4">
+                            <span class="font-medium">Fotos das ações com data</span>
+                        </label>
+                        <label class="flex items-center space-x-2 text-sm text-green-800 cursor-pointer hover:bg-green-100 p-1.5 rounded transition-colors">
+                            <input type="checkbox" value="Link de vídeos das ações com data" class="plan-method-checkbox rounded text-emerald-600 focus:ring-emerald-500 w-4 h-4">
+                            <span class="font-medium">Link de vídeos das ações com data</span>
+                        </label>
+                    </div>
                 </div>
                 <button type="submit" id="btn-submit-plan" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-xl transition mt-2">Enviar para Aprovação</button>
             </form>
@@ -429,10 +534,16 @@
             if (SUPABASE_URL === 'COLE_AQUI_SEU_PROJECT_URL' || !SUPABASE_URL) return false;
 
             try {
-                // Plantas
+                // Plantas - agora com suporte para salvar latitude e longitude no banco
                 window.savePlantToCloud = async function(plantData) {
                     const { error } = await window.supabase.from('plants').upsert({ 
-                        id: plantData.cientifico, nome: plantData.nome, cientifico: plantData.cientifico, url: plantData.url, quiz: plantData.quiz
+                        id: plantData.cientifico, 
+                        nome: plantData.nome, 
+                        cientifico: plantData.cientifico, 
+                        url: plantData.url, 
+                        quiz: plantData.quiz,
+                        latitude: plantData.latitude,
+                        longitude: plantData.longitude
                     });
                     if (error) showToast("Erro ao salvar! Conecte-se como professor.", true);
                 };
@@ -441,7 +552,16 @@
                     const { data: plants, error } = await window.supabase.from('plants').select('*');
                     if (error) return;
                     let cloudPlants = {};
-                    plants.forEach(p => { cloudPlants[p.id] = { nome: p.nome, cientifico: p.cientifico, url: p.url, quiz: p.quiz }; });
+                    plants.forEach(p => { 
+                        cloudPlants[p.id] = { 
+                            nome: p.nome, 
+                            cientifico: p.cientifico, 
+                            url: p.url, 
+                            quiz: p.quiz,
+                            latitude: p.latitude,
+                            longitude: p.longitude
+                        }; 
+                    });
                     localStorage.setItem('botanica_plants', JSON.stringify(cloudPlants));
                     if(typeof window.updateDropdown === 'function') window.updateDropdown();
                 }
@@ -450,6 +570,7 @@
                 window.syncGuardians = async function() {
                     const { data, error } = await window.supabase.from('guardians').select('*').order('created_at', { ascending: false });
                     if (!error && data) {
+                        window.cachedGuardians = data; 
                         if(typeof window.renderApprovedGuardians === 'function') window.renderApprovedGuardians(data);
                         if(typeof window.renderAdminGuardians === 'function') window.renderAdminGuardians(data);
                         if(typeof window.populateReportSelect === 'function') window.populateReportSelect(data);
@@ -473,11 +594,10 @@
     </script>
 
     <script>
-        // --- NOVO SISTEMA DE NOTIFICAÇÕES (Substitui os alerts problemáticos) ---
+        // --- SISTEMA DE NOTIFICAÇÕES TOAST (Livre de travamentos e popups) ---
         function showToast(msg, isError = false) {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
-            // Remove the previous toast if exists to avoid stacking too many
             if(container.children.length > 0) container.innerHTML = '';
             
             toast.className = `p-4 rounded-xl shadow-2xl text-sm font-bold text-white transition-all duration-300 transform translate-y-[-20px] opacity-0 flex items-center ${isError ? 'bg-red-600' : 'bg-emerald-600'}`;
@@ -497,27 +617,173 @@
 
 
         let isScanningActive = true;
-        const viewScan = document.getElementById('view-scan');
-        const viewCreate = document.getElementById('view-create');
-        const btnTabScan = document.getElementById('btn-tab-scan');
-        const btnTabCreate = document.getElementById('btn-tab-create');
+        let globalLeafletMap = null;
+        let globalMarkersLayer = null;
         
+        // Função de alteração de abas redesenhada para suportar a nova aba do MAPA
         function switchTab(tab) {
+            const scanView = document.getElementById('view-scan');
+            const mapView = document.getElementById('view-map');
+            const createView = document.getElementById('view-create');
+            
+            const btnScan = document.getElementById('btn-tab-scan');
+            const btnMap = document.getElementById('btn-tab-map');
+            const btnCreate = document.getElementById('btn-tab-create');
+            
+            // Oculta todas as telas
+            scanView.classList.replace('flex', 'hidden');
+            if(!scanView.classList.contains('hidden')) scanView.classList.add('hidden');
+            
+            mapView.classList.replace('flex', 'hidden');
+            if(!mapView.classList.contains('hidden')) mapView.classList.add('hidden');
+            
+            createView.classList.replace('flex', 'hidden');
+            if(!createView.classList.contains('hidden')) createView.classList.add('hidden');
+            
+            // Inativa todos os estilos dos botões
+            btnScan.className = btnScan.className.replace('tab-active', 'tab-inactive');
+            btnMap.className = btnMap.className.replace('tab-active', 'tab-inactive');
+            btnCreate.className = btnCreate.className.replace('tab-active', 'tab-inactive');
+            
             if (tab === 'scan') {
-                viewScan.classList.replace('hidden', 'flex');
-                viewCreate.classList.replace('flex', 'hidden');
-                btnTabScan.classList.replace('tab-inactive', 'tab-active');
-                btnTabCreate.classList.replace('tab-active', 'tab-inactive');
+                scanView.classList.replace('hidden', 'flex');
+                btnScan.className = btnScan.className.replace('tab-inactive', 'tab-active');
                 isScanningActive = true;
                 updateDropdown(); 
-            } else {
-                viewCreate.classList.replace('hidden', 'flex');
-                viewScan.classList.replace('flex', 'hidden');
-                btnTabCreate.classList.replace('tab-inactive', 'tab-active');
-                btnTabScan.classList.replace('tab-active', 'tab-inactive');
+            } else if (tab === 'map') {
+                mapView.classList.replace('hidden', 'flex');
+                btnMap.className = btnMap.className.replace('tab-inactive', 'tab-active');
+                isScanningActive = false;
+                initGlobalMap(); // Carrega e desenha o mapa escolar
+            } else if (tab === 'create') {
+                createView.classList.replace('hidden', 'flex');
+                btnCreate.className = btnCreate.className.replace('tab-inactive', 'tab-active');
                 isScanningActive = false;
             }
         }
+        window.switchTab = switchTab;
+
+        // --- SISTEMA DE GEOLOCALIZAÇÃO NO CADASTRO ---
+        window.getGPSCoordinates = function() {
+            const btn = document.querySelector('button[onclick="getGPSCoordinates()"]');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="ph-bold ph-spinner animate-spin mr-2"></i> Obtendo localização pelo GPS...';
+            btn.disabled = true;
+
+            if (!navigator.geolocation) {
+                showToast("Seu dispositivo não suporta Geolocalização.", true);
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    document.getElementById('input-latitude').value = position.coords.latitude.toFixed(6);
+                    document.getElementById('input-longitude').value = position.coords.longitude.toFixed(6);
+                    showToast("Coordenadas capturadas com sucesso!", false);
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                },
+                (error) => {
+                    console.error("Erro de Geolocalização:", error.message || error);
+                    let errMsg = "Erro ao capturar localização.";
+                    if (error.code === error.PERMISSION_DENIED) {
+                        errMsg = "Permissão de localização negada.";
+                    } else if (error.code === error.POSITION_UNAVAILABLE) {
+                        errMsg = "Sinal de GPS indisponível.";
+                    }
+                    showToast(errMsg, true);
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                },
+                { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
+            );
+        };
+
+        // --- SISTEMA DE MAPA GLOBAL (LEAFLET) ---
+        function initGlobalMap() {
+            if (typeof L === 'undefined') {
+                console.warn("Leaflet ainda não foi carregado.");
+                return;
+            }
+            
+            // Coordenadas aproximadas da EEEP Aderson Borges de Carvalho
+            const schoolCoordinates = [-7.2186, -39.3145];
+            
+            setTimeout(() => {
+                const container = L.DomUtil.get('global-map');
+                if (container && container._leaflet_id) {
+                    if (globalLeafletMap) {
+                        try { globalLeafletMap.remove(); } catch(e){}
+                    }
+                    globalLeafletMap = null;
+                    container._leaflet_id = null;
+                }
+
+                if (!globalLeafletMap) {
+                    globalLeafletMap = L.map('global-map').setView(schoolCoordinates, 18);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        maxZoom: 19,
+                        attribution: '© OpenStreetMap'
+                    }).addTo(globalLeafletMap);
+                    globalMarkersLayer = L.layerGroup().addTo(globalLeafletMap);
+                }
+
+                globalMarkersLayer.clearLayers();
+
+                const plants = JSON.parse(localStorage.getItem('botanica_plants') || '{}');
+                let hasCoordinates = false;
+                let bounds = [];
+
+                // Ícone verde de planta personalizado
+                const plantIcon = L.icon({
+                    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
+                    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+                    iconSize: [25, 41],
+                    iconAnchor: [12, 41],
+                    popupAnchor: [1, -34],
+                    shadowSize: [41, 41]
+                });
+
+                Object.values(plants).forEach(p => {
+                    if (p.latitude && p.longitude) {
+                        hasCoordinates = true;
+                        const lat = parseFloat(p.latitude);
+                        const lng = parseFloat(p.longitude);
+                        bounds.push([lat, lng]);
+
+                        const marker = L.marker([lat, lng], { icon: plantIcon })
+                            .bindPopup(`
+                                <div class="text-center p-1">
+                                    <h4 class="font-extrabold text-green-800 text-sm mb-0.5">${p.nome}</h4>
+                                    <p class="text-xs italic text-emerald-600 mb-2">${p.cientifico}</p>
+                                    <button onclick="window.loadStudentViewFromMap('${p.cientifico}')" class="bg-emerald-600 text-white font-bold text-[10px] py-1 px-3 rounded-full hover:bg-emerald-700 transition">Ver Detalhes</button>
+                                </div>
+                            `);
+                        globalMarkersLayer.addLayer(marker);
+                    }
+                });
+
+                if (hasCoordinates && bounds.length > 0) {
+                    globalLeafletMap.fitBounds(bounds, { padding: [40, 40] });
+                } else {
+                    globalLeafletMap.setView(schoolCoordinates, 18);
+                }
+
+                globalLeafletMap.invalidateSize();
+            }, 300);
+        }
+
+        window.loadStudentViewFromMap = function(scientificName) {
+            const plants = JSON.parse(localStorage.getItem('botanica_plants') || '{}');
+            const p = plants[scientificName];
+            if(p) {
+                switchTab('scan');
+                loadStudentView(p);
+            }
+        };
+
 
         // --- SISTEMA GUARDIÕES DA FLORA ---
         
@@ -529,20 +795,62 @@
         }
         window.closeModals = closeModals;
 
-        function openPlanModal() {
+        async function openPlanModal() {
+            if(window.syncGuardians) {
+                await window.syncGuardians();
+            }
+
             const plants = JSON.parse(localStorage.getItem('botanica_plants') || '{}');
             const listDiv = document.getElementById('plan-plants-list');
+            if(!listDiv) return;
+            
             listDiv.innerHTML = '';
+
+            const busyPlants = {};
+            if (window.cachedGuardians) {
+                window.cachedGuardians.forEach(g => {
+                    if (['pendente', 'aprovado', 'relatorio_enviado'].includes(g.status)) {
+                        const plantIds = Array.isArray(g.plants) ? g.plants : [];
+                        plantIds.forEach(pId => {
+                            busyPlants[pId] = { name: g.student_name, class: g.student_class, status: g.status };
+                        });
+                    }
+                });
+            }
             
             if(Object.keys(plants).length === 0) {
-                listDiv.innerHTML = '<p class="text-xs text-gray-500 p-2">Nenhuma planta cadastrada no app ainda.</p>';
+                listDiv.innerHTML = '<p class="text-xs text-gray-500 p-2 text-center">Nenhuma planta cadastrada no app ainda.</p>';
             } else {
-                Object.values(plants).forEach(p => {
+                Object.values(plants).forEach((p, idx) => {
+                    const busyInfo = busyPlants[p.cientifico];
+                    const isBusy = !!busyInfo;
+                    const statusLabel = busyInfo?.status === 'pendente' ? 'Aguardando aprovação' : 'Sob cuidado ativo';
+
                     listDiv.innerHTML += `
-                        <label class="flex items-center space-x-2 text-sm text-green-800 cursor-pointer p-1 hover:bg-green-100 rounded">
-                            <input type="checkbox" value="${p.cientifico}" class="plan-plant-checkbox rounded text-emerald-600 focus:ring-emerald-500">
-                            <span>${p.nome} <em class="text-xs text-gray-500">(${p.cientifico})</em></span>
-                        </label>
+                        <div class="border ${isBusy ? 'border-red-200 bg-red-50/10' : 'border-green-200 bg-white'} rounded-lg p-2 mb-2 transition-all">
+                            <label class="flex items-start space-x-2 text-sm text-green-800 ${isBusy ? 'cursor-not-allowed text-gray-400' : 'cursor-pointer'}">
+                                <input type="checkbox" value="${p.cientifico}" data-name="${p.nome}" data-idx="${idx}" 
+                                    ${isBusy ? 'disabled' : ''} 
+                                    class="plan-plant-checkbox rounded ${isBusy ? 'text-gray-300 border-gray-200 mt-1' : 'text-emerald-600 focus:ring-emerald-500 mt-1'}" 
+                                    onchange="togglePlantActions(${idx})">
+                                <div class="flex-grow flex-col">
+                                    <span class="${isBusy ? 'line-through text-gray-400' : ''}"><strong class="font-bold">${p.nome}</strong> <em class="text-xs text-gray-500 font-normal">(${p.cientifico})</em></span>
+                                    ${isBusy ? `<span class="block text-[10px] text-red-600 font-bold mt-1"><i class="ph-bold ph-shield-warning mr-1"></i> ${statusLabel} de: ${busyInfo.name} (${busyInfo.class})</span>` : ''}
+                                </div>
+                            </label>
+                            
+                            <div id="actions-${idx}" class="hidden ml-6 mt-3 space-y-2 text-xs text-green-800 border-t border-gray-100 pt-2">
+                                <p class="font-bold text-emerald-700 bg-emerald-50 px-2 py-1 rounded inline-block">Ações de cuidado (quando necessário):</p>
+                                <div class="flex flex-wrap gap-2 mt-1">
+                                    <label class="flex items-center bg-gray-50 border border-gray-200 px-2 py-1 rounded cursor-pointer hover:bg-green-50 hover:border-green-200 transition-colors"><input type="checkbox" class="mr-1.5 action-cb-${idx} rounded text-emerald-600" value="Agoar"> Agoar</label>
+                                    <label class="flex items-center bg-gray-50 border border-gray-200 px-2 py-1 rounded cursor-pointer hover:bg-green-50 hover:border-green-200 transition-colors"><input type="checkbox" class="mr-1.5 action-cb-${idx} rounded text-emerald-600" value="Adubar"> Adubar</label>
+                                    <label class="flex items-center bg-gray-50 border border-gray-200 px-2 py-1 rounded cursor-pointer hover:bg-green-50 hover:border-green-200 transition-colors"><input type="checkbox" class="mr-1.5 action-cb-${idx} rounded text-emerald-600" value="Podar"> Podar</label>
+                                    <label class="flex items-center bg-gray-50 border border-gray-200 px-2 py-1 rounded cursor-pointer hover:bg-green-50 hover:border-green-200 transition-colors"><input type="checkbox" class="mr-1.5 action-cb-${idx} rounded text-emerald-600" value="Tratar praga"> Tratar praga</label>
+                                    <label class="flex items-center bg-gray-50 border border-gray-200 px-2 py-1 rounded cursor-pointer hover:bg-green-50 hover:border-green-200 transition-colors"><input type="checkbox" class="mr-1.5 action-cb-${idx} rounded text-emerald-600" value="Replantar"> Replantar</label>
+                                    <label class="flex items-center bg-gray-50 border border-gray-200 px-2 py-1 rounded cursor-pointer hover:bg-green-50 hover:border-green-200 transition-colors"><input type="checkbox" class="mr-1.5 action-cb-${idx} rounded text-emerald-600" value="Adequar a exposição à luz/sombra"> Adequar a exposição à luz/sombra</label>
+                                </div>
+                            </div>
+                        </div>
                     `;
                 });
             }
@@ -550,19 +858,29 @@
         }
         window.openPlanModal = openPlanModal;
 
+        window.togglePlantActions = function(idx) {
+            const div = document.getElementById(`actions-${idx}`);
+            const cb = document.querySelector(`input[data-idx="${idx}"]`);
+            if(cb && cb.checked) {
+                div.classList.remove('hidden');
+            } else {
+                div.classList.add('hidden');
+                document.querySelectorAll(`.action-cb-${idx}`).forEach(el => el.checked = false);
+            }
+        };
+
         function openReportModal() {
-            if(window.syncGuardians) window.syncGuardians(); // Atualiza lista
+            if(window.syncGuardians) window.syncGuardians(); 
             document.getElementById('modal-report').classList.replace('hidden', 'flex');
         }
         window.openReportModal = openReportModal;
 
         function populateReportSelect(guardians) {
             const select = document.getElementById('report-guardian-id');
-            // Filtra guardiões que estão pendentes ou aprovados, mas que AINDA NÃO tem relatório
-            const eligible = guardians.filter(g => g.report_url == null || g.report_url === '');
+            const eligible = guardians.filter(g => g.status === 'aprovado' && (g.report_url == null || g.report_url === ''));
             
             if (eligible.length === 0) {
-                select.innerHTML = '<option value="">Nenhum plano aguardando relatório.</option>';
+                select.innerHTML = '<option value="">Nenhum plano disponível ou aprovado.</option>';
                 return;
             }
             
@@ -578,10 +896,63 @@
             const btn = document.getElementById('btn-submit-plan');
             btn.innerHTML = 'Enviando...'; btn.disabled = true;
 
-            const selectedPlants = Array.from(document.querySelectorAll('.plan-plant-checkbox:checked')).map(cb => cb.value);
+            const selectedPlantsElements = Array.from(document.querySelectorAll('.plan-plant-checkbox:checked'));
             
-            if(selectedPlants.length === 0) {
+            if(selectedPlantsElements.length === 0) {
                 showToast("Selecione pelo menos uma planta na lista.", true);
+                btn.innerHTML = 'Enviar para Aprovação'; btn.disabled = false;
+                return;
+            }
+
+            const startDate = document.getElementById('plan-start-date').value;
+            const endDate = document.getElementById('plan-end-date').value;
+            
+            if(!startDate || !endDate) {
+                showToast("Preencha o período inicial e final.", true);
+                btn.innerHTML = 'Enviar para Aprovação'; btn.disabled = false;
+                return;
+            }
+
+            if(new Date(endDate) < new Date(startDate)) {
+                showToast("A data final deve ser posterior à data inicial.", true);
+                btn.innerHTML = 'Enviar para Aprovação'; btn.disabled = false;
+                return;
+            }
+
+            const selectedMethods = Array.from(document.querySelectorAll('.plan-method-checkbox:checked')).map(cb => cb.value);
+            if(selectedMethods.length === 0) {
+                showToast("Selecione o método de registro (provas).", true);
+                btn.innerHTML = 'Enviar para Aprovação'; btn.disabled = false;
+                return;
+            }
+
+            const accompanyingTeacher = document.getElementById('plan-teacher').value.trim();
+            if(!accompanyingTeacher) {
+                showToast("Preencha o nome do professor acompanhante.", true);
+                btn.innerHTML = 'Enviar para Aprovação'; btn.disabled = false;
+                return;
+            }
+
+            const formatDt = (dt) => dt.split('-').reverse().join('/');
+            let actionPlanText = `Período: ${formatDt(startDate)} a ${formatDt(endDate)}\n\nCuidados propostos:\n`;
+            let selectedPlantsIds = [];
+            let missingActions = false;
+
+            selectedPlantsElements.forEach(cb => {
+                const idx = cb.getAttribute('data-idx');
+                const plantName = cb.getAttribute('data-name');
+                selectedPlantsIds.push(cb.value);
+                
+                const actions = Array.from(document.querySelectorAll(`.action-cb-${idx}:checked`)).map(a => a.value);
+                if(actions.length === 0) {
+                    missingActions = true;
+                    showToast(`Por favor, selecione as ações de cuidado para: ${plantName}`, true);
+                } else {
+                    actionPlanText += `• ${plantName}: ${actions.join(', ')}\n`;
+                }
+            });
+
+            if (missingActions) {
                 btn.innerHTML = 'Enviar para Aprovação'; btn.disabled = false;
                 return;
             }
@@ -589,9 +960,11 @@
             const payload = {
                 student_name: document.getElementById('plan-name').value,
                 student_class: document.getElementById('plan-class').value,
-                action_plan: document.getElementById('plan-actions').value,
-                recording_method: document.getElementById('plan-method').value,
-                plants: selectedPlants
+                accompanying_teacher: accompanyingTeacher,
+                action_plan: actionPlanText,
+                recording_method: "PDF com: " + selectedMethods.join(' e/ou '),
+                plants: selectedPlantsIds,
+                status: 'pendente' 
             };
 
             try {
@@ -632,17 +1005,17 @@
                 const publicUrl = publicUrlData.publicUrl;
 
                 const { error: updateError } = await window.supabase.from('guardians')
-                    .update({ report_url: publicUrl })
+                    .update({ report_url: publicUrl, status: 'relatorio_enviado' })
                     .eq('id', guardianId);
 
                 if (updateError) throw updateError;
 
-                showToast("Relatório recebido com sucesso!", false);
+                showToast("Relatório enviado! Aguardando aprovação do professor.", false);
                 closeModals();
                 if(window.syncGuardians) window.syncGuardians();
 
             } catch (err) {
-                console.error(err);
+                console.error("Erro no envio de PDF:", err.message || err);
                 showToast("Erro ao enviar PDF. Tente novamente.", true);
             } finally {
                 btn.innerHTML = 'Enviar PDF'; btn.disabled = false;
@@ -652,23 +1025,61 @@
 
         function renderApprovedGuardians(guardians) {
             const list = document.getElementById('approved-guardians-list');
-            const approved = guardians.filter(g => g.status === 'aprovado');
+            const statsContainer = document.getElementById('class-stats-container');
+            const statsList = document.getElementById('class-stats-list');
             
-            if (approved.length === 0) {
+            const activeGuardians = guardians.filter(g => ['aprovado', 'relatorio_enviado', 'concluido'].includes(g.status));
+            
+            // --- CÁLCULO E RENDERIZAÇÃO DAS ESTATÍSTICAS POR TURMA ---
+            if (activeGuardians.length > 0) {
+                const classCounts = {};
+                activeGuardians.forEach(g => {
+                    const turma = g.student_class.trim().toUpperCase();
+                    classCounts[turma] = (classCounts[turma] || 0) + 1;
+                });
+
+                const sortedClasses = Object.keys(classCounts).sort();
+                
+                statsList.innerHTML = sortedClasses.map(turma => `
+                    <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 font-extrabold px-3 py-1.5 rounded-full text-xs sm:text-sm flex items-center shadow-sm">
+                        ${turma} 
+                        <span class="bg-emerald-500 text-white rounded-full w-5 h-5 flex items-center justify-center ml-2 text-xs shadow-inner">${classCounts[turma]}</span>
+                    </div>
+                `).join('');
+                statsContainer.classList.remove('hidden');
+            } else {
+                statsContainer.classList.add('hidden');
+            }
+            
+            // --- RENDERIZAÇÃO DA LISTA DE GUARDIÕES ---
+            if (activeGuardians.length === 0) {
                 list.innerHTML = '<div class="text-center text-emerald-600/70 italic py-4 bg-emerald-50 rounded-xl">Seja o primeiro Guardião da Flora! Proponha seu plano acima.</div>';
                 return;
             }
 
-            list.innerHTML = approved.map(g => `
+            list.innerHTML = activeGuardians.map(g => `
                 <div class="bg-emerald-50 border border-emerald-100 p-4 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-                    <div>
+                    <div class="flex-grow w-full">
                         <h4 class="font-extrabold text-emerald-800 flex items-center">
                             <i class="ph-fill ph-medal text-yellow-500 mr-2 text-xl"></i> ${g.student_name} <span class="text-xs bg-emerald-200 text-emerald-800 px-2 py-1 rounded ml-2">${g.student_class}</span>
                         </h4>
-                        <p class="text-xs text-emerald-600 mt-1"><strong>Cuidando de:</strong> ${g.plants.length} espécie(s)</p>
-                        <p class="text-sm text-gray-700 mt-2 italic border-l-2 border-emerald-300 pl-2">"${g.action_plan}"</p>
+                        <div class="flex flex-wrap gap-x-4 gap-y-1 mt-1 mb-2">
+                            <p class="text-xs text-emerald-600 font-medium flex items-center"><i class="ph-bold ph-plant mr-1"></i> ${g.plants.length} espécie(s)</p>
+                            ${g.accompanying_teacher ? `<p class="text-xs text-emerald-700 font-bold flex items-center"><i class="ph-bold ph-chalkboard-teacher mr-1"></i> Prof. ${g.accompanying_teacher}</p>` : ''}
+                        </div>
+                        <p class="text-sm text-gray-700 font-medium bg-white p-3 rounded-xl border border-emerald-100 whitespace-pre-wrap leading-relaxed shadow-sm">${g.action_plan}</p>
                     </div>
-                    ${g.report_url ? `<a href="${g.report_url}" target="_blank" class="bg-blue-100 text-blue-700 font-bold px-3 py-2 rounded-lg text-xs flex items-center hover:bg-blue-200"><i class="ph-bold ph-file-pdf mr-1 text-lg"></i> Ver Relatório</a>` : '<span class="text-xs text-gray-400 border border-gray-200 px-2 py-1 rounded-lg">Em andamento...</span>'}
+                    
+                    ${g.status === 'concluido' ? 
+                        `<div class="flex flex-col sm:flex-row items-end gap-2 shrink-0">
+                            <span class="text-xs text-green-700 bg-green-100 font-bold px-2 py-1 rounded-lg flex items-center border border-green-200"><i class="ph-bold ph-check-circle mr-1"></i> Concluído</span>
+                            <a href="${g.report_url}" target="_blank" class="bg-blue-100 text-blue-700 font-bold px-3 py-2 rounded-lg text-xs flex items-center hover:bg-blue-200"><i class="ph-bold ph-file-pdf mr-1 text-lg"></i> Ver PDF</a>
+                        </div>` 
+                    : g.status === 'relatorio_enviado' ? 
+                        `<span class="text-xs text-yellow-700 bg-yellow-100 font-bold px-2 py-1 rounded-lg border border-yellow-200 shrink-0">Em avaliação...</span>`
+                    : 
+                        `<span class="text-xs text-gray-500 bg-gray-100 font-bold px-2 py-1 rounded-lg border border-gray-200 shrink-0">Em andamento...</span>`
+                    }
                 </div>
             `).join('');
         }
@@ -683,32 +1094,56 @@
                 return;
             }
 
-            list.innerHTML = guardians.map(g => `
-                <div class="bg-white border ${g.status === 'pendente' ? 'border-yellow-300' : 'border-emerald-200'} p-4 rounded-xl shadow-sm">
+            list.innerHTML = guardians.map(g => {
+                let borderColor = 'border-blue-200';
+                let badgeClass = 'bg-blue-100 text-blue-800';
+                let badgeText = 'Aguardando Relatório';
+
+                if (g.status === 'pendente') {
+                    borderColor = 'border-yellow-300'; badgeClass = 'bg-yellow-100 text-yellow-800'; badgeText = 'Aprovar Plano';
+                } else if (g.status === 'relatorio_enviado') {
+                    borderColor = 'border-orange-400'; badgeClass = 'bg-orange-100 text-orange-800'; badgeText = 'Avaliar Relatório';
+                } else if (g.status === 'concluido') {
+                    borderColor = 'border-emerald-400'; badgeClass = 'bg-emerald-100 text-emerald-800'; badgeText = 'Concluído';
+                }
+
+                return `
+                <div class="bg-white border ${borderColor} p-4 rounded-xl shadow-sm">
                     <div class="flex justify-between items-start mb-2">
                         <h4 class="font-bold text-gray-800">${g.student_name} (${g.student_class})</h4>
-                        <span class="text-xs font-bold px-2 py-1 rounded ${g.status === 'pendente' ? 'bg-yellow-100 text-yellow-800' : 'bg-emerald-100 text-emerald-800'} uppercase">${g.status}</span>
+                        <span class="text-xs font-bold px-2 py-1 rounded ${badgeClass} uppercase">${badgeText}</span>
                     </div>
-                    <p class="text-sm text-gray-600 mb-1"><strong>Plantas:</strong> ${g.plants.join(', ')}</p>
-                    <p class="text-sm text-gray-600 mb-1"><strong>Ações:</strong> ${g.action_plan}</p>
+                    ${g.accompanying_teacher ? `<p class="text-sm text-gray-800 mb-2 font-bold"><i class="ph-bold ph-chalkboard-teacher mr-1 text-gray-500"></i> Prof(a). Acompanhante: ${g.accompanying_teacher}</p>` : ''}
+                    <p class="text-sm text-gray-600 mb-2"><strong>Plantas:</strong> ${g.plants.join(', ')}</p>
+                    <p class="text-sm text-gray-700 mb-2 whitespace-pre-wrap bg-gray-50 p-3 rounded-lg border border-gray-200 leading-relaxed">${g.action_plan}</p>
                     <p class="text-sm text-gray-600 mb-3"><strong>Método:</strong> ${g.recording_method}</p>
                     
                     <div class="flex flex-wrap gap-2 border-t pt-3 mt-2 items-center">
-                        ${g.status === 'pendente' ? `<button id="btn-approve-${g.id}" type="button" onclick="approveGuardian('${g.id}', 'btn-approve-${g.id}')" class="bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold py-1.5 px-3 rounded flex items-center transition-colors"><i class="ph-bold ph-check mr-1"></i> Aprovar Plano</button>` : ''}
-                        ${g.report_url ? `<a href="${g.report_url}" target="_blank" class="bg-blue-500 hover:bg-blue-600 text-white text-xs font-bold py-1.5 px-3 rounded flex items-center"><i class="ph-bold ph-file-pdf mr-1"></i> Ler Relatório</a>` : '<span class="text-xs text-gray-400 flex items-center py-1.5 px-2">Sem relatório</span>'}
+                        ${g.status === 'pendente' ? 
+                            `<button id="btn-approve-${g.id}" type="button" onclick="approveGuardian('${g.id}', 'btn-approve-${g.id}')" class="bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold py-1.5 px-3 rounded flex items-center transition-colors"><i class="ph-bold ph-check mr-1"></i> Aprovar Plano</button>` 
+                        : ''}
+                        
+                        ${g.status === 'relatorio_enviado' ? 
+                            `<a href="${g.report_url}" target="_blank" class="bg-blue-500 hover:bg-blue-600 text-white text-xs font-bold py-1.5 px-3 rounded flex items-center"><i class="ph-bold ph-file-pdf mr-1"></i> Abrir Relatório</a>
+                             <button id="btn-approve-rep-${g.id}" type="button" onclick="approveReport('${g.id}', 'btn-approve-rep-${g.id}')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-1.5 px-3 rounded flex items-center transition-colors"><i class="ph-bold ph-check-circle mr-1"></i> Aprovar Missão</button>` 
+                        : ''}
+
+                        ${g.status === 'concluido' ? 
+                            `<a href="${g.report_url}" target="_blank" class="bg-blue-500 hover:bg-blue-600 text-white text-xs font-bold py-1.5 px-3 rounded flex items-center"><i class="ph-bold ph-file-pdf mr-1"></i> Ver Relatório</a>` 
+                        : ''}
                         
                         <button id="btn-delete-${g.id}" type="button" onclick="deleteGuardian('${g.id}', 'btn-delete-${g.id}')" class="bg-red-500 hover:bg-red-600 text-white text-xs font-bold py-1.5 px-3 rounded flex items-center transition-colors ml-auto"><i class="ph-bold ph-trash mr-1"></i> Excluir</button>
                     </div>
                 </div>
-            `).join('');
+                `;
+            }).join('');
         }
         window.renderAdminGuardians = renderAdminGuardians;
 
-        // Função de aprovação sem os bloqueios de sistema
+        // Função para aprovar o Plano Inicial
         async function approveGuardian(id, btnId) {            
             const btn = document.getElementById(btnId);
             
-            // Sistema de confirmação de 2 cliques para evitar bloqueios de pop-up
             if (btn.dataset.confirm !== "true") {
                 btn.dataset.confirm = "true";
                 btn.dataset.originalHtml = btn.innerHTML;
@@ -739,32 +1174,70 @@
                     .select(); 
                     
                 if (error) throw error;
-                
-                if (!data || data.length === 0) {
-                    throw new Error("Permissão Negada. Confirme o UID na regra do Supabase.");
-                }
+                if (!data || data.length === 0) throw new Error("Permissão Negada.");
                 
                 showToast("Plano aprovado! O aluno já é um Guardião.", false);
-                
-                if(window.syncGuardians) {
-                    await window.syncGuardians(); 
-                }
+                if(window.syncGuardians) await window.syncGuardians(); 
             } catch(e) { 
-                console.error("Erro do Supabase:", e);
                 showToast("Erro: " + e.message, true);
                 btn.innerHTML = btn.dataset.originalHtml;
                 btn.disabled = false;
                 btn.classList.replace('bg-emerald-700', 'bg-emerald-500');
-                btn.classList.replace('hover:bg-emerald-800', 'hover:bg-emerald-600');
             }
         }
         window.approveGuardian = approveGuardian;
 
-        // --- NOVA FUNÇÃO: Excluir Guardião ---
+        // Aprovar o Relatório (Concluir Missão)
+        async function approveReport(id, btnId) {            
+            const btn = document.getElementById(btnId);
+            
+            if (btn.dataset.confirm !== "true") {
+                btn.dataset.confirm = "true";
+                btn.dataset.originalHtml = btn.innerHTML;
+                btn.innerHTML = '<i class="ph-bold ph-question mr-1"></i> Confirmar?';
+                btn.classList.replace('bg-emerald-600', 'bg-emerald-800');
+                btn.classList.replace('hover:bg-emerald-700', 'hover:bg-emerald-900');
+                
+                setTimeout(() => {
+                    if (btn && btn.dataset.confirm === "true") {
+                        btn.dataset.confirm = "false";
+                        btn.innerHTML = btn.dataset.originalHtml;
+                        btn.classList.replace('bg-emerald-800', 'bg-emerald-600');
+                        btn.classList.replace('hover:bg-emerald-900', 'hover:bg-emerald-700');
+                    }
+                }, 3000);
+                return;
+            }
+
+            btn.dataset.confirm = "false";
+            btn.innerHTML = '<i class="ph-bold ph-spinner animate-spin mr-1"></i> Concluindo...';
+            btn.disabled = true;
+
+            try {
+                const { data, error } = await window.supabase
+                    .from('guardians')
+                    .update({ status: 'concluido' })
+                    .eq('id', id)
+                    .select(); 
+                    
+                if (error) throw error;
+                if (!data || data.length === 0) throw new Error("Permissão Negada.");
+                
+                showToast("Relatório aprovado! O Guardião concluiu a sua missão.", false);
+                if(window.syncGuardians) await window.syncGuardians(); 
+            } catch(e) { 
+                showToast("Erro: " + e.message, true);
+                btn.innerHTML = btn.dataset.originalHtml;
+                btn.disabled = false;
+                btn.classList.replace('bg-emerald-800', 'bg-emerald-600');
+            }
+        }
+        window.approveReport = approveReport;
+
+        // Função Excluir Guardião
         async function deleteGuardian(id, btnId) {
             const btn = document.getElementById(btnId);
             
-            // Sistema de confirmação de 2 cliques para evitar bloqueios de pop-up
             if (btn.dataset.confirm !== "true") {
                 btn.dataset.confirm = "true";
                 btn.dataset.originalHtml = btn.innerHTML;
@@ -776,7 +1249,7 @@
                     if (btn && btn.dataset.confirm === "true") {
                         btn.dataset.confirm = "false";
                         btn.innerHTML = btn.dataset.originalHtml;
-                        btn.classList.replace('bg-red-700', 'bg-red-500');
+                        btn.classList.replace('bg-red-700', 'bg-red-50');
                         btn.classList.replace('hover:bg-red-800', 'hover:bg-red-600');
                     }
                 }, 3000);
@@ -797,7 +1270,7 @@
                 if (error) throw error;
                 
                 if (!data || data.length === 0) {
-                    throw new Error("Permissão Negada. O seu utilizador não é reconhecido como Administrador pelo banco de dados.");
+                    throw new Error("Permissão Negada. O seu utilizador não é reconhecido como Administrador.");
                 }
                 
                 showToast("Plano excluído com sucesso!", false);
@@ -806,11 +1279,11 @@
                     await window.syncGuardians(); 
                 }
             } catch(e) { 
-                console.error("Erro do Supabase:", e);
+                console.error("Erro do Supabase:", e.message || e);
                 showToast("Erro: " + e.message, true);
                 btn.innerHTML = btn.dataset.originalHtml;
                 btn.disabled = false;
-                btn.classList.replace('bg-red-700', 'bg-red-500');
+                btn.classList.replace('bg-red-700', 'bg-red-50');
                 btn.classList.replace('hover:bg-red-800', 'hover:bg-red-600');
             }
         }
@@ -910,6 +1383,8 @@
             document.getElementById('plant-form').reset();
             document.getElementById('select-edit-plant').value = "";
             document.getElementById('qrcode-display').innerHTML = "";
+            document.getElementById('input-latitude').value = "";
+            document.getElementById('input-longitude').value = "";
             document.getElementById('generated-qr-section').classList.add('hidden');
         }
         window.clearForm = clearForm;
@@ -923,6 +1398,8 @@
             document.getElementById('input-name').value = plantData.nome || "";
             document.getElementById('input-scientific').value = plantData.cientifico || "";
             document.getElementById('input-url').value = plantData.url || "";
+            document.getElementById('input-latitude').value = plantData.latitude !== undefined && plantData.latitude !== null ? plantData.latitude : "";
+            document.getElementById('input-longitude').value = plantData.longitude !== undefined && plantData.longitude !== null ? plantData.longitude : "";
 
             for(let i = 1; i <= 5; i++) {
                 document.getElementById(`q${i}-text`).value = "";
@@ -962,7 +1439,18 @@
                 }
             }
 
-            const plantData = { nome: document.getElementById('input-name').value, cientifico: scientificText, url: document.getElementById('input-url').value, quiz: questionsArray };
+            const latVal = document.getElementById('input-latitude').value;
+            const lngVal = document.getElementById('input-longitude').value;
+
+            const plantData = { 
+                nome: document.getElementById('input-name').value, 
+                cientifico: scientificText, 
+                url: document.getElementById('input-url').value, 
+                quiz: questionsArray,
+                latitude: latVal ? parseFloat(latVal) : null,
+                longitude: lngVal ? parseFloat(lngVal) : null
+            };
+            
             savePlantToLocal(plantData);
             if(window.savePlantToCloud) window.savePlantToCloud(plantData);
             updateDropdown();
@@ -979,15 +1467,65 @@
         let currentQuizData = []; 
         document.getElementById('student-date').valueAsDate = new Date();
 
+        // Renderização detalhada da planta com mapa integrado
         function loadStudentView(plantData) {
-            document.getElementById('plant-title').textContent = plantData.nome; document.getElementById('plant-scientific').textContent = plantData.cientifico;
-            document.getElementById('plant-image').src = plantData.url; document.getElementById('btn-open-link').href = plantData.url;
-            document.getElementById('student-name').value = ''; document.getElementById('student-class').value = '';
-            document.getElementById('quiz-result').classList.add('hidden'); document.getElementById('btn-submit-quiz').classList.remove('hidden');
+            document.getElementById('plant-title').textContent = plantData.nome; 
+            document.getElementById('plant-scientific').textContent = plantData.cientifico;
+            document.getElementById('plant-image').src = plantData.url; 
+            document.getElementById('btn-open-link').href = plantData.url;
+            document.getElementById('student-name').value = ''; 
+            document.getElementById('student-class').value = '';
+            document.getElementById('quiz-result').classList.add('hidden'); 
+            document.getElementById('btn-submit-quiz').classList.remove('hidden');
 
             const quizContainer = document.getElementById('quiz-questions-container');
             const studentFormSection = document.getElementById('student-form-section');
             quizContainer.innerHTML = ''; currentQuizData = plantData.quiz || [];
+
+            // Controle do Mapa Individual da Planta
+            const locationCard = document.getElementById('plant-location-card');
+            if (plantData.latitude && plantData.longitude) {
+                const lat = parseFloat(plantData.latitude);
+                const lng = parseFloat(plantData.longitude);
+                document.getElementById('detail-coords-text').textContent = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+                locationCard.classList.remove('hidden');
+                
+                // Desenha ou atualiza o mini-mapa com foco
+                setTimeout(() => {
+                    if (typeof L === 'undefined') return;
+
+                    const container = L.DomUtil.get('plant-detail-map');
+                    if (container && container._leaflet_id) {
+                        if (window.detailLeafletMap) {
+                            try { window.detailLeafletMap.remove(); } catch(e){}
+                        }
+                        window.detailLeafletMap = null;
+                        container._leaflet_id = null;
+                    }
+
+                    if (!window.detailLeafletMap) {
+                        window.detailLeafletMap = L.map('plant-detail-map', { zoomControl: false }).setView([lat, lng], 18);
+                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                            maxZoom: 19
+                        }).addTo(window.detailLeafletMap);
+                        
+                        const greenIcon = L.icon({
+                            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
+                            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+                            iconSize: [25, 41],
+                            iconAnchor: [12, 41],
+                            shadowSize: [41, 41]
+                        });
+                        window.detailMarker = L.marker([lat, lng], { icon: greenIcon }).addTo(window.detailLeafletMap);
+                    } else {
+                        window.detailLeafletMap.setView([lat, lng], 18);
+                        window.detailMarker.setLatLng([lat, lng]);
+                    }
+                    window.detailLeafletMap.invalidateSize();
+                }, 300);
+            } else {
+                locationCard.classList.add('hidden');
+            }
 
             if (currentQuizData.length > 0) {
                 studentFormSection.classList.remove('hidden');
@@ -1062,9 +1600,20 @@
         document.addEventListener('DOMContentLoaded', () => {
             updateDropdown();
             try {
-                new Html5QrcodeScanner("qr-reader", { fps: 10, qrbox: { width: 250, height: 250 }, aspectRatio: 1.0, facingMode: "environment", supportedScanTypes: [ Html5QrcodeScanType.SCAN_TYPE_CAMERA ] }, false)
+                if (typeof Html5QrcodeScanner !== 'undefined') {
+                    const scanType = typeof Html5QrcodeScanType !== 'undefined' ? Html5QrcodeScanType.SCAN_TYPE_CAMERA : 0;
+                    new Html5QrcodeScanner("qr-reader", { 
+                        fps: 10, 
+                        qrbox: { width: 250, height: 250 }, 
+                        aspectRatio: 1.0, 
+                        facingMode: "environment", 
+                        supportedScanTypes: [ scanType ] 
+                    }, false)
                     .render((t) => handleCodeScan(t), () => {});
-            } catch (e) {}
+                }
+            } catch (e) {
+                console.warn("Scanner initialization failed:", e);
+            }
             
             let extId = new URLSearchParams(window.location.search).get('id') || (window.location.hash.includes('id=') ? decodeURIComponent(window.location.hash.split('id=')[1]) : null);
             if (extId) {
