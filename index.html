@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-PT">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
@@ -8,7 +8,9 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Plantas do Aderson: conhecer para cuidar">
-    <link class="rounded-full" rel="apple-touch-icon" href="https://placehold.co/180x180/16a34a/ffffff?text=AB">
+    
+    <!-- Ícone oficial atualizado para dispositivos Apple -->
+    <link class="rounded-full" rel="apple-touch-icon" href="icon-192.png">
     
     <!-- Link para o Manifesto da PWA -->
     <link rel="manifest" href="manifest.json">
@@ -134,7 +136,6 @@
         <!-- ========================================== -->
         <div id="view-scan" class="w-full flex flex-col items-center fade-in">
             
-            <!-- Tela Inicial do Explorar -->
             <div id="intro-section" class="w-full">
                 
                 <!-- SEÇÃO DESAFIOS (ALUNOS) -->
@@ -356,7 +357,7 @@
                     </button>
                 </div>
 
-                <!-- GERENCIAR DESAFIOS DE LOCALIZAÇÃO (NOVO) -->
+                <!-- GERENCIAR DESAFIOS DE LOCALIZAÇÃO -->
                 <div class="mb-10 bg-amber-50/50 p-4 sm:p-6 rounded-2xl border-2 border-amber-200">
                     <h3 class="font-extrabold text-amber-800 text-lg sm:text-xl mb-4 flex items-center">
                         <i class="ph-fill ph-trophy mr-2 text-amber-600"></i> Desafios de Exploração
@@ -502,13 +503,13 @@
 
                             <div>
                                 <label class="block text-sm font-bold text-blue-700 mb-1.5 ml-1 font-semibold">Colar Link do Folheto</label>
-                                <input type="url" id="input-url-info" placeholder="Ex: https://meusite.com/folheto.jpg" class="w-full p-3 sm:p-4 rounded-xl border-2 border-blue-200 bg-white focus:outline-none focus:border-green-500 font-medium text-sm sm:text-base">
+                                <input type="url" id="input-url-info" placeholder="Ex: https://meusite.com/folheto.jpg" class="w-full p-3 sm:p-4 rounded-xl border-2 border-green-200 bg-white focus:outline-none focus:border-green-500 font-medium text-sm sm:text-base">
                             </div>
                         </div>
                     </div>
 
                     <!-- CADASTRO DE LOCALIZAÇÃO GEOGRÁFICA -->
-                    <div class="space-y-4 bg-green-50/50 p-4 sm:p-6 rounded-2xl border border-green-100">
+                    <div class="space-y-4 bg-green-50/50 p-4 sm:p-6 rounded-2xl border-green-100 border">
                         <h3 class="font-bold text-green-800 text-base sm:text-lg border-b border-green-200 pb-2 mb-2 flex items-center justify-between font-extrabold">
                             <span>4. Localização Geográfica (Mapa)</span>
                         </h3>
@@ -886,7 +887,7 @@
             const state = {
                 challenge_id: id,
                 title: chal.title,
-                plants_to_find: [...chal.plants], // copia array
+                plants_to_find: [...chal.plants], 
                 score: 0,
                 total_questions: 0,
                 start_time: new Date().toISOString(),
@@ -931,7 +932,9 @@
 
         window.showChallengeStatus = function() {
             const state = JSON.parse(localStorage.getItem('botanica_active_challenge'));
-            if(state) alert(`Plantas a localizar (Nomes Científicos):\n- ${state.plants_to_find.join('\n- ')}`);
+            if(state) {
+                showToast(`Plantas a localizar:\n${state.plants_to_find.join(', ')}`, false);
+            }
         };
 
         // --- 5. EXIBIÇÃO DA PLANTA & AVALIAÇÃO DO QUIZ ---
@@ -1035,6 +1038,81 @@
 
             document.getElementById('scanner-container').classList.add('hidden'); document.getElementById('intro-section').classList.add('hidden'); document.getElementById('result-section').classList.remove('hidden'); document.getElementById('result-section').scrollIntoView();
         }
+
+        window.evaluateQuiz = async function() { 
+            const studentName = document.getElementById('student-name').value;
+            const studentClass = document.getElementById('student-class').value;
+            const studentDate = document.getElementById('student-date').value;
+            const plantSciId = document.getElementById('plant-scientific').textContent;
+            
+            if(!studentName || !studentClass || !studentDate) { showToast("Preencha seus dados antes de finalizar o quiz!", true); return; }
+
+            const btn = document.getElementById('btn-submit-quiz');
+            btn.innerHTML = '<i class="ph-bold ph-spinner animate-spin mr-2 text-xl"></i> Processando...'; btn.disabled = true;
+
+            let correctCount = 0;
+            currentQuizData.forEach((item, index) => {
+                const sel = document.querySelector(`input[name="question_${index}"]:checked`);
+                const block = document.getElementById(`q-block-${index}`);
+                if (sel) {
+                    if (parseInt(sel.value) === item.ans) { correctCount++; block.classList.add('border-green-400', 'bg-green-50'); } 
+                    else { block.classList.add('border-red-400', 'bg-red-50'); block.innerHTML += `<p class="mt-2 text-sm text-red-600 font-bold">Correta: ${['A', 'B', 'C', 'D', 'E'][item.ans]}</p>`; }
+                } else block.classList.add('border-yellow-400', 'bg-yellow-50');
+                block.querySelectorAll('input').forEach(i => i.disabled = true);
+            });
+
+            const rDiv = document.getElementById('quiz-result'); rDiv.classList.remove('hidden');
+            rDiv.className = `mt-6 p-5 rounded-2xl text-center font-extrabold text-lg shadow-inner ${correctCount >= currentQuizData.length/2 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`;
+            rDiv.innerHTML = `${studentName}, você acertou ${correctCount} de ${currentQuizData.length}!`;
+            btn.classList.add('hidden');
+
+            try {
+                if(window.supabase) {
+                    const plantName = document.getElementById('plant-title').textContent;
+                    await window.supabase.from('quiz_results').insert([{
+                        student_name: studentName, student_class: studentClass, date: studentDate,
+                        score: correctCount, total: currentQuizData.length, plant_name: plantName
+                    }]);
+                }
+
+                const chalStateStr = localStorage.getItem('botanica_active_challenge');
+                if (chalStateStr) {
+                    let state = JSON.parse(chalStateStr);
+                    
+                    if (state.plants_to_find.includes(plantSciId)) {
+                        state.score += correctCount;
+                        state.total_questions += currentQuizData.length;
+                        state.plants_to_find = state.plants_to_find.filter(p => p !== plantSciId);
+                        
+                        if (state.plants_to_find.length > 0) {
+                            localStorage.setItem('botanica_active_challenge', JSON.stringify(state));
+                            window.checkActiveChallengeState();
+                            showToast("Boa! Faltam " + state.plants_to_find.length + " plantas. Vão à próxima!", false);
+                        } else {
+                            const endTime = new Date();
+                            const startTime = new Date(state.start_time);
+                            const durationSeconds = Math.floor((endTime - startTime) / 1000);
+                            
+                            localStorage.removeItem('botanica_active_challenge');
+                            window.checkActiveChallengeState();
+                            
+                            if (window.supabase) {
+                                await window.supabase.from('challenge_teams').insert([{
+                                    challenge_id: state.challenge_id, group_name: state.group.name, members: state.group.members,
+                                    class_name: state.group.class, score: state.score, total_questions: state.total_questions, duration_seconds: durationSeconds
+                                }]);
+                            }
+
+                            const min = Math.floor(durationSeconds / 60); const sec = durationSeconds % 60;
+                            rDiv.innerHTML += `<br><br><span class="text-amber-600 block text-2xl"><i class="ph-fill ph-trophy"></i> DESAFIO CONCLUÍDO!</span><span class="text-sm font-bold text-gray-700">Tempo de equipa: ${min}m e ${sec}s<br>Nota Global: ${state.score}/${state.total_questions}</span>`;
+                            rDiv.classList.replace('bg-green-100', 'bg-amber-100');
+                            rDiv.classList.replace('text-green-800', 'text-amber-900');
+                        }
+                    }
+                }
+            } catch(e) { console.error("Erro nuvem:", e); }
+        };
+
         window.renderQuizResults = function(results) {
             const list = document.getElementById('admin-quiz-results-list');
             if (!list) return;
@@ -1073,7 +1151,6 @@
         window.deleteQuizResult = async function(id, btnId) {
             const btn = document.getElementById(btnId);
             
-            // Verificação de dois cliques para prevenir acidentes
             if (btn.dataset.confirm !== "true") {
                 btn.dataset.confirm = "true";
                 btn.dataset.originalHtml = btn.innerHTML;
@@ -1100,12 +1177,12 @@
                 const { error } = await window.supabase.from('quiz_results').delete().eq('id', id);
                 if (error) throw error;
                 showToast("Resultado do quiz excluído com sucesso!", false);
-                window.syncQuizResults(); // Sincroniza em tempo real!
+                window.syncQuizResults(); 
             } catch(e) { 
                 showToast("Erro ao excluir.", true); 
                 btn.innerHTML = btn.dataset.originalHtml;
                 btn.disabled = false;
-                btn.classList.replace('bg-red-50', 'bg-red-50');
+                btn.classList.replace('bg-red-500', 'bg-red-50');
                 btn.classList.replace('text-white', 'text-red-600');
             }
         };
@@ -1399,7 +1476,6 @@
         window.deleteChallenge = async function(id, btnId) {
             const btn = document.getElementById(btnId);
             
-            // Confirmação em 2 passos para evitar apagamentos acidentais
             if (btn.dataset.confirm !== "true") {
                 btn.dataset.confirm = "true";
                 btn.dataset.originalHtml = btn.innerHTML;
@@ -1766,7 +1842,6 @@
         });
 
         // --- 11. REGISTO DO SERVICE WORKER (PWA) ---
-        // Verificação segura de protocolo adicionada para prevenir erros em ambientes de sandbox
         if ('serviceWorker' in navigator && (window.location.protocol === 'http:' || window.location.protocol === 'https:')) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./sw.js')
