@@ -32,7 +32,7 @@
             margin: 0;
             padding: 0;
             padding-top: env(safe-area-inset-top);
-            padding-bottom: text-safe-area-inset-bottom;
+            padding-bottom: env(safe-area-inset-bottom);
             padding-left: env(safe-area-inset-left);
             padding-right: env(safe-area-inset-right);
             display: flex;
@@ -196,15 +196,24 @@
                 </button>
                 
                 <div class="flex flex-col items-center text-center mt-6 sm:mt-2">
-                    <h2 id="plant-title" class="text-2xl sm:text-3xl font-extrabold text-green-800 mb-1 break-words w-full">Nome Popular</h2>
-                    <h3 id="plant-scientific" class="text-base sm:text-lg text-emerald-600 italic font-semibold mb-4 break-words w-full">Nome Científico</h3>
-                    
-                    <div id="plant-image-container" class="mb-4 w-full flex flex-col items-center">
-                        <img id="plant-image" src="" alt="Foto da Planta" class="w-32 h-32 sm:w-48 sm:h-48 object-cover rounded-2xl border-4 border-emerald-300 shadow-md">
-                        <a id="btn-open-link" href="#" target="_blank" class="mt-4 text-xs sm:text-sm font-bold text-emerald-700 bg-emerald-100 hover:bg-emerald-200 py-2 sm:py-3 px-4 sm:px-6 rounded-full flex items-center transition-colors text-center font-bold">
-                            <i class="ph-bold ph-arrow-square-out mr-2 text-lg"></i> Abrir Imagem Completa
-                        </a>
-                    </div>
+                    <h2 id="plant-title" class="text-2xl sm:text-3xl font-extrabold text-green-800 mb-1 break-words w-full font-extrabold">Nome Popular</h2>
+                    <h3 id="plant-scientific" class="text-base sm:text-lg text-emerald-600 italic font-semibold break-words w-full">Nome Científico</h3>
+                </div>
+
+                <!-- FOLHETO INFORMATIVO -->
+                <div id="plant-info-container" class="w-full mt-4 bg-blue-50 p-4 rounded-2xl border border-blue-200 hidden">
+                    <h4 class="font-bold text-blue-800 text-sm sm:text-base mb-3 flex items-center justify-center">
+                        <i class="ph-bold ph-info mr-2 text-blue-600 text-xl"></i> Folheto Informativo
+                    </h4>
+                    <img id="plant-info-image" src="" alt="Folheto Informativo" class="w-full h-auto object-contain rounded-xl border border-blue-200 shadow-sm max-h-[400px]">
+                    <a id="btn-open-info-link" href="#" target="_blank" class="mt-3 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 py-2.5 px-4 rounded-full flex items-center justify-center transition-colors text-center w-full shadow" style="color: white !important; text-decoration: none !important;">
+                        <i class="ph-bold ph-arrows-out-simple mr-1.5 text-lg"></i> Ampliar Folheto
+                    </a>
+                </div>
+
+                <!-- FOTO(S) REAL(IS) DA PLANTA - CARROSSEL -->
+                <div id="plant-image-container" class="w-full mt-6 flex flex-col items-center">
+                    <!-- Galeria inserida via JS -->
                 </div>
 
                 <!-- CARD DE GEOLOCALIZAÇÃO DETALHADA COM RADAR INTEGADO -->
@@ -225,10 +234,6 @@
                         <div id="radar-direction" class="text-xs sm:text-sm font-bold text-emerald-600 mt-1 max-w-[280px]">Mova-se pelo pátio para calibrar o sensor</div>
                         
                         <div class="flex flex-col sm:flex-row gap-2 mt-3 w-full justify-center">
-                            <!-- Botão de centralização inteligente no mapa -->
-                            <button type="button" onclick="focusUserOnDetailMap()" class="bg-emerald-100 hover:bg-emerald-200 text-emerald-800 text-xs font-bold py-2.5 px-4 rounded-full flex items-center justify-center transition">
-                                <i class="ph-bold ph-navigation-arrow mr-1.5"></i> Focar Minha Posição
-                            </button>
                             <!-- Direcionar para o Google Maps diretamente da tela de detalhes -->
                             <a id="btn-google-maps-nav" href="#" target="_blank" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-2.5 px-4 rounded-full flex items-center justify-center transition no-underline shadow" style="color: white !important; text-decoration: none !important;">
                                 <i class="ph-bold ph-map-pin mr-1.5"></i> Abrir no Google Maps
@@ -344,7 +349,7 @@
                 </h3>
 
                 <p class="text-xs sm:text-sm text-blue-700 mb-6 font-medium bg-blue-50 p-4 rounded-xl border border-blue-100 leading-relaxed text-justify">
-                    <i class="ph-bold ph-info float-left mr-2 text-blue-500 text-lg"></i> Preencha a identificação da planta, o link da imagem, as coordenadas e as questões (opcional). Os dados serão salvos no aparelho e no QR Code.
+                    <i class="ph-bold ph-info float-left mr-2 text-blue-500 text-lg"></i> Preencha a identificação da planta, adicione fotos reais, insira a folha informativa e cadastre o GPS. Tudo ficará salvo no QR Code.
                 </p>
 
                 <div class="mb-6 bg-blue-50/50 p-4 sm:p-6 rounded-2xl border border-blue-200">
@@ -355,7 +360,7 @@
                         <select id="select-edit-plant" class="w-full p-3 rounded-xl border-2 border-blue-200 bg-white focus:outline-none focus:border-blue-500 font-bold text-blue-800 cursor-pointer text-sm sm:text-base" onchange="loadPlantForEditing()">
                             <option value="">-- Criar Nova Planta (Formulário Limpo) --</option>
                         </select>
-                        <button type="button" onclick="clearForm()" class="w-full sm:w-auto bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-3 px-4 rounded-xl transition duration-300 flex justify-center items-center text-sm sm:text-base whitespace-nowrap">
+                        <button type="button" onclick="clearForm()" class="w-full sm:w-auto bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-3 px-4 rounded-xl transition duration-300 flex justify-center items-center text-sm sm:text-base whitespace-nowrap font-bold">
                             <i class="ph-bold ph-eraser mr-2 text-lg"></i> Limpar
                         </button>
                     </div>
@@ -380,10 +385,59 @@
                         </div>
                     </div>
 
+                    <!-- FOTOS REAIS DA PLANTA (MÚLTIPLAS) -->
+                    <div class="space-y-4 bg-green-50/50 p-4 sm:p-6 rounded-2xl border border-green-100">
+                        <h3 class="font-bold text-green-800 text-base sm:text-lg border-b border-green-200 pb-2 mb-4 flex items-center justify-between font-extrabold">
+                            <span>2. Fotos Reais da Planta</span>
+                            <span class="text-sm text-red-600 font-medium bg-red-100 px-2 py-1 rounded-lg">Obrigatório</span>
+                        </h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-bold text-green-700 mb-1.5 ml-1">Upload de Fotos Reais (Permite selecionar várias)</label>
+                                <!-- Adicionado o atributo 'multiple' para permitir seleção de várias imagens -->
+                                <input type="file" id="input-file-plant" accept="image/*" multiple class="w-full p-3 rounded-xl border-2 border-green-200 bg-white text-sm font-semibold">
+                                <p class="text-xs text-green-600 mt-1.5 font-medium"><i class="ph-bold ph-info"></i> Pode selecionar várias fotos segurando a tecla Ctrl ou selecionando em massa no telemóvel para criar uma galeria na app.</p>
+                            </div>
+                            
+                            <div class="flex items-center justify-center my-2 text-green-700 font-bold text-sm">
+                                <span class="border-t border-green-200 flex-grow mr-3"></span> OU <span class="border-t border-green-200 flex-grow ml-3"></span>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-bold text-green-700 mb-1.5 ml-1 font-semibold">Colar um Link de Imagem Externa</label>
+                                <input type="url" id="input-url" placeholder="Ex: https://meusite.com/foto-planta.jpg" class="w-full p-3 sm:p-4 rounded-xl border-2 border-green-200 bg-white focus:outline-none focus:border-green-500 font-medium text-sm sm:text-base">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- FOLHETO INFORMATIVO -->
+                    <div class="space-y-4 bg-blue-50/50 p-4 sm:p-6 rounded-2xl border border-blue-200">
+                        <h3 class="font-bold text-blue-800 text-base sm:text-lg border-b border-blue-200 pb-2 mb-4 flex items-center justify-between font-extrabold">
+                            <span>3. Folheto Informativo da Planta</span>
+                            <span class="text-sm text-blue-600 font-medium bg-blue-100 px-2 py-1 rounded-lg">Opcional</span>
+                        </h3>
+                        <p class="text-xs text-gray-500 mb-2">Imagem com curiosidades, benefícios e dados formatados (Canvas/PDF exportado) para o aluno.</p>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-bold text-blue-700 mb-1.5 ml-1">Upload do Folheto</label>
+                                <input type="file" id="input-file-info" accept="image/*" class="w-full p-3 rounded-xl border-2 border-blue-200 bg-white text-sm font-semibold">
+                            </div>
+                            
+                            <div class="flex items-center justify-center my-2 text-blue-700 font-bold text-sm">
+                                <span class="border-t border-blue-200 flex-grow mr-3"></span> OU <span class="border-t border-blue-200 flex-grow ml-3"></span>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-bold text-blue-700 mb-1.5 ml-1 font-semibold">Colar Link do Folheto</label>
+                                <input type="url" id="input-url-info" placeholder="Ex: https://meusite.com/folheto.jpg" class="w-full p-3 sm:p-4 rounded-xl border-2 border-blue-200 bg-white focus:outline-none focus:border-blue-500 font-medium text-sm sm:text-base">
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- CADASTRO DE LOCALIZAÇÃO GEOGRÁFICA -->
                     <div class="space-y-4 bg-green-50/50 p-4 sm:p-6 rounded-2xl border border-green-100">
                         <h3 class="font-bold text-green-800 text-base sm:text-lg border-b border-green-200 pb-2 mb-2 flex items-center justify-between font-extrabold">
-                            <span>2. Localização Geográfica (Mapa)</span>
+                            <span>4. Localização Geográfica (Mapa)</span>
                             <span class="text-sm text-emerald-600 font-medium bg-emerald-100 px-2 py-1 rounded-lg font-bold">Opcional</span>
                         </h3>
                         <p class="text-xs text-gray-500 leading-relaxed mb-4">Insira as coordenadas exatas da planta. Se estiver ao lado da planta, utilize o botão abaixo para capturar via GPS.</p>
@@ -404,39 +458,15 @@
                         </button>
                     </div>
 
-                    <!-- FOTO REAL DA PLANTA (Sessão atualizada para suportar Upload ou URL de imagem) -->
-                    <div class="space-y-4 bg-green-50/50 p-4 sm:p-6 rounded-2xl border border-green-100">
-                        <h3 class="font-bold text-green-800 text-base sm:text-lg border-b border-green-200 pb-2 mb-4 flex items-center justify-between font-extrabold">
-                            <span>3. Foto Real da Planta</span>
-                            <span class="text-sm text-red-600 font-medium bg-red-100 px-2 py-1 rounded-lg">Obrigatório</span>
-                        </h3>
-                        <div class="space-y-4">
-                            <div>
-                                <label class="block text-sm font-bold text-green-700 mb-1.5 ml-1">Fazer Upload de Foto Real (Recomendado)</label>
-                                <input type="file" id="input-file-plant" accept="image/*" class="w-full p-3 rounded-xl border-2 border-green-200 bg-white text-sm font-semibold">
-                                <p class="text-xs text-gray-500 mt-1">Carregue uma imagem diretamente do seu telemóvel ou computador.</p>
-                            </div>
-                            
-                            <div class="flex items-center justify-center my-2 text-green-700 font-bold text-sm">
-                                <span class="border-t border-green-200 flex-grow mr-3"></span> OU <span class="border-t border-green-200 flex-grow ml-3"></span>
-                            </div>
-
-                            <div>
-                                <label class="block text-sm font-bold text-green-700 mb-1.5 ml-1 font-semibold">Colar um Link de Imagem Externa</label>
-                                <input type="url" id="input-url" placeholder="Ex: https://meusite.com/foto-planta.jpg" class="w-full p-3 sm:p-4 rounded-xl border-2 border-green-200 bg-white focus:outline-none focus:border-green-500 font-medium text-sm sm:text-base">
-                            </div>
-                        </div>
-                    </div>
-
                     <div class="space-y-6">
                         <h3 class="font-bold text-green-800 text-base sm:text-lg border-b border-green-200 pb-2 flex items-center justify-between font-extrabold">
-                            <span>4. Cadastro de Questões</span>
+                            <span>5. Cadastro de Questões</span>
                             <span class="text-sm text-emerald-600 font-medium bg-emerald-100 px-2 py-1 rounded-lg font-bold">Opcional</span>
                         </h3>
                         <div id="questions-builder-container" class="space-y-6"></div>
                     </div>
                     
-                    <button id="btn-generate" type="submit" class="w-full mt-8 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-4 sm:py-5 px-4 rounded-2xl shadow-xl transition duration-300 flex justify-center items-center text-base sm:text-lg">
+                    <button id="btn-generate" type="submit" class="w-full mt-8 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-4 sm:py-5 px-4 rounded-2xl shadow-xl transition duration-300 flex justify-center items-center text-base sm:text-lg font-extrabold">
                         <i class="ph-bold ph-floppy-disk mr-2 text-2xl font-bold"></i> Salvar e Gerar QR Code
                     </button>
                     <p id="qr-error" class="text-red-500 text-xs text-center hidden font-bold mt-3">Erro ao gerar. Verifique os dados.</p>
@@ -570,18 +600,20 @@
             if (SUPABASE_URL === 'COLE_AQUI_SEU_PROJECT_URL' || !SUPABASE_URL) return false;
 
             try {
-                // Plantas - agora com suporte para salvar latitude e longitude no banco
+                // Plantas - Atualizado para suportar a galeria de imagens 'image_urls' JSONB
                 window.savePlantToCloud = async function(plantData) {
                     const { error } = await window.supabase.from('plants').upsert({ 
                         id: plantData.cientifico, 
                         nome: plantData.nome, 
                         cientifico: plantData.cientifico, 
                         url: plantData.url, 
+                        image_urls: plantData.image_urls,
+                        info_url: plantData.info_url,
                         quiz: plantData.quiz,
                         latitude: plantData.latitude,
                         longitude: plantData.longitude
                     });
-                    if (error) showToast("Erro ao salvar! Conecte-se como professor.", true);
+                    if (error) showToast("Erro ao salvar na nuvem! Conecte-se como professor.", true);
                 };
 
                 async function syncCloudPlants() {
@@ -593,6 +625,8 @@
                             nome: p.nome, 
                             cientifico: p.cientifico, 
                             url: p.url, 
+                            image_urls: p.image_urls,
+                            info_url: p.info_url,
                             quiz: p.quiz,
                             latitude: p.latitude,
                             longitude: p.longitude
@@ -656,18 +690,16 @@
         let globalLeafletMap = null;
         let globalMarkersLayer = null;
         
-        let userWatchId = null;       // ID de monitoramento contínuo do GPS do aluno
-        let lastDistance = null;      // Para determinar se está se aproximando ou afastando
-        let userMarkerDetail = null;  // Marcador do aluno no mapa individual
+        let userWatchId = null;       
+        let lastDistance = null;      
+        let userMarkerDetail = null;  
 
-        // Coordenadas suavizadas globais (Média Móvel Exponencial - EMA) para diminuir ruídos de oscilação do GPS
         let smoothUserLat = null;
         let smoothUserLng = null;
-        const ALPHA = 0.25; // Fator de suavização (menor = mais estável/lento, maior = resposta mais rápida)
+        const ALPHA = 0.25; 
 
-        // Função Haversine para calcular distância precisa em metros entre dois pontos de coordenadas geográficas
         function calculateDistance(lat1, lon1, lat2, lon2) {
-            const R = 6371e3; // Raio da Terra em metros
+            const R = 6371e3; 
             const phi1 = lat1 * Math.PI / 180;
             const phi2 = lat2 * Math.PI / 180;
             const deltaPhi = (lat2 - lat1) * Math.PI / 180;
@@ -678,11 +710,10 @@
                       Math.sin(deltaLambda / 2) * Math.sin(deltaLambda / 2);
             const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
-            return R * c; // Distância em metros
+            return R * c; 
         }
         window.calculateDistance = calculateDistance;
         
-        // Função de alteração de abas redesenhada para suportar a nova aba do MAPA
         function switchTab(tab) {
             const scanView = document.getElementById('view-scan');
             const mapView = document.getElementById('view-map');
@@ -692,7 +723,6 @@
             const btnMap = document.getElementById('btn-tab-map');
             const btnCreate = document.getElementById('btn-tab-create');
             
-            // Oculta todas as telas
             scanView.classList.replace('flex', 'hidden');
             if(!scanView.classList.contains('hidden')) scanView.classList.add('hidden');
             
@@ -702,12 +732,10 @@
             createView.classList.replace('flex', 'hidden');
             if(!createView.classList.contains('hidden')) createView.classList.add('hidden');
             
-            // Inativa todos os estilos dos botões
             btnScan.className = btnScan.className.replace('tab-active', 'tab-inactive');
             btnMap.className = btnMap.className.replace('tab-active', 'tab-inactive');
             btnCreate.className = btnCreate.className.replace('tab-active', 'tab-inactive');
             
-            // Desliga sensores ativos se sair da aba de escaneamento
             stopGPSTracking();
 
             if (tab === 'scan') {
@@ -719,7 +747,7 @@
                 mapView.classList.replace('hidden', 'flex');
                 btnMap.className = btnMap.className.replace('tab-inactive', 'tab-active');
                 isScanningActive = false;
-                initGlobalMap(); // Carrega e desenha o mapa escolar
+                initGlobalMap(); 
             } else if (tab === 'create') {
                 createView.classList.replace('hidden', 'flex');
                 btnCreate.className = btnCreate.className.replace('tab-inactive', 'tab-active');
@@ -739,17 +767,6 @@
             smoothUserLng = null;
         }
 
-        // Função de focagem manual controlada pelo usuário, evitando piscar automático indesejado
-        window.focusUserOnDetailMap = function() {
-            if (window.detailLeafletMap && smoothUserLat !== null && smoothUserLng !== null) {
-                window.detailLeafletMap.panTo([smoothUserLat, smoothUserLng]);
-                showToast("Mapa focado na sua posição!", false);
-            } else {
-                showToast("Aguardando sinal estável de GPS...", true);
-            }
-        };
-
-        // --- SISTEMA DE GEOLOCALIZAÇÃO NO CADASTRO ---
         window.getGPSCoordinates = function() {
             const btn = document.querySelector('button[onclick="getGPSCoordinates()"]');
             const originalText = btn.innerHTML;
@@ -765,7 +782,6 @@
 
             navigator.geolocation.getCurrentPosition(
                 (position) => {
-                    // MÁXIMA PRECISÃO: Removido o .toFixed(6) para capturar o número puro direto do sensor
                     document.getElementById('input-latitude').value = position.coords.latitude;
                     document.getElementById('input-longitude').value = position.coords.longitude;
                     showToast("Coordenadas capturadas com sucesso!", false);
@@ -788,14 +804,12 @@
             );
         };
 
-        // --- SISTEMA DE MAPA GLOBAL (LEAFLET) ---
         function initGlobalMap() {
             if (typeof L === 'undefined') {
                 console.warn("Leaflet ainda não foi carregado.");
                 return;
             }
             
-            // Coordenadas aproximadas da EEEP Aderson Borges de Carvalho
             const schoolCoordinates = [-7.2186, -39.3145];
             
             setTimeout(() => {
@@ -821,7 +835,6 @@
 
                 const plants = JSON.parse(localStorage.getItem('botanica_plants') || '{}');
                 
-                // Mapeia plantas sob cuidados ativos ou propostas pendentes para ver se estão ocupadas
                 const busyPlants = {};
                 if (window.cachedGuardians) {
                     window.cachedGuardians.forEach(g => {
@@ -837,7 +850,6 @@
                 let hasCoordinates = false;
                 let bounds = [];
 
-                // Ícones personalizados
                 const greenIcon = L.icon({
                     iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
                     shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
@@ -866,10 +878,8 @@
                         const busyInfo = busyPlants[p.cientifico];
                         const isBusy = !!busyInfo;
                         
-                        // Define o ícone com base na ocupação
                         const markerIcon = isBusy ? redIcon : greenIcon;
 
-                        // POPUP ATUALIZADO: Mostra se está livre ou ocupada com o nome do respectivo guardião
                         const marker = L.marker([lat, lng], { icon: markerIcon })
                             .bindPopup(`
                                 <div class="text-center p-1 font-sans">
@@ -908,9 +918,6 @@
             }
         };
 
-
-        // --- SISTEMA GUARDIÕES DA FLORA ---
-        
         function closeModals() {
             document.getElementById('modal-plan').classList.replace('flex', 'hidden');
             document.getElementById('modal-report').classList.replace('flex', 'hidden');
@@ -1154,7 +1161,6 @@
             
             const activeGuardians = guardians.filter(g => ['aprovado', 'relatorio_enviado', 'concluido'].includes(g.status));
             
-            // --- CÁLCULO E RENDERIZAÇÃO DAS ESTATÍSTICAS POR TURMA ---
             if (activeGuardians.length > 0) {
                 const classCounts = {};
                 activeGuardians.forEach(g => {
@@ -1175,7 +1181,6 @@
                 statsContainer.classList.add('hidden');
             }
             
-            // --- RENDERIZAÇÃO DA LISTA DE GUARDIÕES ---
             if (activeGuardians.length === 0) {
                 list.innerHTML = '<div class="text-center text-emerald-600/70 italic py-4 bg-emerald-50 rounded-xl">Seja o primeiro Guardião da Flora! Proponha seu plano acima.</div>';
                 return;
@@ -1264,7 +1269,6 @@
         }
         window.renderAdminGuardians = renderAdminGuardians;
 
-        // Função para aprovar o Plano Inicial
         async function approveGuardian(id, btnId) {            
             const btn = document.getElementById(btnId);
             
@@ -1311,7 +1315,6 @@
         }
         window.approveGuardian = approveGuardian;
 
-        // Aprovar o Relatório (Concluir Missão)
         async function approveReport(id, btnId) {            
             const btn = document.getElementById(btnId);
             
@@ -1358,7 +1361,6 @@
         }
         window.approveReport = approveReport;
 
-        // Função Excluir Guardião
         async function deleteGuardian(id, btnId) {
             const btn = document.getElementById(btnId);
             
@@ -1414,7 +1416,6 @@
         window.deleteGuardian = deleteGuardian;
 
 
-        // --- SISTEMA ADMIN E CRIAÇÃO DE PLACAS ---
         let isLoggedIn = false;
         const authSection = document.getElementById('auth-section');
         const createSection = document.getElementById('create-section');
@@ -1486,7 +1487,6 @@
             document.getElementById('plant-form').reset(); document.getElementById('generated-qr-section').classList.add('hidden');
         }
 
-        // --- BANCO LOCAL & QR CODE ---
         function savePlantToLocal(plantData) {
             let localPlants = JSON.parse(localStorage.getItem('botanica_plants') || '{}');
             localPlants[plantData.cientifico] = plantData;
@@ -1510,6 +1510,7 @@
             document.getElementById('input-latitude').value = "";
             document.getElementById('input-longitude').value = "";
             document.getElementById('input-file-plant').value = "";
+            document.getElementById('input-file-info').value = "";
             document.getElementById('generated-qr-section').classList.add('hidden');
         }
         window.clearForm = clearForm;
@@ -1522,10 +1523,14 @@
 
             document.getElementById('input-name').value = plantData.nome || "";
             document.getElementById('input-scientific').value = plantData.cientifico || "";
+            
+            // Para edição, tentaremos preencher a url primária se houver, ou limpar
             document.getElementById('input-url').value = plantData.url || "";
+            document.getElementById('input-url-info').value = plantData.info_url || "";
             document.getElementById('input-latitude').value = plantData.latitude !== undefined && plantData.latitude !== null ? plantData.latitude : "";
             document.getElementById('input-longitude').value = plantData.longitude !== undefined && plantData.longitude !== null ? plantData.longitude : "";
             document.getElementById('input-file-plant').value = "";
+            document.getElementById('input-file-info').value = "";
 
             for(let i = 1; i <= 5; i++) {
                 document.getElementById(`q${i}-text`).value = "";
@@ -1554,7 +1559,7 @@
             event.preventDefault();
             const btn = document.getElementById('btn-generate');
             const originalText = btn.innerHTML;
-            btn.innerHTML = '<i class="ph-bold ph-spinner animate-spin mr-2"></i> Salvando dados e imagem...';
+            btn.innerHTML = '<i class="ph-bold ph-spinner animate-spin mr-2"></i> Salvando dados e imagens...';
             btn.disabled = true;
 
             try {
@@ -1564,33 +1569,51 @@
                     btn.innerHTML = originalText; btn.disabled = false;
                     return;
                 }
+                const cleanScientific = scientificText.toLowerCase().replace(/[^a-z0-9]/g, '_');
 
+                // 1. Processamento das FOTOS REAIS (Múltiplas)
                 const fileInput = document.getElementById('input-file-plant');
-                let imageUrl = document.getElementById('input-url').value.trim();
+                let imageURLs = [];
+                let externalUrl = document.getElementById('input-url').value.trim();
 
-                // Se houver arquivo selecionado, faz o upload para o Supabase Storage
                 if (fileInput && fileInput.files.length > 0) {
-                    const file = fileInput.files[0];
-                    const cleanScientific = scientificText.toLowerCase().replace(/[^a-z0-9]/g, '_');
-                    const fileExt = file.name.split('.').pop();
-                    const fileName = `${cleanScientific}_${Date.now()}.${fileExt}`;
+                    for(let i=0; i<fileInput.files.length; i++) {
+                        const file = fileInput.files[i];
+                        const fileExt = file.name.split('.').pop();
+                        const fileName = `real_${cleanScientific}_${Date.now()}_${i}.${fileExt}`;
 
-                    // Realiza o upload no bucket 'plants'
-                    const { data: uploadData, error: uploadError } = await window.supabase.storage
-                        .from('plants')
-                        .upload(fileName, file);
+                        const { error: uploadError } = await window.supabase.storage.from('plants').upload(fileName, file);
+                        if (uploadError) throw uploadError;
 
-                    if (uploadError) throw uploadError;
-
-                    // Captura o link de acesso público
-                    const { data: publicUrlData } = window.supabase.storage.from('plants').getPublicUrl(fileName);
-                    imageUrl = publicUrlData.publicUrl;
+                        const { data: publicUrlData } = window.supabase.storage.from('plants').getPublicUrl(fileName);
+                        imageURLs.push(publicUrlData.publicUrl);
+                    }
                 }
 
-                if (!imageUrl) {
-                    showToast("Adicione uma foto fazendo o upload ou cole um link válido.", true);
+                if (externalUrl) {
+                    imageURLs.push(externalUrl);
+                }
+
+                if (imageURLs.length === 0) {
+                    showToast("Adicione pelo menos uma Foto Real.", true);
                     btn.innerHTML = originalText; btn.disabled = false;
                     return;
+                }
+
+                // 2. Processamento do FOLHETO INFORMATIVO
+                const fileInputInfo = document.getElementById('input-file-info');
+                let infoUrl = document.getElementById('input-url-info').value.trim();
+
+                if (fileInputInfo && fileInputInfo.files.length > 0) {
+                    const fileInfo = fileInputInfo.files[0];
+                    const fileExtInfo = fileInfo.name.split('.').pop();
+                    const fileInfoName = `info_${cleanScientific}_${Date.now()}.${fileExtInfo}`;
+
+                    const { error: uploadInfoError } = await window.supabase.storage.from('plants').upload(fileInfoName, fileInfo);
+                    if (uploadInfoError) throw uploadInfoError;
+
+                    const { data: publicInfoUrlData } = window.supabase.storage.from('plants').getPublicUrl(fileInfoName);
+                    infoUrl = publicInfoUrlData.publicUrl;
                 }
 
                 let questionsArray = [];
@@ -1614,10 +1637,15 @@
                 const latVal = document.getElementById('input-latitude').value;
                 const lngVal = document.getElementById('input-longitude').value;
 
+                // Para compatibilidade, guardamos a primeira imagem no campo 'url'
+                const mainUrl = imageURLs[0];
+
                 const plantData = { 
                     nome: document.getElementById('input-name').value, 
                     cientifico: scientificText, 
-                    url: imageUrl, 
+                    url: mainUrl, 
+                    image_urls: imageURLs,
+                    info_url: infoUrl || null,
                     quiz: questionsArray,
                     latitude: latVal ? parseFloat(latVal) : null,
                     longitude: lngVal ? parseFloat(lngVal) : null
@@ -1633,10 +1661,10 @@
                 new QRCode(qrCodeDisplay, { text: finalUrl, width: 200, height: 200, colorDark : "#166534", colorLight : "#ffffff" });
                 document.getElementById('generated-qr-section').classList.remove('hidden');
                 document.getElementById('generated-qr-section').scrollIntoView({ behavior: 'smooth', block: 'end' });
-                showToast("Dados da planta e imagem salvos com sucesso!", false);
+                showToast("Dados salvos com sucesso!", false);
                 
-                // Limpa o input de arquivos
                 if (fileInput) fileInput.value = "";
+                if (fileInputInfo) fileInputInfo.value = "";
             } catch (err) {
                 console.error(err);
                 showToast("Erro ao processar o salvamento: " + (err.message || err), true);
@@ -1651,12 +1679,10 @@
         let currentQuizData = []; 
         document.getElementById('student-date').valueAsDate = new Date();
 
-        // Renderização detalhada da planta com mapa integrado
         function loadStudentView(plantData) {
             document.getElementById('plant-title').textContent = plantData.nome; 
             document.getElementById('plant-scientific').textContent = plantData.cientifico;
-            document.getElementById('plant-image').src = plantData.url; 
-            document.getElementById('btn-open-link').href = plantData.url;
+            
             document.getElementById('student-name').value = ''; 
             document.getElementById('student-class').value = '';
             document.getElementById('quiz-result').classList.add('hidden'); 
@@ -1666,7 +1692,42 @@
             const studentFormSection = document.getElementById('student-form-section');
             quizContainer.innerHTML = ''; currentQuizData = plantData.quiz || [];
 
-            // Controle do Mapa Individual da Planta com botão integrado do Google Maps
+            // 1. CONTROLE DO FOLHETO INFORMATIVO (Agora no topo, logo após os títulos)
+            const infoCardContainer = document.getElementById('plant-info-container');
+            if (plantData.info_url) {
+                document.getElementById('plant-info-image').src = plantData.info_url;
+                document.getElementById('btn-open-info-link').href = plantData.info_url;
+                infoCardContainer.classList.remove('hidden');
+            } else {
+                infoCardContainer.classList.add('hidden');
+            }
+
+            // 2. FOTO(S) REAL(IS) - CARROSSEL (Agora abaixo do folheto)
+            const plantImageContainer = document.getElementById('plant-image-container');
+            let imagesToRender = plantData.image_urls && plantData.image_urls.length > 0 ? plantData.image_urls : (plantData.url ? [plantData.url] : []);
+            
+            if(imagesToRender.length > 0) {
+                let galleryHTML = `<div class="flex overflow-x-auto w-full gap-4 snap-x p-2">`;
+                imagesToRender.forEach(imgUrl => {
+                    galleryHTML += `
+                        <div class="shrink-0 w-56 sm:w-64 snap-center flex flex-col items-center bg-white p-2 rounded-3xl border border-emerald-100 shadow-sm">
+                            <img src="${imgUrl}" alt="Foto Real da Planta" class="w-full h-56 sm:h-64 object-cover rounded-2xl border-2 border-emerald-300">
+                            <a href="${imgUrl}" target="_blank" class="mt-3 text-[10px] sm:text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 py-2 px-4 rounded-full flex items-center transition-colors text-center w-full justify-center shadow-sm" style="text-decoration: none !important;">
+                                <i class="ph-bold ph-arrows-out mr-1.5"></i> Ampliar Foto
+                            </a>
+                        </div>
+                    `;
+                });
+                galleryHTML += `</div>`;
+                if(imagesToRender.length > 1) {
+                    galleryHTML += `<p class="text-xs text-green-700 font-bold mt-3 animate-pulse"><i class="ph-bold ph-arrows-left-right mr-1"></i> Deslize para o lado para ver mais fotos</p>`;
+                }
+                plantImageContainer.innerHTML = galleryHTML;
+            } else {
+                plantImageContainer.innerHTML = '';
+            }
+
+            // 3. Controle do Mapa Individual da Planta (Abaixo das fotos reais)
             const locationCard = document.getElementById('plant-location-card');
             if (plantData.latitude && plantData.longitude) {
                 const lat = parseFloat(plantData.latitude);
@@ -1681,7 +1742,8 @@
                     btnGmapsNav.href = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
                 }
 
-                // Desenha ou atualiza o mini-mapa com foco
+                stopGPSTracking();
+
                 setTimeout(() => {
                     if (typeof L === 'undefined') return;
 
@@ -1694,7 +1756,6 @@
                         container._leaflet_id = null;
                     }
 
-                    // Determina se esta planta específica está ocupada para colorir o pin do mini-mapa correspondentemente
                     const busyPlants = {};
                     if (window.cachedGuardians) {
                         window.cachedGuardians.forEach(g => {
@@ -1715,14 +1776,14 @@
                             maxZoom: 19
                         }).addTo(window.detailLeafletMap);
                         
-                        const greenIcon = L.icon({
+                        const detailIcon = L.icon({
                             iconUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-${iconColor}.png`,
                             shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
                             iconSize: [25, 41],
                             iconAnchor: [12, 41],
                             shadowSize: [41, 41]
                         });
-                        window.detailMarker = L.marker([lat, lng], { icon: greenIcon }).addTo(window.detailLeafletMap);
+                        window.detailMarker = L.marker([lat, lng], { icon: detailIcon }).addTo(window.detailLeafletMap);
                     } else {
                         window.detailLeafletMap.setView([lat, lng], 18);
                         
@@ -1737,11 +1798,80 @@
                         window.detailMarker.setLatLng([lat, lng]);
                     }
                     window.detailLeafletMap.invalidateSize();
+
+                    if (navigator.geolocation) {
+                        userWatchId = navigator.geolocation.watchPosition(
+                            (position) => {
+                                const userLat = position.coords.latitude;
+                                const userLng = position.coords.longitude;
+                                
+                                if (smoothUserLat === null || smoothUserLng === null) {
+                                    smoothUserLat = userLat;
+                                    smoothUserLng = userLng;
+                                } else {
+                                    smoothUserLat = (ALPHA * userLat) + ((1 - ALPHA) * smoothUserLat);
+                                    smoothUserLng = (ALPHA * userLng) + ((1 - ALPHA) * smoothUserLng);
+                                }
+                                
+                                const distance = calculateDistance(smoothUserLat, smoothUserLng, lat, lng);
+                                
+                                const distEl = document.getElementById('radar-distance');
+                                const dirEl = document.getElementById('radar-direction');
+                                
+                                if(distEl) {
+                                    distEl.textContent = `${distance.toFixed(1)} metros`;
+                                }
+
+                                if(dirEl) {
+                                    if(lastDistance !== null) {
+                                        const diff = distance - lastDistance;
+                                        if (Math.abs(diff) > 1.5) { 
+                                            if (diff < 0) {
+                                                dirEl.innerHTML = '<span class="text-orange-600 flex items-center justify-center font-extrabold text-sm sm:text-base"><i class="ph-fill ph-fire mr-1 text-xl animate-bounce"></i> Quente! Você está se aproximando!</span>';
+                                            } else {
+                                                dirEl.innerHTML = '<span class="text-blue-600 flex items-center justify-center font-semibold text-sm sm:text-base"><i class="ph-fill ph-snowflake mr-1 text-xl"></i> Esfriou... Você está se afastando.</span>';
+                                            }
+                                        }
+                                    } else {
+                                        dirEl.textContent = "Dica: Dê alguns passos para calibrar o sensor de direção!";
+                                    }
+                                }
+
+                                lastDistance = distance;
+
+                                const userIcon = L.icon({
+                                    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
+                                    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+                                    iconSize: [25, 41],
+                                    iconAnchor: [12, 41],
+                                    shadowSize: [41, 41]
+                                });
+
+                                if (!userMarkerDetail) {
+                                    userMarkerDetail = L.marker([smoothUserLat, smoothUserLng], { icon: userIcon }).addTo(window.detailLeafletMap)
+                                        .bindPopup("Sua Localização Atual");
+                                    
+                                    const bounds = L.latLngBounds([[smoothUserLat, smoothUserLng], [lat, lng]]);
+                                    window.detailLeafletMap.fitBounds(bounds, { padding: [45, 45] });
+                                } else {
+                                    userMarkerDetail.setLatLng([smoothUserLat, smoothUserLng]);
+                                }
+                            },
+                            (error) => {
+                                console.warn("Erro no watch GPS:", error);
+                                const dirEl = document.getElementById('radar-direction');
+                                if(dirEl) dirEl.textContent = "Sinal do GPS fraco ou permissão não concedida.";
+                            },
+                            { enableHighAccuracy: true, timeout: 6000, maximumAge: 0 }
+                        );
+                    }
+
                 }, 300);
             } else {
                 locationCard.classList.add('hidden');
             }
 
+            // 4. QUIZ DE CONHECIMENTOS (Último na tela)
             if (currentQuizData.length > 0) {
                 studentFormSection.classList.remove('hidden');
                 currentQuizData.forEach((item, index) => {
