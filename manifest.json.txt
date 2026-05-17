@@ -1,0 +1,22 @@
+{
+  "name": "Plantas do Aderson: conhecer para cuidar",
+  "short_name": "Plantas Aderson",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#ecfdf5",
+  "theme_color": "#16a34a",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "https://placehold.co/192x192/16a34a/ffffff.png?text=AB",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://placehold.co/512x512/16a34a/ffffff.png?text=AB",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
