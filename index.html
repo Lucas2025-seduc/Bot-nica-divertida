@@ -207,13 +207,25 @@
                     </div>
                 </div>
 
-                <!-- CARD DE GEOLOCALIZAÇÃO DETALHADA DA PLANTA -->
+                <!-- CARD DE GEOLOCALIZAÇÃO DETALHADA COM RADAR INTEGADO -->
                 <div id="plant-location-card" class="w-full mt-6 bg-green-50 p-4 rounded-2xl border border-green-200 hidden">
                     <h4 class="font-bold text-green-800 text-sm sm:text-base mb-2 flex items-center">
                         <i class="ph-bold ph-map-pin-line mr-2 text-emerald-600 text-xl"></i> Localização da Planta
                     </h4>
-                    <div id="plant-detail-map" class="h-48 w-full rounded-xl z-10 border border-emerald-300 shadow-sm"></div>
-                    <p class="text-[10px] text-gray-500 mt-1.5 italic text-center">Coordenadas no mapa: <span id="detail-coords-text"></span></p>
+                    <div id="plant-detail-map" class="h-48 w-full rounded-xl z-10 border border-emerald-300 shadow-sm mb-3"></div>
+                    
+                    <!-- Radar dinâmico de proximidade lúdico -->
+                    <div id="radar-panel" class="bg-white p-3 rounded-xl border border-emerald-100 flex flex-col items-center justify-center text-center">
+                        <div class="flex items-center space-x-2 mb-1">
+                            <i class="ph-fill ph-radar text-2xl text-emerald-600 animate-pulse"></i>
+                            <span class="font-bold text-xs text-gray-500 uppercase tracking-wider">Radar de Busca (GPS)</span>
+                        </div>
+                        <div id="radar-distance" class="text-2xl font-extrabold text-green-800">Calculando distância...</div>
+                        <div id="radar-direction" class="text-sm font-bold text-emerald-600 mt-0.5">Mova-se para ativar o sensor de proximidade</div>
+                        <p class="text-[9px] text-gray-400 mt-2 max-w-[280px]">Dica: O sensor funciona melhor em áreas abertas do campus. A precisão do GPS do celular varia entre 3 a 10 metros.</p>
+                    </div>
+
+                    <p class="text-[10px] text-gray-500 mt-1.5 italic text-center">Coordenadas da planta: <span id="detail-coords-text"></span></p>
                 </div>
 
                 <div id="student-form-section" class="w-full mt-6 pt-6 border-t-2 border-dashed border-green-200">
@@ -460,11 +472,11 @@
                     <div class="flex flex-col sm:flex-row gap-3">
                         <div class="w-full sm:w-1/2">
                             <div class="text-xs text-green-600 font-bold mb-1">Data Inicial</div>
-                            <input type="date" id="plan-start-date" required class="w-full p-3 rounded-xl border-2 border-green-100 bg-green-50 focus:border-green-500 text-sm">
+                            <input type="date" id="plan-start-date" required class="w-full p-3 rounded-xl border-2 border-green-100 bg-green-50/50 focus:border-green-500 text-sm">
                         </div>
                         <div class="w-full sm:w-1/2">
                             <div class="text-xs text-green-600 font-bold mb-1">Data Final</div>
-                            <input type="date" id="plan-end-date" required class="w-full p-3 rounded-xl border-2 border-green-100 bg-green-50 focus:border-green-500 text-sm">
+                            <input type="date" id="plan-end-date" required class="w-full p-3 rounded-xl border-2 border-green-100 bg-green-50/50 focus:border-green-500 text-sm">
                         </div>
                     </div>
                 </div>
@@ -620,6 +632,27 @@
         let globalLeafletMap = null;
         let globalMarkersLayer = null;
         
+        let userWatchId = null;       // ID de monitoramento contínuo do GPS do aluno
+        let lastDistance = null;      // Para determinar se está se aproximando ou afastando
+        let userMarkerDetail = null;  // Marcador do aluno no mapa individual
+
+        // Função Haversine para calcular distância precisa em metros entre dois pontos de coordenadas geográficas
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371e3; // Raio da Terra em metros
+            const phi1 = lat1 * Math.PI / 180;
+            const phi2 = lat2 * Math.PI / 180;
+            const deltaPhi = (lat2 - lat1) * Math.PI / 180;
+            const deltaLambda = (lon2 - lon1) * Math.PI / 180;
+
+            const a = Math.sin(deltaPhi / 2) * Math.sin(deltaPhi / 2) +
+                      Math.cos(phi1) * Math.cos(phi2) *
+                      Math.sin(deltaLambda / 2) * Math.sin(deltaLambda / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+            return R * c; // Distância em metros
+        }
+        window.calculateDistance = calculateDistance;
+        
         // Função de alteração de abas redesenhada para suportar a nova aba do MAPA
         function switchTab(tab) {
             const scanView = document.getElementById('view-scan');
@@ -645,6 +678,9 @@
             btnMap.className = btnMap.className.replace('tab-active', 'tab-inactive');
             btnCreate.className = btnCreate.className.replace('tab-active', 'tab-inactive');
             
+            // Desliga sensores ativos se sair da aba de escaneamento
+            stopGPSTracking();
+
             if (tab === 'scan') {
                 scanView.classList.replace('hidden', 'flex');
                 btnScan.className = btnScan.className.replace('tab-inactive', 'tab-active');
@@ -662,6 +698,15 @@
             }
         }
         window.switchTab = switchTab;
+
+        function stopGPSTracking() {
+            if (userWatchId !== null) {
+                navigator.geolocation.clearWatch(userWatchId);
+                userWatchId = null;
+            }
+            lastDistance = null;
+            userMarkerDetail = null;
+        }
 
         // --- SISTEMA DE GEOLOCALIZAÇÃO NO CADASTRO ---
         window.getGPSCoordinates = function() {
@@ -755,7 +800,7 @@
 
                         const marker = L.marker([lat, lng], { icon: plantIcon })
                             .bindPopup(`
-                                <div class="text-center p-1">
+                                <div class="text-center p-1 font-sans">
                                     <h4 class="font-extrabold text-green-800 text-sm mb-0.5">${p.nome}</h4>
                                     <p class="text-xs italic text-emerald-600 mb-2">${p.cientifico}</p>
                                     <button onclick="window.loadStudentViewFromMap('${p.cientifico}')" class="bg-emerald-600 text-white font-bold text-[10px] py-1 px-3 rounded-full hover:bg-emerald-700 transition">Ver Detalhes</button>
@@ -1467,7 +1512,7 @@
         let currentQuizData = []; 
         document.getElementById('student-date').valueAsDate = new Date();
 
-        // Renderização detalhada da planta com mapa integrado
+        // Renderização detalhada da planta com mapa integrado e sensor radar de proximidade ativo
         function loadStudentView(plantData) {
             document.getElementById('plant-title').textContent = plantData.nome; 
             document.getElementById('plant-scientific').textContent = plantData.cientifico;
@@ -1482,7 +1527,10 @@
             const studentFormSection = document.getElementById('student-form-section');
             quizContainer.innerHTML = ''; currentQuizData = plantData.quiz || [];
 
-            // Controle do Mapa Individual da Planta
+            // Desliga qualquer GPS anterior ativo para calibrar o novo
+            stopGPSTracking();
+
+            // Controle do Mapa Individual da Planta e do Radar GPS em Tempo Real
             const locationCard = document.getElementById('plant-location-card');
             if (plantData.latitude && plantData.longitude) {
                 const lat = parseFloat(plantData.latitude);
@@ -1522,6 +1570,73 @@
                         window.detailMarker.setLatLng([lat, lng]);
                     }
                     window.detailLeafletMap.invalidateSize();
+
+                    // --- ATIVAÇÃO DO MONITORAMENTO GPS (Radar Quente/Frio) ---
+                    if (navigator.geolocation) {
+                        userWatchId = navigator.geolocation.watchPosition(
+                            (position) => {
+                                const userLat = position.coords.latitude;
+                                const userLng = position.coords.longitude;
+                                
+                                // 1. Calcula a distância atual até o alvo
+                                const distance = calculateDistance(userLat, userLng, lat, lng);
+                                
+                                // 2. Atualiza a tela com o valor em metros
+                                const distEl = document.getElementById('radar-distance');
+                                const dirEl = document.getElementById('radar-direction');
+                                
+                                if(distEl) {
+                                    distEl.textContent = `${distance.toFixed(1)} metros`;
+                                }
+
+                                // 3. Avalia tendência de aproximação (Quente/Frio)
+                                if(dirEl) {
+                                    if(lastDistance !== null) {
+                                        const diff = distance - lastDistance;
+                                        // Tolerância de 0.6m para evitar ruídos normais de flutuação de GPS estático
+                                        if (Math.abs(diff) > 0.6) {
+                                            if (diff < 0) {
+                                                dirEl.innerHTML = '<span class="text-orange-600 flex items-center justify-center font-extrabold"><i class="ph-fill ph-fire mr-1 text-xl animate-bounce"></i> Quente! Você está se aproximando!</span>';
+                                            } else {
+                                                dirEl.innerHTML = '<span class="text-blue-600 flex items-center justify-center font-extrabold"><i class="ph-fill ph-snowflake mr-1 text-xl"></i> Esfriou... Você está se afastando.</span>';
+                                            }
+                                        }
+                                    } else {
+                                        dirEl.textContent = "Dica: Dê alguns passos para calibrar o sensor de direção!";
+                                    }
+                                }
+
+                                lastDistance = distance;
+
+                                // 4. Adiciona ou move a bolinha azul (aluno) no mini-mapa
+                                const userIcon = L.icon({
+                                    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
+                                    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+                                    iconSize: [25, 41],
+                                    iconAnchor: [12, 41],
+                                    shadowSize: [41, 41]
+                                });
+
+                                if (!userMarkerDetail) {
+                                    userMarkerDetail = L.marker([userLat, userLng], { icon: userIcon }).addTo(window.detailLeafletMap)
+                                        .bindPopup("Sua Localização Atual");
+                                } else {
+                                    userMarkerDetail.setLatLng([userLat, userLng]);
+                                }
+
+                                // Ajusta automaticamente o zoom para mostrar o aluno e a planta ao mesmo tempo
+                                const bounds = L.latLngBounds([[userLat, userLng], [lat, lng]]);
+                                window.detailLeafletMap.fitBounds(bounds, { padding: [30, 30] });
+                            },
+                            (error) => {
+                                console.warn("Erro no watch GPS:", error);
+                                const dirEl = document.getElementById('radar-direction');
+                                if(dirEl) dirEl.textContent = "Sinal do GPS fraco ou permissão não concedida.";
+                            },
+                            { enableHighAccuracy: true, timeout: 6000, maximumAge: 0 }
+                        );
+                    }
+
                 }, 300);
             } else {
                 locationCard.classList.add('hidden');
@@ -1582,6 +1697,7 @@
         }
 
         function resetScanner() {
+            stopGPSTracking(); // Para o sensor de GPS ao retornar
             document.getElementById('result-section').classList.add('hidden'); document.getElementById('intro-section').classList.remove('hidden'); document.getElementById('scanner-container').classList.remove('hidden');
             document.getElementById('select-scientific').value = ""; isScanningActive = true; window.scrollTo(0,0);
         }
