@@ -7,7 +7,7 @@
     <meta name="theme-color" content="#16a34a">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Plantas do Aderson: conhecer para cuidar">
+    <meta name="apple-mobile-web-app-title" content="Plantas do Aderson">
     
     <!-- Ícone oficial atualizado para dispositivos Apple -->
     <link class="rounded-full" rel="apple-touch-icon" href="icon-192.png">
@@ -15,7 +15,7 @@
     <!-- Link para o Manifesto da PWA -->
     <link rel="manifest" href="manifest.json">
 
-    <title>Plantas do Aderson: conhecer para cuidar</title>
+    <title>Plantas do Aderson</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
@@ -106,14 +106,9 @@
         <i class="ph-fill ph-leaf text-white/20 text-5xl sm:text-6xl absolute -top-2 -left-2 transform -rotate-45"></i>
         <i class="ph-fill ph-clover text-white/20 text-5xl sm:text-6xl absolute -bottom-4 -right-4 transform rotate-12"></i>
         
-        <div class="z-10 mb-3 sm:mb-4 bg-white p-3 rounded-2xl shadow-md flex justify-center items-center w-full max-w-[300px] sm:max-w-[360px] h-32 sm:h-40">
-            <img id="school-logo" src="https://uiktphiubjmqvywbbgnf.supabase.co/storage/v1/object/public/logo/logo%20da%20escola.png" alt="Logo da Escola" class="max-w-full max-h-full object-contain">
-        </div>
-
-        <div class="flex items-center z-10 text-center">
-            <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight drop-shadow-md flex items-center flex-wrap justify-center font-extrabold">
-                <i class="ph-fill ph-potted-plant mr-2 text-green-200 font-extrabold"></i> Plantas do Aderson: conhecer para cuidar
-            </h1>
+        <!-- Contêiner do Logótipo redimensionado (dobro do tamanho) e sem fundo branco -->
+        <div class="z-10 mb-3 sm:mb-4 flex justify-center items-center w-full max-w-[600px] sm:max-w-[720px] h-64 sm:h-80">
+            <img id="school-logo" src="https://uiktphiubjmqvywbbgnf.supabase.co/storage/v1/object/public/logo/logo.png" alt="Logo da Escola" class="max-w-full max-h-full object-contain">
         </div>
     </header>
 
@@ -136,6 +131,7 @@
         <!-- ========================================== -->
         <div id="view-scan" class="w-full flex flex-col items-center fade-in">
             
+            <!-- Tela Inicial do Explorar -->
             <div id="intro-section" class="w-full">
                 
                 <!-- SEÇÃO DESAFIOS (ALUNOS) -->
@@ -494,11 +490,11 @@
                         <div class="space-y-4">
                             <div>
                                 <label class="block text-sm font-bold text-blue-700 mb-1.5 ml-1">Upload do Folheto</label>
-                                <input type="file" id="input-file-info" accept="image/*" class="w-full p-3 rounded-xl border-2 border-blue-200 bg-white text-sm font-semibold">
+                                <input type="file" id="input-file-info" accept="image/*" class="w-full p-3 rounded-xl border-2 border-green-200 bg-white text-sm font-semibold">
                             </div>
                             
                             <div class="flex items-center justify-center my-2 text-blue-700 font-bold text-sm">
-                                <span class="border-t border-blue-200 flex-grow mr-3"></span> OU <span class="border-t border-blue-200 flex-grow ml-3"></span>
+                                <span class="border-t border-green-200 flex-grow mr-3"></span> OU <span class="border-t border-green-200 flex-grow ml-3"></span>
                             </div>
 
                             <div>
@@ -1038,81 +1034,6 @@
 
             document.getElementById('scanner-container').classList.add('hidden'); document.getElementById('intro-section').classList.add('hidden'); document.getElementById('result-section').classList.remove('hidden'); document.getElementById('result-section').scrollIntoView();
         }
-
-        window.evaluateQuiz = async function() { 
-            const studentName = document.getElementById('student-name').value;
-            const studentClass = document.getElementById('student-class').value;
-            const studentDate = document.getElementById('student-date').value;
-            const plantSciId = document.getElementById('plant-scientific').textContent;
-            
-            if(!studentName || !studentClass || !studentDate) { showToast("Preencha seus dados antes de finalizar o quiz!", true); return; }
-
-            const btn = document.getElementById('btn-submit-quiz');
-            btn.innerHTML = '<i class="ph-bold ph-spinner animate-spin mr-2 text-xl"></i> Processando...'; btn.disabled = true;
-
-            let correctCount = 0;
-            currentQuizData.forEach((item, index) => {
-                const sel = document.querySelector(`input[name="question_${index}"]:checked`);
-                const block = document.getElementById(`q-block-${index}`);
-                if (sel) {
-                    if (parseInt(sel.value) === item.ans) { correctCount++; block.classList.add('border-green-400', 'bg-green-50'); } 
-                    else { block.classList.add('border-red-400', 'bg-red-50'); block.innerHTML += `<p class="mt-2 text-sm text-red-600 font-bold">Correta: ${['A', 'B', 'C', 'D', 'E'][item.ans]}</p>`; }
-                } else block.classList.add('border-yellow-400', 'bg-yellow-50');
-                block.querySelectorAll('input').forEach(i => i.disabled = true);
-            });
-
-            const rDiv = document.getElementById('quiz-result'); rDiv.classList.remove('hidden');
-            rDiv.className = `mt-6 p-5 rounded-2xl text-center font-extrabold text-lg shadow-inner ${correctCount >= currentQuizData.length/2 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`;
-            rDiv.innerHTML = `${studentName}, você acertou ${correctCount} de ${currentQuizData.length}!`;
-            btn.classList.add('hidden');
-
-            try {
-                if(window.supabase) {
-                    const plantName = document.getElementById('plant-title').textContent;
-                    await window.supabase.from('quiz_results').insert([{
-                        student_name: studentName, student_class: studentClass, date: studentDate,
-                        score: correctCount, total: currentQuizData.length, plant_name: plantName
-                    }]);
-                }
-
-                const chalStateStr = localStorage.getItem('botanica_active_challenge');
-                if (chalStateStr) {
-                    let state = JSON.parse(chalStateStr);
-                    
-                    if (state.plants_to_find.includes(plantSciId)) {
-                        state.score += correctCount;
-                        state.total_questions += currentQuizData.length;
-                        state.plants_to_find = state.plants_to_find.filter(p => p !== plantSciId);
-                        
-                        if (state.plants_to_find.length > 0) {
-                            localStorage.setItem('botanica_active_challenge', JSON.stringify(state));
-                            window.checkActiveChallengeState();
-                            showToast("Boa! Faltam " + state.plants_to_find.length + " plantas. Vão à próxima!", false);
-                        } else {
-                            const endTime = new Date();
-                            const startTime = new Date(state.start_time);
-                            const durationSeconds = Math.floor((endTime - startTime) / 1000);
-                            
-                            localStorage.removeItem('botanica_active_challenge');
-                            window.checkActiveChallengeState();
-                            
-                            if (window.supabase) {
-                                await window.supabase.from('challenge_teams').insert([{
-                                    challenge_id: state.challenge_id, group_name: state.group.name, members: state.group.members,
-                                    class_name: state.group.class, score: state.score, total_questions: state.total_questions, duration_seconds: durationSeconds
-                                }]);
-                            }
-
-                            const min = Math.floor(durationSeconds / 60); const sec = durationSeconds % 60;
-                            rDiv.innerHTML += `<br><br><span class="text-amber-600 block text-2xl"><i class="ph-fill ph-trophy"></i> DESAFIO CONCLUÍDO!</span><span class="text-sm font-bold text-gray-700">Tempo de equipa: ${min}m e ${sec}s<br>Nota Global: ${state.score}/${state.total_questions}</span>`;
-                            rDiv.classList.replace('bg-green-100', 'bg-amber-100');
-                            rDiv.classList.replace('text-green-800', 'text-amber-900');
-                        }
-                    }
-                }
-            } catch(e) { console.error("Erro nuvem:", e); }
-        };
-
         window.renderQuizResults = function(results) {
             const list = document.getElementById('admin-quiz-results-list');
             if (!list) return;
@@ -1162,7 +1083,7 @@
                     if (btn && btn.dataset.confirm === "true") {
                         btn.dataset.confirm = "false";
                         btn.innerHTML = btn.dataset.originalHtml;
-                        btn.classList.replace('bg-red-500', 'bg-red-50');
+                        btn.classList.replace('bg-red-5050', 'bg-red-50');
                         btn.classList.replace('text-white', 'text-red-600');
                     }
                 }, 3000);
@@ -1182,7 +1103,7 @@
                 showToast("Erro ao excluir.", true); 
                 btn.innerHTML = btn.dataset.originalHtml;
                 btn.disabled = false;
-                btn.classList.replace('bg-red-500', 'bg-red-50');
+                btn.classList.replace('bg-red-5050', 'bg-red-50');
                 btn.classList.replace('text-white', 'text-red-600');
             }
         };
@@ -1290,7 +1211,7 @@
                 statsList.innerHTML = sortedClasses.map(turma => `
                     <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 font-extrabold px-3 py-1.5 rounded-full text-xs sm:text-sm flex items-center shadow-sm">
                         ${turma} 
-                        <span class="bg-emerald-500 text-white rounded-full w-5 h-5 flex items-center justify-center ml-2 text-xs shadow-inner">${classCounts[turma]}</span>
+                        <span class="bg-emerald-50500 text-white rounded-full w-5 h-5 flex items-center justify-center ml-2 text-xs shadow-inner">${classCounts[turma]}</span>
                     </div>
                 `).join('');
                 statsContainer.classList.remove('hidden');
@@ -1412,12 +1333,12 @@
             const btn = document.getElementById(btnId);
             if (btn.dataset.confirm !== "true") {
                 btn.dataset.confirm = "true"; btn.dataset.originalHtml = btn.innerHTML; btn.innerHTML = '<i class="ph-bold ph-warning mr-1"></i> Confirmar Exclusão?'; btn.classList.replace('bg-red-50', 'bg-red-500'); btn.classList.replace('text-red-600', 'text-white');
-                setTimeout(() => { if (btn && btn.dataset.confirm === "true") { btn.dataset.confirm = "false"; btn.innerHTML = btn.dataset.originalHtml; btn.classList.replace('bg-red-500', 'bg-red-50'); btn.classList.replace('text-white', 'text-red-600'); } }, 3000); return;
+                setTimeout(() => { if (btn && btn.dataset.confirm === "true") { btn.dataset.confirm = "false"; btn.innerHTML = btn.dataset.originalHtml; btn.classList.replace('bg-red-5050', 'bg-red-50'); btn.classList.replace('text-white', 'text-red-600'); } }, 3000); return;
             }
             btn.dataset.confirm = "false"; btn.innerHTML = '<i class="ph-bold ph-spinner animate-spin mr-1"></i> Excluindo...'; btn.disabled = true;
             try {
                 await window.supabase.from('guardians').delete().eq('id', id); window.syncGuardians(); showToast("Excluído!",false);
-            } catch(e) { showToast("Erro.", true); btn.innerHTML = btn.dataset.originalHtml; btn.disabled = false; btn.classList.replace('bg-red-500', 'bg-red-50'); btn.classList.replace('text-white', 'text-red-600'); }
+            } catch(e) { showToast("Erro.", true); btn.innerHTML = btn.dataset.originalHtml; btn.disabled = false; btn.classList.replace('bg-red-5050', 'bg-red-50'); btn.classList.replace('text-white', 'text-red-600'); }
         };
 
         // --- 7. ADMIN - DESAFIOS (CRIAR E PÓDIO) ---
