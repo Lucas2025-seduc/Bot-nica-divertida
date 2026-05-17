@@ -1,15 +1,17 @@
 const CACHE_NAME = 'plantas-aderson-pwa-v1';
 const urlsToCache = [
     './index.html',
-    './manifest.json'
+    './manifest.json',
+    './icon-192.png',
+    './icon-512.png'
 ];
 
-// Evento de instalação (guarda os ficheiros vitais no telemóvel)
+// Evento de instalação (guarda os ficheiros vitais e os novos ícones locais no dispositivo)
 self.addEventListener('install', event => {
     event.waitUntil(
         caches.open(CACHE_NAME)
             .then(cache => {
-                console.log('Cache aberta');
+                console.log('Cache de ficheiros ativos aberta');
                 return cache.addAll(urlsToCache);
             })
     );
@@ -20,13 +22,12 @@ self.addEventListener('fetch', event => {
     event.respondWith(
         caches.match(event.request)
             .then(response => {
-                // Devolve a versão da cache se existir, caso contrário vai buscar à internet
                 return response || fetch(event.request);
             })
     );
 });
 
-// Evento de ativação (limpa caches antigas se a app for atualizada)
+// Evento de ativação (limpa caches antigas se a aplicação for atualizada)
 self.addEventListener('activate', event => {
     const cacheWhitelist = [CACHE_NAME];
     event.waitUntil(
