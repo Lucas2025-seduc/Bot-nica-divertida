@@ -478,6 +478,9 @@
                         <button type="button" onclick="clearForm()" class="w-full sm:w-auto bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-3 px-4 rounded-xl transition flex justify-center items-center text-sm whitespace-nowrap font-bold">
                             <i class="ph-bold ph-eraser mr-2 text-lg"></i> Limpar
                         </button>
+                        <button type="button" id="btn-delete-plant" onclick="deleteSelectedPlant()" class="hidden w-full sm:w-auto bg-red-100 hover:bg-red-200 text-red-700 font-bold py-3 px-4 rounded-xl transition flex justify-center items-center text-sm whitespace-nowrap font-bold">
+                            <i class="ph-bold ph-trash mr-2 text-lg"></i> Excluir
+                        </button>
                     </div>
                 </div>
 
@@ -1073,6 +1076,127 @@
 
             document.getElementById('scanner-container').classList.add('hidden'); document.getElementById('intro-section').classList.add('hidden'); document.getElementById('result-section').classList.remove('hidden'); document.getElementById('result-section').scrollIntoView();
         }
+
+        window.evaluateQuiz = async function() {
+            if (!currentQuizData || currentQuizData.length === 0) return;
+
+            const studentName = document.getElementById('student-name').value.trim();
+            const studentClass = document.getElementById('student-class').value.trim();
+            
+            if (!studentName || !studentClass) {
+                showToast("Por favor, preencha o seu Nome e Turma antes de enviar as respostas!", true);
+                return;
+            }
+
+            let score = 0;
+            let allAnswered = true;
+
+            currentQuizData.forEach((item, index) => {
+                const selectedOption = document.querySelector(`input[name="question_${index}"]:checked`);
+                if (selectedOption) {
+                    if (parseInt(selectedOption.value) === item.ans) {
+                        score++;
+                    }
+                } else {
+                    allAnswered = false;
+                }
+            });
+
+            if (!allAnswered) {
+                showToast("Ainda há perguntas sem resposta. Verifique, por favor!", true);
+                return;
+            }
+
+            const total = currentQuizData.length;
+            const resultDiv = document.getElementById('quiz-result');
+            const isApproved = score >= (total / 2);
+            
+            const btnSubmit = document.getElementById('btn-submit-quiz');
+            btnSubmit.innerHTML = '<i class="ph-bold ph-spinner animate-spin mr-2 text-xl"></i> A enviar...';
+            btnSubmit.disabled = true;
+
+            // Mostrar resultado no ecrã
+            resultDiv.innerHTML = `
+                <div class="mb-2">A sua pontuação: <span class="text-3xl">${score}/${total}</span></div>
+                <div class="text-sm ${isApproved ? 'text-emerald-700' : 'text-red-700'}">
+                    ${isApproved ? 'Excelente trabalho! Conhece bem esta espécie.' : 'Continue a explorar e aprender sobre a nossa flora!'}
+                </div>
+            `;
+            resultDiv.className = `mt-6 p-4 sm:p-5 rounded-2xl text-center font-extrabold text-lg sm:text-xl shadow-inner break-words ${isApproved ? 'bg-emerald-100 border-2 border-emerald-300 text-emerald-800' : 'bg-red-100 border-2 border-red-300 text-red-800'}`;
+            resultDiv.classList.remove('hidden');
+            
+            btnSubmit.classList.add('hidden');
+
+            const plantTitle = document.getElementById('plant-title').textContent;
+            const plantScientific = document.getElementById('plant-scientific').textContent;
+
+            // 1. Gravar resultado individual no Supabase
+            try {
+                await window.supabase.from('quiz_results').insert([{
+                    student_name: studentName,
+                    student_class: studentClass,
+                    plant_name: plantTitle,
+                    score: score,
+                    total: total
+                }]);
+            } catch (e) {
+                console.error("Erro ao gravar quiz individual", e);
+            }
+
+            // 2. Lógica para os Desafios de Exploração (Equipas)
+            const chalStateStr = localStorage.getItem('botanica_active_challenge');
+            if (chalStateStr) {
+                const state = JSON.parse(chalStateStr);
+                
+                // Verificar se a planta estava na lista de procura do grupo
+                if (state.plants_to_find.includes(plantScientific)) {
+                    state.plants_to_find = state.plants_to_find.filter(p => p !== plantScientific);
+                    state.score += score;
+                    state.total_questions += total;
+                    
+                    localStorage.setItem('botanica_active_challenge', JSON.stringify(state));
+                    window.checkActiveChallengeState();
+                    
+                    if (state.plants_to_find.length === 0) {
+                        // Desafio Totalmente Concluído!
+                        const endTime = new Date();
+                        const startTime = new Date(state.start_time);
+                        const durationSeconds = Math.floor((endTime - startTime) / 1000);
+                        
+                        showToast("🎉 TODAS AS PLANTAS ENCONTRADAS! A finalizar missão...", false);
+                        
+                        try {
+                            await window.supabase.from('challenge_teams').insert([{
+                                challenge_id: state.challenge_id,
+                                group_name: state.group.name,
+                                class_name: state.group.class,
+                                members: state.group.members,
+                                score: state.score,
+                                total_questions: state.total_questions,
+                                duration_seconds: durationSeconds
+                            }]);
+                            localStorage.removeItem('botanica_active_challenge');
+                            window.checkActiveChallengeState();
+                            
+                            setTimeout(() => {
+                                alert(`Missão Cumprida, Equipa ${state.group.name}!\nTempo: ${Math.floor(durationSeconds/60)}m ${durationSeconds%60}s\nPontuação Total: ${state.score}/${state.total_questions}`);
+                                window.resetScanner();
+                            }, 1000);
+                            
+                        } catch(e) {
+                            showToast("Erro ao gravar resultados finais do desafio.", true);
+                        }
+                    } else {
+                        showToast(`Planta validada! Faltam ${state.plants_to_find.length} na missão!`, false);
+                    }
+                } else {
+                    showToast("Esta planta não faz parte da vossa missão atual, mas o quiz foi registado!", false);
+                }
+            } else {
+                showToast("Quiz finalizado com sucesso!", false);
+            }
+        };
+
         window.renderQuizResults = function(results) {
             const list = document.getElementById('admin-quiz-results-list');
             if (!list) return;
@@ -1587,10 +1711,24 @@
             if(document.getElementById('select-edit-plant')) document.getElementById('select-edit-plant').innerHTML = '<option value="">-- Nova Planta --</option>' + html;
         };
 
-        window.clearForm = function() { document.getElementById('plant-form').reset(); };
+        window.clearForm = function() { 
+            document.getElementById('plant-form').reset(); 
+            document.getElementById('select-edit-plant').value = "";
+            const btnDelete = document.getElementById('btn-delete-plant');
+            if (btnDelete) btnDelete.classList.add('hidden');
+        };
 
         window.loadPlantForEditing = function() {
-            const id = document.getElementById('select-edit-plant').value; if(!id) { window.clearForm(); return; }
+            const id = document.getElementById('select-edit-plant').value; 
+            const btnDelete = document.getElementById('btn-delete-plant');
+
+            if(!id) { 
+                window.clearForm(); 
+                return; 
+            }
+            
+            if (btnDelete) btnDelete.classList.remove('hidden');
+
             const p = JSON.parse(localStorage.getItem('botanica_plants'))[id];
             document.getElementById('input-name').value = p.nome; document.getElementById('input-scientific').value = p.cientifico;
             document.getElementById('input-url').value = p.url || ''; document.getElementById('input-url-info').value = p.info_url || '';
@@ -1615,6 +1753,62 @@
             qrCodeDisplay.innerHTML = "";
             new QRCode(qrCodeDisplay, { text: finalUrl, width: 200, height: 200, colorDark : "#166534", colorLight : "#ffffff" });
             document.getElementById('generated-qr-section').classList.remove('hidden');
+        };
+
+        window.deleteSelectedPlant = async function() {
+            const id = document.getElementById('select-edit-plant').value;
+            if (!id) return;
+            
+            const btn = document.getElementById('btn-delete-plant');
+
+            if (btn.dataset.confirm !== "true") {
+                btn.dataset.confirm = "true";
+                btn.dataset.originalHtml = btn.innerHTML;
+                btn.innerHTML = '<i class="ph-bold ph-warning mr-2 text-lg"></i> Confirmar?';
+                btn.classList.replace('bg-red-100', 'bg-red-600');
+                btn.classList.replace('text-red-700', 'text-white');
+                btn.classList.replace('hover:bg-red-200', 'hover:bg-red-700');
+                
+                setTimeout(() => {
+                    if (btn && btn.dataset.confirm === "true") {
+                        btn.dataset.confirm = "false";
+                        btn.innerHTML = btn.dataset.originalHtml;
+                        btn.classList.replace('bg-red-600', 'bg-red-100');
+                        btn.classList.replace('text-white', 'text-red-700');
+                        btn.classList.replace('hover:bg-red-700', 'hover:bg-red-200');
+                    }
+                }, 3000);
+                return;
+            }
+
+            btn.dataset.confirm = "false";
+            btn.innerHTML = '<i class="ph-bold ph-spinner animate-spin mr-2 text-lg"></i> A excluir...';
+            btn.disabled = true;
+
+            try {
+                const { error } = await window.supabase.from('plants').delete().eq('id', id);
+                if (error) throw error;
+                
+                showToast("Planta excluída com sucesso!", false);
+                window.clearForm();
+                
+                // Recarregar dados das plantas para atualizar as listas e mapas
+                const { data: plants } = await window.supabase.from('plants').select('*');
+                if (plants) {
+                    let cloudPlants = {};
+                    plants.forEach(p => { cloudPlants[p.id] = p; });
+                    localStorage.setItem('botanica_plants', JSON.stringify(cloudPlants));
+                    window.updateDropdown();
+                    if (typeof window.populateChallengePlants === 'function') window.populateChallengePlants(plants);
+                }
+            } catch (e) {
+                showToast("Erro ao excluir a planta.", true);
+                btn.innerHTML = btn.dataset.originalHtml;
+                btn.disabled = false;
+                btn.classList.replace('bg-red-600', 'bg-red-100');
+                btn.classList.replace('text-white', 'text-red-700');
+                btn.classList.replace('hover:bg-red-700', 'hover:bg-red-200');
+            }
         };
 
         window.generateQRCode = async function(e) {
