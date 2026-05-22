@@ -1532,7 +1532,7 @@
                     
                     <div class="flex flex-wrap gap-2 border-t pt-3 mt-2 items-center">
                         ${g.status === 'pendente' ? 
-                            `<button id="btn-approve-${g.id}" type="button" onclick="approveGuardian('${g.id}', 'btn-approve-${g.id}')" class="bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold py-1.5 px-3 rounded flex items-center transition-colors"><i class="ph-bold ph-check mr-1"></i> Aprovar Plano</button>` 
+                            `<button id="btn-approve-${g.id}" type="button" onclick="approveGuardian('${g.id}', 'btn-approve-${g.id}')" class="bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold py-1.5 px-3 rounded flex items-center transition-colors"><i class="ph-bold ph-check mr-1"></i> Submeter Plano</button>` 
                         : ''}
                         
                         ${g.status === 'relatorio_enviado' ? 
@@ -1655,7 +1655,7 @@
                     if (btn && btn.dataset.confirm === "true") {
                         btn.dataset.confirm = "false";
                         btn.innerHTML = btn.dataset.originalHtml;
-                        btn.classList.replace('bg-red-500', 'bg-red-100');
+                        btn.classList.replace('bg-red-50500', 'bg-red-100');
                         btn.classList.replace('text-white', 'text-red-700');
                         btn.classList.replace('hover:bg-red-600', 'hover:bg-red-200');
                     }
@@ -1716,6 +1716,132 @@
             } catch(e) { list.innerHTML = '<p class="text-center text-red-500">Erro ao carregar ranking.</p>'; }
         };
 
+        // --- 7.5. INTERATIVIDADE DO FORMULÁRIO DE AVALIAÇÃO DO APLICATIVO ---
+        window.setAppRating = function(rating) {
+            document.getElementById('review-rating-value').value = rating;
+            const buttons = document.querySelectorAll('.star-btn');
+            buttons.forEach(btn => {
+                const val = parseInt(btn.getAttribute('data-val'));
+                if (val <= rating) {
+                    btn.classList.replace('text-gray-300', 'text-amber-500');
+                } else {
+                    btn.classList.replace('text-amber-500', 'text-gray-300');
+                }
+            });
+        };
+
+        window.submitAppReview = async function(e) {
+            e.preventDefault();
+            const rating = parseInt(document.getElementById('review-rating-value').value);
+            if (!rating || rating < 1 || rating > 5) {
+                showToast("Por favor, selecione pelo menos uma estrela!", true);
+                return;
+            }
+
+            const btn = document.getElementById('btn-submit-review');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="ph-bold ph-spinner animate-spin text-xl mr-2"></i> Enviando...';
+            btn.disabled = true;
+
+            const reviewData = {
+                student_name: document.getElementById('review-student-name').value.trim(),
+                student_class: document.getElementById('review-student-class').value,
+                rating: rating,
+                compliments: document.getElementById('review-compliments').value.trim() || null,
+                improvements: document.getElementById('review-improvements').value.trim() || null
+            };
+
+            try {
+                const { error } = await window.supabase.from('app_reviews').insert([reviewData]);
+                if (error) throw error;
+
+                document.getElementById('app-review-form').classList.add('hidden');
+                document.getElementById('review-success-msg').classList.remove('hidden');
+                showToast("Avaliação enviada com sucesso!", false);
+                if (window.syncAppReviews) window.syncAppReviews();
+            } catch(err) {
+                showToast("Erro ao conectar com o banco de dados.", true);
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        };
+
+        window.renderAppReviews = function(reviews) {
+            const list = document.getElementById('admin-reviews-list');
+            if(!list) return;
+
+            if (reviews.length === 0) {
+                list.innerHTML = '<div class="text-center text-amber-600/70 italic py-4 bg-amber-50 rounded-xl font-semibold">Nenhuma avaliação recebida ainda.</div>';
+                return;
+            }
+
+            list.innerHTML = reviews.map(r => {
+                const stars = '⭐'.repeat(r.rating);
+                const dateObj = new Date(r.created_at);
+                const dateString = dateObj.toLocaleDateString('pt-BR') + ' às ' + dateObj.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
+                
+                return `
+                <div class="bg-white border-2 border-amber-100 p-4 rounded-2xl shadow-sm flex flex-col justify-between mb-2 transition-all hover:shadow-md">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h4 class="font-extrabold text-amber-900 text-sm sm:text-base">${r.student_name} <span class="text-xs bg-amber-100 text-amber-800 px-2.5 py-0.5 rounded ml-1 font-bold">${r.student_class}</span></h4>
+                            <div class="text-sm mt-1 mb-2">${stars}</div>
+                        </div>
+                        <button id="del-review-${r.id}" onclick="deleteAppReview('${r.id}', 'del-review-${r.id}')" class="bg-red-50 hover:bg-red-100 text-red-600 px-2 py-1 rounded-lg text-[10px] font-bold transition-colors border border-red-100"><i class="ph-bold ph-trash"></i> Excluir</button>
+                    </div>
+                    
+                    <div class="space-y-2 mt-1 border-t border-gray-100 pt-2 text-sm text-gray-700">
+                        ${r.compliments ? `<div><strong class="text-emerald-700">👍 Elogios:</strong> <span class="font-medium">${r.compliments}</span></div>` : ''}
+                        ${r.improvements ? `<div><strong class="text-orange-600">💡 Sugestões:</strong> <span class="font-medium">${r.improvements}</span></div>` : ''}
+                    </div>
+                    
+                    <div class="text-[10px] text-gray-400 mt-3 font-semibold flex items-center border-t border-gray-100 pt-2">
+                        <i class="ph-bold ph-clock mr-1"></i> Recebido em: ${dateString}
+                    </div>
+                </div>
+                `;
+            }).join('');
+        };
+
+        window.deleteAppReview = async function(id, btnId) {
+            const btn = document.getElementById(btnId);
+            
+            if (btn.dataset.confirm !== "true") {
+                btn.dataset.confirm = "true";
+                btn.dataset.originalHtml = btn.innerHTML;
+                btn.innerHTML = 'Confirmar?';
+                btn.classList.replace('bg-red-50', 'bg-red-500');
+                btn.classList.replace('text-red-600', 'text-white');
+                
+                setTimeout(() => {
+                    if (btn && btn.dataset.confirm === "true") {
+                        btn.dataset.confirm = "false";
+                        btn.innerHTML = btn.dataset.originalHtml;
+                        btn.classList.replace('bg-red-5050', 'bg-red-50');
+                        btn.classList.replace('text-white', 'text-red-600');
+                    }
+                }, 3000);
+                return;
+            }
+
+            btn.dataset.confirm = "false";
+            btn.innerHTML = '...';
+            btn.disabled = true;
+
+            try {
+                const { error } = await window.supabase.from('app_reviews').delete().eq('id', id);
+                if (error) throw error;
+                showToast("Avaliação excluída!", false);
+                window.syncAppReviews(); 
+            } catch(e) { 
+                showToast("Erro ao excluir.", true); 
+                btn.innerHTML = btn.dataset.originalHtml;
+                btn.disabled = false;
+                btn.classList.replace('bg-red-5050', 'bg-red-50');
+                btn.classList.replace('text-white', 'text-red-600');
+            }
+        };
+
         // --- 8. ADMIN - GERENCIAMENTO DE PLANTAS E AUTH ---
         let isLoggedIn = false;
         
@@ -1726,6 +1852,7 @@
             window.buildQuestionsForm(); 
             if(window.syncGuardians) window.syncGuardians(); 
             if(window.syncQuizResults) window.syncQuizResults(); 
+            if(window.syncAppReviews) window.syncAppReviews(); 
         };
 
         window.handleLogin = async function(e) { 
@@ -1757,27 +1884,144 @@
 
         window.handleLogout = async function() { await window.supabase.auth.signOut(); window.location.reload(); };
 
+        // --- SISTEMA INTELIGENTE DE INTEGRAÇÃO COM IA (GEMINI API) ---
+        const apiKey = ""; // Será injetado dinamicamente no preview
+
+        async function callGeminiAPI(prompt, systemInstruction = "") {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+            const payload = {
+                contents: [{ parts: [{ text: prompt }] }]
+            };
+            if (systemInstruction) {
+                payload.systemInstruction = { parts: [{ text: systemInstruction }] };
+            }
+
+            let delay = 1000;
+            for (let i = 0; i < 5; i++) {
+                try {
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    if (response.ok) {
+                        const result = await response.json();
+                        return result.candidates?.[0]?.content?.parts?.[0]?.text || "";
+                    }
+                } catch (e) {
+                    // Falha silenciosa para tentativas
+                }
+                await new Promise(resolve => setTimeout(resolve, delay));
+                delay *= 2; // Backoff exponencial
+            }
+            throw new Error("Não foi possível conectar ao serviço de inteligência artificial. Verifique sua conexão.");
+        }
+
+        window.improveQuestionTextWithAI = async function(index) {
+            const textarea = document.getElementById(`q${index}-text`);
+            const text = textarea.value.trim();
+            if (!text) {
+                showToast("Por favor, escreva um rascunho de enunciado para que a IA possa corrigi-lo e aprimorá-lo!", true);
+                return;
+            }
+
+            const btn = document.getElementById(`btn-ai-text-${index}`);
+            const originalHtml = btn.innerHTML;
+            btn.innerHTML = '<i class="ph-bold ph-spinner animate-spin text-sm"></i> Otimizando...';
+            btn.disabled = true;
+
+            try {
+                const systemPrompt = "Você é um professor doutor especialista em botânica, taxonomia vegetal e biologia de nível médio. Sua missão é aprimorar enunciados de questões acadêmicas de múltipla escolha.";
+                const userQuery = `Melhore e corrija a gramática e o rigor científico do seguinte enunciado de questão botânica para torná-lo claro, formal e cientificamente preciso para o ensino médio. Retorne APENAS o enunciado reescrito e otimizado, sem preâmbulos, aspas desnecessárias nas bordas, explicações ou notas de rodapé. Enunciado original: "${text}"`;
+
+                const responseText = await callGeminiAPI(userQuery, systemPrompt);
+                
+                if (responseText) {
+                    textarea.value = responseText.replace(/^["']|["']$/g, '').trim();
+                    showToast("Texto do enunciado corrigido com sucesso pela IA!", false);
+                } else {
+                    showToast("A IA retornou uma resposta sem conteúdo.", true);
+                }
+            } catch (err) {
+                showToast(err.message, true);
+            } finally {
+                btn.innerHTML = originalHtml;
+                btn.disabled = false;
+            }
+        };
+
+        window.generateOptionsWithAI = async function(index) {
+            const textarea = document.getElementById(`q${index}-text`);
+            const qText = textarea.value.trim();
+            if (!qText) {
+                showToast("Por favor, preencha o enunciado antes de gerar as alternativas!", true);
+                return;
+            }
+
+            const popularName = document.getElementById('input-name').value.trim() || 'Planta Regional';
+            const scientificName = document.getElementById('input-scientific').value.trim() || 'Espécie botânica';
+
+            const btn = document.getElementById(`btn-ai-opts-${index}`);
+            const originalHtml = btn.innerHTML;
+            btn.innerHTML = '<i class="ph-bold ph-spinner animate-spin text-sm"></i> Criando Opções...';
+            btn.disabled = true;
+
+            try {
+                const systemPrompt = "Você é um gerador automatizado de questões científicas para exames oficiais de biologia. Suas saídas devem ser sempre no formato JSON puro, sem usar blocos de formatação markdown ou delimitadores de código de três crases. O JSON precisa seguir estritamente o formato: {\"options\": [\"Alternativa A\", \"Alternativa B\", \"Alternativa C\", \"Alternativa D\", \"Alternativa E\"], \"correctIndex\": 0}";
+                const userQuery = `Com base na espécie botânica "${popularName}" (${scientificName}) e no seguinte enunciado de questão: "${qText}". Crie 5 alternativas (A, B, C, D, E) coerentes e cientificamente válidas, onde exatamente UMA é a resposta correta para o enunciado e as outras 4 são distratores incorretos, porém inteligentes e plausíveis. Retorne o objeto JSON contendo as chaves "options" (lista de strings) e "correctIndex" (número de 0 a 4 correspondente à opção correta).`;
+
+                const responseText = await callGeminiAPI(userQuery, systemPrompt);
+                const cleanJson = responseText.replace(/```json/gi, '').replace(/```/g, '').trim();
+                const data = JSON.parse(cleanJson);
+
+                if (data && Array.isArray(data.options) && data.options.length === 5) {
+                    for (let oIdx = 0; oIdx < 5; oIdx++) {
+                        document.getElementById(`q${index}-o${oIdx}`).value = data.options[oIdx];
+                    }
+                    document.getElementById(`q${index}-ans`).value = data.correctIndex.toString();
+                    showToast("Alternativas de A a E estruturadas com IA!", false);
+                } else {
+                    throw new Error("Erro de formatação da IA.");
+                }
+            } catch (err) {
+                showToast("Erro ao processar as opções da IA. Tente especificar melhor o enunciado da questão.", true);
+                console.error(err);
+            } finally {
+                btn.innerHTML = originalHtml;
+                btn.disabled = false;
+            }
+        };
+
         window.buildQuestionsForm = function() {
             let html = ''; for(let i=1; i<=5; i++) html += `
-                <div class="bg-white border-2 border-emerald-100 p-4 sm:p-5 rounded-2xl shadow-sm">
-                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-3">
-                        <h4 class="font-extrabold text-emerald-700 flex items-center text-base sm:text-lg">
-                            <span class="bg-emerald-100 text-emerald-800 w-8 h-8 rounded-full flex items-center justify-center mr-2 text-sm sm:text-base">${i}</span> 
-                            Questão <span class="text-xs font-normal text-emerald-600 ml-2">(Opcional)</span>
+                <div class="bg-white border-2 border-teal-100 p-4 sm:p-5 rounded-2xl shadow-sm space-y-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b pb-2 mb-2 gap-3">
+                        <h4 class="font-extrabold text-teal-700 flex items-center text-base sm:text-lg">
+                            <span class="bg-teal-100 text-teal-800 w-8 h-8 rounded-full flex items-center justify-center mr-2 text-sm sm:text-base">${i}</span> 
+                            Questão <span class="text-xs font-normal text-teal-600 ml-2">(Opcional)</span>
                         </h4>
+                        <!-- Painel Inteligente de Assistência com IA -->
+                        <div class="flex flex-wrap gap-2">
+                            <button type="button" onclick="improveQuestionTextWithAI(${i})" id="btn-ai-text-${i}" class="bg-teal-50 hover:bg-teal-100 text-teal-700 border border-teal-200 px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1 transition shadow-sm">
+                                <i class="ph-bold ph-sparkles text-sm text-teal-600"></i> Corrigir Enunciado (IA)
+                            </button>
+                            <button type="button" onclick="generateOptionsWithAI(${i})" id="btn-ai-opts-${i}" class="bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1 transition shadow-sm">
+                                <i class="ph-bold ph-magic-wand text-sm text-amber-600"></i> Autocompletar Opções (IA)
+                            </button>
+                        </div>
                     </div>
                     <div class="space-y-3">
-                        <textarea id="q${i}-text" rows="2" placeholder="Digite a pergunta..." class="w-full p-3 rounded-xl border border-gray-300 bg-gray-50 focus:border-emerald-500 font-medium text-sm sm:text-base resize-none"></textarea>
+                        <textarea id="q${i}-text" rows="2" placeholder="Digite ou rascunhe a pergunta..." class="w-full p-3 rounded-xl border border-gray-300 bg-gray-50 focus:border-teal-500 font-medium text-sm sm:text-base resize-none"></textarea>
                         <div class="flex flex-col gap-2 sm:gap-3 pl-1 sm:pl-3">
-                            <div class="flex items-center"><span class="font-bold text-gray-400 w-6 shrink-0">A)</span> <input type="text" id="q${i}-o0" class="w-full p-2 rounded-lg border border-gray-200"></div>
-                            <div class="flex items-center"><span class="font-bold text-gray-400 w-6 shrink-0">B)</span> <input type="text" id="q${i}-o1" class="w-full p-2 rounded-lg border border-gray-200"></div>
-                            <div class="flex items-center"><span class="font-bold text-gray-400 w-6 shrink-0">C)</span> <input type="text" id="q${i}-o2" class="w-full p-2 rounded-lg border border-gray-200"></div>
-                            <div class="flex items-center"><span class="font-bold text-gray-400 w-6 shrink-0">D)</span> <input type="text" id="q${i}-o3" class="w-full p-2 rounded-lg border border-gray-200"></div>
-                            <div class="flex items-center"><span class="font-bold text-gray-400 w-6 shrink-0">E)</span> <input type="text" id="q${i}-o4" class="w-full p-2 rounded-lg border border-gray-200"></div>
+                            <div class="flex items-center"><span class="font-bold text-gray-400 w-6 shrink-0">A)</span> <input type="text" id="q${i}-o0" placeholder="Alternativa A" class="w-full p-2.5 rounded-xl border border-gray-200 bg-white text-sm font-semibold focus:outline-none focus:border-teal-500"></div>
+                            <div class="flex items-center"><span class="font-bold text-gray-400 w-6 shrink-0">B)</span> <input type="text" id="q${i}-o1" placeholder="Alternativa B" class="w-full p-2.5 rounded-xl border border-gray-200 bg-white text-sm font-semibold focus:outline-none focus:border-teal-500"></div>
+                            <div class="flex items-center"><span class="font-bold text-gray-400 w-6 shrink-0">C)</span> <input type="text" id="q${i}-o2" placeholder="Alternativa C" class="w-full p-2.5 rounded-xl border border-gray-200 bg-white text-sm font-semibold focus:outline-none focus:border-teal-500"></div>
+                            <div class="flex items-center"><span class="font-bold text-gray-400 w-6 shrink-0">D)</span> <input type="text" id="q${i}-o3" placeholder="Alternativa D" class="w-full p-2.5 rounded-xl border border-gray-200 bg-white text-sm font-semibold focus:outline-none focus:border-teal-500"></div>
+                            <div class="flex items-center"><span class="font-bold text-gray-400 w-6 shrink-0">E)</span> <input type="text" id="q${i}-o4" placeholder="Alternativa E" class="w-full p-2.5 rounded-xl border border-gray-200 bg-white text-sm font-semibold focus:outline-none focus:border-teal-500"></div>
                         </div>
-                        <div class="mt-4 bg-emerald-50 p-3 sm:p-4 rounded-xl border border-emerald-100 flex flex-col sm:flex-row sm:items-center gap-2">
-                            <label class="text-sm font-bold text-emerald-800">Alternativa Correta:</label>
-                            <select id="q${i}-ans" class="w-full sm:flex-grow p-2 sm:p-3 rounded-lg border border-emerald-300 font-bold text-emerald-700 bg-white cursor-pointer">
+                        <div class="mt-4 bg-teal-50 p-3 sm:p-4 rounded-xl border border-teal-100 flex flex-col sm:flex-row sm:items-center gap-2">
+                            <label class="text-sm font-bold text-teal-800">Alternativa Correta:</label>
+                            <select id="q${i}-ans" class="w-full sm:flex-grow p-2.5 sm:p-3 rounded-xl border border-teal-300 font-bold text-teal-700 bg-white cursor-pointer focus:outline-none focus:border-teal-500">
                                 <option value="0">Letra A</option><option value="1">Letra B</option><option value="2">Letra C</option><option value="3">Letra D</option><option value="4">Letra E</option>
                             </select>
                         </div>
@@ -1812,7 +2056,7 @@
             
             if (btnDelete) btnDelete.classList.remove('hidden');
 
-            const p = JSON.parse(localStorage.getItem('botanica_plants'))[id];
+            const p = JSON.parse(localStorage.getItem('botanica_plants') || '{}')[id];
             document.getElementById('input-name').value = p.nome; document.getElementById('input-scientific').value = p.cientifico;
             document.getElementById('input-url').value = p.url || ''; document.getElementById('input-url-info').value = p.info_url || '';
             document.getElementById('input-latitude').value = p.latitude || ''; document.getElementById('input-longitude').value = p.longitude || '';
@@ -2004,7 +2248,7 @@
             if(type === 'andamento') {
                 filtered = guardians.filter(g => g.status === 'aprovado');
                 title = "Planos de Ação em Andamento";
-                colorTheme = "#059669"; 
+                colorTheme = "#0d9488"; 
             } else if(type === 'concluidos') {
                 filtered = guardians.filter(g => ['relatorio_enviado', 'concluido'].includes(g.status));
                 title = "Planos de Ação Concluídos (Relatórios)";
