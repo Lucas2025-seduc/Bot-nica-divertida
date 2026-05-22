@@ -4,10 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     
-    <meta name="theme-color" content="#16a34a">
+    <meta name="theme-color" content="#0f766e">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Plantas do Aderson">
+    <meta name="apple-mobile-web-app-title" content="FitoScan Cariri">
     
     <!-- Ícone oficial atualizado para dispositivos Apple -->
     <link class="rounded-full" rel="apple-touch-icon" href="icon-192.png">
@@ -15,7 +15,7 @@
     <!-- Link para o Manifesto da PWA -->
     <link rel="manifest" href="manifest.json">
 
-    <title>Plantas do Aderson</title>
+    <title>FitoScan Cariri — Geotecnologia e Gamificação</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
@@ -27,13 +27,13 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
         
         body {
             font-family: 'Nunito', sans-serif;
-            background-image: radial-gradient(circle at top right, #dcfce7, #f0fdf4, #ecfdf5);
+            background-image: radial-gradient(circle at top right, #e2f1e9, #f0fdf4, #f4fbf7);
             background-attachment: fixed;
-            color: #166534;
+            color: #115e59;
             margin: 0;
             padding: 0;
             padding-top: env(safe-area-inset-top);
@@ -56,17 +56,17 @@
             max-width: 100%;
             border-radius: 1.5rem;
             overflow: hidden;
-            border: 4px dashed #86efac !important;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            border: 4px dashed #0d9488 !important;
+            box-shadow: 0 10px 15px -3px rgba(13, 148, 136, 0.1);
             background: white;
         }
         #qr-reader video { border-radius: 1.2rem; object-fit: cover; width: 100% !important; }
         #qr-reader button {
-            background-color: #22c55e; color: white; padding: 0.75rem 1.5rem; border-radius: 9999px;
+            background-color: #0d9488; color: white; padding: 0.75rem 1.5rem; border-radius: 9999px;
             border: none; font-weight: 700; font-family: 'Nunito', sans-serif; cursor: pointer;
             margin-top: 15px; margin-bottom: 10px; transition: all 0.2s; max-width: 90%; white-space: normal;
         }
-        #qr-reader button:hover { background-color: #16a34a; transform: translateY(-2px); }
+        #qr-reader button:hover { background-color: #0f766e; transform: translateY(-2px); }
         #qr-reader a { display: none !important; } 
         
         /* Melhoria estética da seleção de câmara */
@@ -78,9 +78,9 @@
             margin: 10px auto 15px auto;
             display: block;
             border-radius: 1rem;
-            border: 2px solid #86efac;
-            background-color: #f0fdf4;
-            color: #166534;
+            border: 2px solid #99f6e4;
+            background-color: #f0fdfa;
+            color: #115e59;
             font-weight: 800;
             font-family: 'Nunito', sans-serif;
             font-size: 0.9rem;
@@ -88,7 +88,7 @@
             outline: none;
             appearance: none;
             -webkit-appearance: none;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2316a34a'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%230d9488'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
             background-repeat: no-repeat;
             background-position: right 1rem center;
             background-size: 1.2rem;
@@ -96,21 +96,21 @@
             transition: all 0.2s ease;
         }
         #qr-reader select:focus {
-            border-color: #22c55e;
-            box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.2);
+            border-color: #0d9488;
+            box-shadow: 0 0 0 4px rgba(13, 148, 136, 0.2);
         }
         #qr-reader__dashboard_section_csr span {
             font-size: 0.85rem;
-            color: #15803d;
+            color: #0f766e;
             font-weight: 800;
             display: block;
             margin-bottom: 5px;
             margin-top: 10px;
         }
 
-        #qrcode-display img { margin: 0 auto; border-radius: 0.5rem; padding: 1rem; background: white; border: 2px solid #bbf7d0; max-width: 100%; height: auto; }
+        #qrcode-display img { margin: 0 auto; border-radius: 0.5rem; padding: 1rem; background: white; border: 2px solid #99f6e4; max-width: 100%; height: auto; }
 
-        .tab-active { background-color: #16a34a; color: white; box-shadow: 0 4px 6px -1px rgba(22, 163, 74, 0.4); }
+        .tab-active { background-color: #0d9488; color: white; box-shadow: 0 4px 6px -1px rgba(13, 148, 136, 0.4); }
         .tab-inactive { background-color: #e2e8f0; color: #475569; }
 
         .modal-overlay { background-color: rgba(0, 0, 0, 0.5); backdrop-filter: blur(4px); z-index: 50; }
@@ -122,7 +122,7 @@
         .leaflet-popup-content a.btn-map-nav { color: #ffffff !important; text-decoration: none !important; }
     </style>
 </head>
-<body class="antialiased selection:bg-green-300 selection:text-green-900">
+<body class="antialiased selection:bg-teal-200 selection:text-teal-900">
 
     <div id="toast-container" class="fixed top-4 left-1/2 transform -translate-x-1/2 z-[100] flex flex-col gap-2 w-full max-w-sm px-4 pointer-events-none"></div>
 
@@ -139,15 +139,25 @@
     </div>
 
     <!-- ========================================== -->
-    <!-- CABEÇALHO E NAVEGAÇÃO                      -->
+    <!-- CABEÇALHO CIENTÍFICO E NAVEGAÇÃO           -->
     <!-- ========================================== -->
-    <header id="main-header" class="bg-gradient-to-r from-green-600 to-emerald-500 text-white p-4 sm:p-6 shadow-lg rounded-b-3xl flex flex-col justify-center items-center relative overflow-hidden">
-        <i class="ph-fill ph-leaf text-white/20 text-5xl sm:text-6xl absolute -top-2 -left-2 transform -rotate-45"></i>
-        <i class="ph-fill ph-clover text-white/20 text-5xl sm:text-6xl absolute -bottom-4 -right-4 transform rotate-12"></i>
+    <header id="main-header" class="bg-gradient-to-r from-teal-800 via-teal-700 to-emerald-700 text-white p-6 sm:p-8 shadow-xl rounded-b-[2.5rem] flex flex-col justify-center items-center relative overflow-hidden transition-all duration-300">
+        <i class="ph-fill ph-leaf text-white/10 text-7xl sm:text-8xl absolute -top-4 -left-4 transform -rotate-45 pointer-events-none"></i>
+        <i class="ph-fill ph-tree text-white/10 text-7xl sm:text-8xl absolute -bottom-6 -right-6 transform rotate-12 pointer-events-none"></i>
         
-        <!-- Contêiner do Logótipo redimensionado (dobro do tamanho) e sem fundo branco -->
-        <div class="z-10 mb-3 sm:mb-4 flex justify-center items-center w-full max-w-[600px] sm:max-w-[720px] h-64 sm:h-80">
-            <img id="school-logo" src="https://uiktphiubjmqvywbbgnf.supabase.co/storage/v1/object/public/logo/logo.png" alt="Logo da Escola" class="max-w-full max-h-full object-contain">
+        <!-- Contêiner do Logótipo Ajustado e Sem Espaço Excessivo -->
+        <div class="z-10 mb-1 flex justify-center items-center w-full max-w-[320px] sm:max-w-[380px] h-36 sm:h-44">
+            <img id="school-logo" src="https://uiktphiubjmqvywbbgnf.supabase.co/storage/v1/object/public/logo/logo.png" alt="Logo da Escola" class="max-w-full max-h-full object-contain filter drop-shadow-md">
+        </div>
+
+        <!-- Nova Identidade Oficial: FitoScan Cariri -->
+        <div class="z-10 text-center px-4 max-w-2xl">
+            <h1 class="text-3xl sm:text-4xl font-black tracking-tight text-white drop-shadow-sm font-sans uppercase">
+                FitoScan <span class="text-emerald-300">Cariri</span>
+            </h1>
+            <p class="text-xs sm:text-sm text-emerald-100/95 font-medium mt-2 leading-relaxed max-w-lg mx-auto">
+                Geotecnologia e Gamificação contra a Cegueira Botânica: Mapeamento Florístico Dinâmico na EEEP Aderson Borges de Carvalho.
+            </p>
         </div>
     </header>
 
@@ -182,14 +192,14 @@
                     <div id="active-challenges-list" class="space-y-3"></div>
                 </div>
 
-                <div class="mb-6 bg-white/80 p-4 sm:p-5 rounded-3xl border-2 border-green-200 shadow-md flex flex-col items-center">
-                    <h2 class="text-xl sm:text-2xl font-extrabold text-green-800 mb-3 text-center">Boas-vindas ao App!</h2>
-                    <div class="text-green-800 text-sm sm:text-base text-center space-y-3 mb-5 font-medium leading-relaxed">
+                <div class="mb-6 bg-white/80 p-4 sm:p-5 rounded-3xl border-2 border-teal-200 shadow-md flex flex-col items-center">
+                    <h2 class="text-xl sm:text-2xl font-extrabold text-teal-900 mb-3 text-center">Boas-vindas ao App!</h2>
+                    <div class="text-teal-850 text-sm sm:text-base text-center space-y-3 mb-5 font-medium leading-relaxed">
                         <p>
-                            Nossos objetivos são <strong>combater a cegueira botânica</strong>, incentivar a <strong>sistematização de conhecimentos científicos sobre vegetais</strong> e promover o voluntariado de <strong>guardiões da flora escolar</strong>.
+                            Nossos objetivos são <strong>combater a cegueira botânica</strong>, incentivar a <strong>sistematização de conhecimentos científicos sobre vegetais</strong> e promover o voluntariado de <strong>guardiões da flora escolar</strong> no Cariri.
                         </p>
                     </div>
-                    <div class="bg-emerald-50 text-emerald-700 p-3 sm:p-4 rounded-xl border border-emerald-200 w-full text-center font-bold flex flex-col sm:flex-row items-center justify-center text-sm shadow-sm gap-2">
+                    <div class="bg-teal-50 text-teal-700 p-3 sm:p-4 rounded-xl border border-teal-200 w-full text-center font-bold flex flex-col sm:flex-row items-center justify-center text-sm shadow-sm gap-2">
                         <i class="ph-bold ph-camera text-2xl sm:text-xl flex-shrink-0"></i>
                         <span>Aponte para um QRCODE presente em alguma planta para conhecê-la!!!!</span>
                     </div>
@@ -200,13 +210,13 @@
                     <p id="scanner-status" class="mt-4 text-sm text-red-500 hidden font-bold text-center px-4 pb-2"></p>
                 </div>
 
-                <div class="w-full flex flex-col items-center bg-white p-4 sm:p-5 rounded-3xl shadow-xl mt-6 border-2 border-green-100">
-                    <label class="block text-sm font-bold text-green-800 mb-2 w-full text-left sm:ml-2">
-                        <i class="ph-bold ph-magnifying-glass mr-1 text-green-600"></i> Busca Rápida
+                <div class="w-full flex flex-col items-center bg-white p-4 sm:p-5 rounded-3xl shadow-xl mt-6 border-2 border-teal-100">
+                    <label class="block text-sm font-bold text-teal-800 mb-2 w-full text-left sm:ml-2">
+                        <i class="ph-bold ph-magnifying-glass mr-1 text-teal-600"></i> Busca Rápida
                     </label>
                     <div class="relative w-full">
-                        <i class="ph-bold ph-caret-down absolute right-4 top-1/2 transform -translate-y-1/2 text-green-500 pointer-events-none text-xl"></i>
-                        <select id="select-scientific" class="w-full p-4 rounded-xl border-2 border-green-200 bg-green-50/50 focus:outline-none focus:border-green-500 font-bold text-green-800 appearance-none shadow-inner text-sm sm:text-base cursor-pointer" onchange="handleManualSelection()">
+                        <i class="ph-bold ph-caret-down absolute right-4 top-1/2 transform -translate-y-1/2 text-teal-500 pointer-events-none text-xl"></i>
+                        <select id="select-scientific" class="w-full p-4 rounded-xl border-2 border-teal-200 bg-teal-50/50 focus:outline-none focus:border-teal-500 font-bold text-teal-800 appearance-none shadow-inner text-sm sm:text-base cursor-pointer" onchange="handleManualSelection()">
                             <option value="">-- Selecione uma planta registrada --</option>
                         </select>
                     </div>
@@ -245,16 +255,71 @@
                     </div>
                 </div>
 
+                <!-- SEÇÃO: AVALIAÇÃO DO APLICATIVO -->
+                <div class="w-full flex flex-col items-center bg-white p-4 sm:p-6 rounded-3xl shadow-xl mt-6 border-2 border-amber-200 relative overflow-hidden">
+                    <div class="absolute -right-6 -bottom-6 bg-amber-100 w-24 h-24 rounded-full opacity-50 pointer-events-none"></div>
+                    
+                    <h2 class="text-xl sm:text-2xl font-extrabold text-amber-800 mb-1 flex items-center justify-center w-full">
+                        <i class="ph-fill ph-star mr-2 text-3xl text-amber-500 animate-pulse"></i> Avalie o Nosso App!
+                    </h2>
+                    <p class="text-sm text-amber-700 font-semibold text-center mb-5">Sua opinião é fundamental para melhorarmos a nossa ferramenta científica.</p>
+                    
+                    <form id="app-review-form" onsubmit="submitAppReview(event)" class="w-full space-y-4">
+                        <div class="flex flex-col sm:flex-row gap-3">
+                            <input type="text" id="review-student-name" required placeholder="Seu Nome ou Grupo" class="w-full sm:w-2/3 p-3.5 rounded-xl border-2 border-amber-100 bg-amber-50/30 focus:outline-none focus:border-amber-400 font-semibold text-amber-900 text-sm">
+                            <select id="review-student-class" required class="w-full sm:w-1/3 p-3.5 rounded-xl border-2 border-amber-100 bg-amber-50/30 focus:outline-none focus:border-amber-400 font-bold text-amber-900 text-sm">
+                                <option value="">Turma</option>
+                                <option value="1º A">1º A</option><option value="1º B">1º B</option><option value="1º C">1º C</option><option value="1º D">1º D</option>
+                                <option value="2º A">2º A</option><option value="2º B">2º B</option><option value="2º C">2º C</option><option value="2º D">2º D</option>
+                                <option value="3º A">3º A</option><option value="3º B">3º B</option><option value="3º C">3º C</option><option value="3º D">3º D</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Seletor de Estrelas Interativo -->
+                        <div class="flex flex-col items-center py-3 bg-amber-50/50 rounded-2xl border border-amber-100">
+                            <span class="text-xs font-extrabold text-amber-800 mb-2">Classificação por Estrelas</span>
+                            <div class="flex gap-2.5">
+                                <button type="button" onclick="setAppRating(1)" class="star-btn text-3xl text-gray-300 hover:scale-110 transition-transform duration-150" data-val="1"><i class="ph-fill ph-star"></i></button>
+                                <button type="button" onclick="setAppRating(2)" class="star-btn text-3xl text-gray-300 hover:scale-110 transition-transform duration-150" data-val="2"><i class="ph-fill ph-star"></i></button>
+                                <button type="button" onclick="setAppRating(3)" class="star-btn text-3xl text-gray-300 hover:scale-110 transition-transform duration-150" data-val="3"><i class="ph-fill ph-star"></i></button>
+                                <button type="button" onclick="setAppRating(4)" class="star-btn text-3xl text-gray-300 hover:scale-110 transition-transform duration-150" data-val="4"><i class="ph-fill ph-star"></i></button>
+                                <button type="button" onclick="setAppRating(5)" class="star-btn text-3xl text-gray-300 hover:scale-110 transition-transform duration-150" data-val="5"><i class="ph-fill ph-star"></i></button>
+                            </div>
+                            <input type="hidden" id="review-rating-value" value="0">
+                        </div>
+
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block text-xs font-bold text-amber-800 mb-1 ml-1">Elogios (O que correu melhor?)</label>
+                                <textarea id="review-compliments" rows="2" placeholder="Ex: O mapa funciona muito bem e os quizzes ajudam a fixar!" class="w-full p-3 rounded-xl border-2 border-amber-100 bg-amber-50/30 focus:outline-none focus:border-amber-400 text-sm font-semibold text-amber-900 resize-none"></textarea>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-amber-800 mb-1 ml-1">Pontos a melhorar / Sugestões</label>
+                                <textarea id="review-improvements" rows="2" placeholder="Ex: Adicionar mais perguntas de botânica sobre as árvores..." class="w-full p-3 rounded-xl border-2 border-amber-100 bg-amber-50/30 focus:outline-none focus:border-amber-400 text-sm font-semibold text-amber-900 resize-none"></textarea>
+                            </div>
+                        </div>
+
+                        <button type="submit" id="btn-submit-review" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-extrabold py-3 px-4 rounded-xl shadow-lg transition duration-300 flex justify-center items-center text-sm">
+                            <i class="ph-bold ph-paper-plane-tilt mr-2 text-lg"></i> Enviar Avaliação
+                        </button>
+                    </form>
+                    
+                    <div id="review-success-msg" class="hidden w-full text-center p-5 bg-emerald-50 border-2 border-emerald-200 text-emerald-800 rounded-2xl font-extrabold mt-2 animate-pulse">
+                        <i class="ph-fill ph-sparkles text-3xl text-emerald-500 mb-2 block mx-auto"></i>
+                        Muito obrigado! A sua avaliação ajudará a melhorar o projeto escolar.
+                    </div>
+                </div>
+
             </div>
 
             <!-- RESULTADOS E DETALHES DA PLANTA -->
-            <div id="result-section" class="w-full hidden fade-in bg-white p-4 sm:p-6 rounded-3xl shadow-2xl border-2 border-green-200 relative mt-4">
+            <div id="result-section" class="w-full hidden fade-in bg-white p-4 sm:p-6 rounded-3xl shadow-2xl border-2 border-teal-200 relative mt-4">
                 <button onclick="resetScanner()" class="absolute top-2 sm:top-4 right-2 sm:right-4 bg-gray-100 p-2 rounded-full text-gray-500 hover:text-red-500 hover:bg-red-50 transition-colors z-10" title="Fechar">
                     <i class="ph-bold ph-x text-xl"></i>
                 </button>
                 
                 <div class="flex flex-col items-center text-center mt-6 sm:mt-2">
-                    <h2 id="plant-title" class="text-2xl sm:text-3xl font-extrabold text-green-800 mb-1 break-words w-full font-extrabold">Nome Popular</h2>
+                    <h2 id="plant-title" class="text-2xl sm:text-3xl font-extrabold text-teal-855 mb-1 break-words w-full">Nome Popular</h2>
                     <h3 id="plant-scientific" class="text-base sm:text-lg text-emerald-600 italic font-semibold break-words w-full">Nome Científico</h3>
                 </div>
 
@@ -275,22 +340,22 @@
                 </div>
 
                 <!-- 3. Localização (Mapa) -->
-                <div id="plant-location-card" class="w-full mt-6 bg-green-50 p-4 rounded-2xl border border-green-200 hidden">
-                    <h4 class="font-bold text-green-800 text-sm sm:text-base mb-2 flex items-center">
-                        <i class="ph-bold ph-map-pin-line mr-2 text-emerald-600 text-xl"></i> Localização da Planta
+                <div id="plant-location-card" class="w-full mt-6 bg-teal-50/50 p-4 rounded-2xl border border-teal-200 hidden">
+                    <h4 class="font-bold text-teal-855 text-sm sm:text-base mb-2 flex items-center">
+                        <i class="ph-bold ph-map-pin-line mr-2 text-teal-600 text-xl"></i> Localização da Planta
                     </h4>
-                    <div id="plant-detail-map" class="h-64 sm:h-80 w-full rounded-2xl z-10 border border-emerald-300 shadow-sm mb-3"></div>
+                    <div id="plant-detail-map" class="h-64 sm:h-80 w-full rounded-2xl z-10 border border-teal-300 shadow-sm mb-3"></div>
                     
-                    <div id="radar-panel" class="bg-white p-4 rounded-2xl border border-emerald-100 flex flex-col items-center justify-center text-center shadow-sm">
+                    <div id="radar-panel" class="bg-white p-4 rounded-2xl border border-teal-100 flex flex-col items-center justify-center text-center shadow-sm">
                         <div class="flex items-center space-x-2 mb-1.5">
-                            <i class="ph-fill ph-radar text-2xl text-emerald-600 animate-pulse"></i>
+                            <i class="ph-fill ph-radar text-2xl text-teal-600 animate-pulse"></i>
                             <span class="font-bold text-xs text-gray-500 uppercase tracking-wider">Radar de Busca (GPS)</span>
                         </div>
-                        <div id="radar-distance" class="text-3xl font-extrabold text-green-800">Calculando distância...</div>
-                        <div id="radar-direction" class="text-xs sm:text-sm font-bold text-emerald-600 mt-1 max-w-[280px]">Mova-se pelo pátio para calibrar o sensor</div>
+                        <div id="radar-distance" class="text-3xl font-extrabold text-teal-800">Calculando distância...</div>
+                        <div id="radar-direction" class="text-xs sm:text-sm font-bold text-teal-600 mt-1 max-w-[280px]">Mova-se pelo pátio para calibrar o sensor</div>
                         
                         <div class="flex flex-col sm:flex-row gap-2 mt-3 w-full justify-center">
-                            <button type="button" onclick="focusUserOnDetailMap()" class="bg-emerald-100 hover:bg-emerald-200 text-emerald-800 text-xs font-bold py-2.5 px-4 rounded-full flex items-center justify-center transition">
+                            <button type="button" onclick="focusUserOnDetailMap()" class="bg-teal-100 hover:bg-teal-200 text-teal-800 text-xs font-bold py-2.5 px-4 rounded-full flex items-center justify-center transition">
                                 <i class="ph-bold ph-navigation-arrow mr-1.5"></i> Focar Minha Posição
                             </button>
                             <a id="btn-google-maps-nav" href="#" target="_blank" class="btn-map-nav bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-2.5 px-4 rounded-full flex items-center justify-center transition no-underline shadow">
@@ -303,29 +368,29 @@
                 </div>
 
                 <!-- 4. Formulário e Quiz -->
-                <div id="student-form-section" class="w-full mt-6 pt-6 border-t-2 border-dashed border-green-200">
-                    <h3 class="text-lg sm:text-xl font-extrabold text-green-800 mb-4 flex items-center">
-                        <i class="ph-fill ph-student mr-2 text-2xl text-emerald-500"></i> Registro de Resposta
+                <div id="student-form-section" class="w-full mt-6 pt-6 border-t-2 border-dashed border-teal-200">
+                    <h3 class="text-lg sm:text-xl font-extrabold text-teal-855 mb-4 flex items-center">
+                        <i class="ph-fill ph-student mr-2 text-2xl text-teal-500"></i> Registro de Resposta
                     </h3>
                     <div class="flex flex-col gap-3 sm:gap-4">
-                        <input type="text" id="student-name" placeholder="Seu Nome ou da Equipa" class="w-full p-3 sm:p-4 rounded-xl border-2 border-green-100 bg-green-50/30 focus:outline-none focus:border-green-400 font-semibold text-green-900 text-sm sm:text-base">
+                        <input type="text" id="student-name" placeholder="Seu Nome ou da Equipa" class="w-full p-3 sm:p-4 rounded-xl border-2 border-teal-100 bg-teal-50/30 focus:outline-none focus:border-teal-400 font-semibold text-teal-900 text-sm sm:text-base">
                         <div class="flex flex-col sm:flex-row gap-3 sm:gap-4">
-                            <input type="text" id="student-class" placeholder="Turma" class="w-full sm:w-1/2 p-3 sm:p-4 rounded-xl border-2 border-green-100 bg-green-50/30 focus:outline-none focus:border-green-400 font-semibold text-green-900 text-sm sm:text-base">
-                            <input type="date" id="student-date" class="w-full sm:w-1/2 p-3 sm:p-4 rounded-xl border-2 border-green-100 bg-green-50/30 focus:outline-none focus:border-green-400 font-semibold text-green-900 text-sm sm:text-base">
+                            <input type="text" id="student-class" placeholder="Turma" class="w-full sm:w-1/2 p-3 sm:p-4 rounded-xl border-2 border-teal-100 bg-teal-50/30 focus:outline-none focus:border-teal-400 font-semibold text-teal-900 text-sm sm:text-base">
+                            <input type="date" id="student-date" class="w-full sm:w-1/2 p-3 sm:p-4 rounded-xl border-2 border-teal-100 bg-teal-50/30 focus:outline-none focus:border-teal-400 font-semibold text-teal-900 text-sm sm:text-base">
                         </div>
                     </div>
                 </div>
 
                 <div id="quiz-section" class="w-full mt-8">
-                    <div class="bg-gradient-to-r from-emerald-500 to-green-500 text-white p-3 sm:p-4 rounded-t-2xl shadow-md">
-                        <h3 class="text-lg sm:text-xl font-extrabold flex items-center justify-center text-center font-extrabold">
+                    <div class="bg-gradient-to-r from-teal-600 to-emerald-600 text-white p-3 sm:p-4 rounded-t-2xl shadow-md">
+                        <h3 class="text-lg sm:text-xl font-extrabold flex items-center justify-center text-center">
                             <i class="ph-bold ph-brain mr-2 text-2xl"></i> Quiz de Conhecimentos!
                         </h3>
                     </div>
-                    <div id="quiz-questions-container" class="bg-green-50/50 border-2 border-t-0 border-green-200 rounded-b-2xl p-3 sm:p-5 space-y-6"></div>
+                    <div id="quiz-questions-container" class="bg-teal-50/30 border-2 border-t-0 border-teal-200 rounded-b-2xl p-3 sm:p-5 space-y-6"></div>
                     <div id="quiz-result" class="hidden mt-6 p-4 sm:p-5 rounded-2xl text-center font-extrabold text-lg sm:text-xl shadow-inner break-words"></div>
 
-                    <button id="btn-submit-quiz" onclick="evaluateQuiz()" class="w-full mt-6 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 sm:py-4 px-4 rounded-2xl shadow-lg transition duration-300 flex justify-center items-center text-sm sm:text-base">
+                    <button id="btn-submit-quiz" onclick="evaluateQuiz()" class="w-full mt-6 bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 sm:py-4 px-4 rounded-2xl shadow-lg transition duration-300 flex justify-center items-center text-sm sm:text-base">
                         <i class="ph-bold ph-check-circle mr-2 text-xl"></i> Finalizar e Ver Nota
                     </button>
                 </div>
@@ -339,12 +404,12 @@
         <!-- ========================================== -->
         <!-- ABA 2: MAPA GLOBAL DA FLORA                -->
         <!-- ========================================== -->
-        <div id="view-map" class="w-full hidden flex-col fade-in bg-white p-4 sm:p-6 rounded-3xl shadow-xl border-2 border-green-200">
-            <h2 class="text-xl sm:text-2xl font-extrabold text-green-800 mb-2 flex items-center justify-center text-center font-extrabold">
-                <i class="ph-fill ph-map-trifold mr-2 text-emerald-600 text-3xl animate-bounce font-extrabold"></i> Mapa das Plantas Registradas
+        <div id="view-map" class="w-full hidden flex-col fade-in bg-white p-4 sm:p-6 rounded-3xl shadow-xl border-2 border-teal-200">
+            <h2 class="text-xl sm:text-2xl font-extrabold text-teal-900 mb-2 flex items-center justify-center text-center">
+                <i class="ph-fill ph-map-trifold mr-2 text-teal-600 text-3xl animate-bounce"></i> Mapa das Plantas Registradas
             </h2>
             <p class="text-xs text-gray-500 mb-4 text-center">Navegue pelas ilhas verdes do campus. Clique em um pin para descobrir a espécie.</p>
-            <div id="global-map" class="w-full h-[400px] sm:h-[480px] rounded-2xl z-10 shadow-inner border border-emerald-300"></div>
+            <div id="global-map" class="w-full h-[400px] sm:h-[480px] rounded-2xl z-10 shadow-inner border border-teal-300"></div>
         </div>
 
         <!-- ========================================== -->
@@ -353,27 +418,27 @@
         <div id="view-create" class="w-full hidden flex-col items-center fade-in">
             
             <!-- Login -->
-            <div id="auth-section" class="bg-white p-6 sm:p-8 rounded-3xl shadow-xl border border-green-100 w-full mt-4 flex flex-col items-center">
-                <div class="bg-green-100 p-4 rounded-full mb-4 text-green-600 shadow-inner">
+            <div id="auth-section" class="bg-white p-6 sm:p-8 rounded-3xl shadow-xl border border-teal-100 w-full mt-4 flex flex-col items-center">
+                <div class="bg-teal-100 p-4 rounded-full mb-4 text-teal-600 shadow-inner">
                     <i class="ph-fill ph-lock-key text-4xl sm:text-5xl"></i>
                 </div>
-                <h2 class="text-xl sm:text-2xl font-bold text-green-800 mb-2 text-center">Acesso Restrito</h2>
+                <h2 class="text-xl sm:text-2xl font-bold text-teal-855 mb-2 text-center">Acesso Restrito</h2>
                 <p class="text-xs sm:text-sm text-gray-500 mb-6 text-center font-medium px-4">Área exclusiva para professores e administradores.</p>
 
                 <form id="login-form" class="w-full max-w-sm space-y-4" onsubmit="handleLogin(event)">
                     <div>
                         <div class="relative">
-                            <i class="ph-bold ph-envelope absolute left-4 top-1/2 transform -translate-y-1/2 text-green-500 text-lg"></i>
-                            <input type="email" id="input-login" required placeholder="E-mail do Professor" class="w-full py-3 pr-3 pl-12 sm:py-4 sm:pr-4 sm:pl-12 rounded-xl border-2 border-green-100 bg-green-50/50 focus:outline-none focus:border-green-400 font-medium text-base">
+                            <i class="ph-bold ph-envelope absolute left-4 top-1/2 transform -translate-y-1/2 text-teal-500 text-lg"></i>
+                            <input type="email" id="input-login" required placeholder="E-mail do Professor" class="w-full py-3 pr-3 pl-12 sm:py-4 sm:pr-4 sm:pl-12 rounded-xl border-2 border-teal-100 bg-teal-50/50 focus:outline-none focus:border-teal-400 font-medium text-base">
                         </div>
                     </div>
                     <div>
                         <div class="relative">
-                            <i class="ph-bold ph-password absolute left-4 top-1/2 transform -translate-y-1/2 text-green-500 text-lg"></i>
-                            <input type="password" id="input-password" required placeholder="Senha" class="w-full py-3 pr-3 pl-12 sm:py-4 sm:pr-4 sm:pl-12 rounded-xl border-2 border-green-100 bg-green-50/50 focus:outline-none focus:border-green-400 font-medium text-base">
+                            <i class="ph-bold ph-password absolute left-4 top-1/2 transform -translate-y-1/2 text-teal-500 text-lg"></i>
+                            <input type="password" id="input-password" required placeholder="Senha" class="w-full py-3 pr-3 pl-12 sm:py-4 sm:pr-4 sm:pl-12 rounded-xl border-2 border-teal-100 bg-teal-50/50 focus:outline-none focus:border-teal-400 font-medium text-base">
                         </div>
                     </div>
-                    <button id="btn-login-submit" type="submit" class="w-full mt-6 bg-green-600 hover:bg-green-700 text-white font-bold py-3 sm:py-4 px-4 rounded-xl shadow-md transition duration-300 flex justify-center items-center text-lg">
+                    <button id="btn-login-submit" type="submit" class="w-full mt-6 bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 sm:py-4 px-4 rounded-xl shadow-md transition duration-300 flex justify-center items-center text-lg">
                         Entrar <i class="ph-bold ph-sign-in ml-2 text-xl font-bold"></i>
                     </button>
                     <p id="login-error" class="text-red-500 text-xs sm:text-sm text-center hidden font-bold mt-3">E-mail ou senha incorretos.</p>
@@ -381,11 +446,11 @@
             </div>
 
             <!-- Área Logada do Admin -->
-            <div id="create-section" class="bg-white p-4 sm:p-8 rounded-3xl shadow-xl border border-green-100 w-full mt-4 hidden">
-                <div class="flex flex-col sm:flex-row items-center justify-between mb-6 border-b-2 border-green-50 pb-4 gap-4">
+            <div id="create-section" class="bg-white p-4 sm:p-8 rounded-3xl shadow-xl border border-teal-100 w-full mt-4 hidden">
+                <div class="flex flex-col sm:flex-row items-center justify-between mb-6 border-b-2 border-teal-50 pb-4 gap-4">
                     <div class="flex items-center text-center sm:text-left">
                         <i class="ph-fill ph-magic-wand text-3xl sm:text-4xl text-emerald-500 mr-2 sm:mr-3"></i>
-                        <h2 class="text-lg sm:text-2xl font-bold text-green-800 leading-tight">Painel do Professor</h2>
+                        <h2 class="text-lg sm:text-2xl font-bold text-teal-855 leading-tight">Painel do Professor</h2>
                     </div>
                     <button onclick="handleLogout()" class="w-full sm:w-auto text-sm text-red-600 font-bold hover:bg-red-100 transition-colors flex items-center justify-center bg-red-50 py-2 px-4 rounded-xl" title="Sair">
                         <i class="ph-bold ph-sign-out text-xl mr-2"></i> <span>Sair</span>
@@ -442,6 +507,16 @@
                     <div id="admin-quiz-results-list" class="space-y-3 max-h-80 overflow-y-auto pr-2 no-scrollbar"></div>
                 </div>
 
+                <!-- AVALIAÇÕES DO APLICATIVO (ADMIN) -->
+                <div class="mb-10 bg-amber-50/50 p-4 sm:p-6 rounded-2xl border-2 border-amber-300">
+                    <h3 class="font-extrabold text-amber-800 text-lg sm:text-xl mb-4 flex items-center">
+                        <i class="ph-fill ph-star mr-2 text-amber-500 text-2xl"></i> Avaliações dos Estudantes
+                    </h3>
+                    <div id="admin-reviews-list" class="space-y-3 max-h-80 overflow-y-auto pr-2 no-scrollbar">
+                        <div class="text-center text-gray-500 italic py-2 text-sm">Carregando avaliações...</div>
+                    </div>
+                </div>
+
                 <!-- IMPRESSÃO DE RELATÓRIOS -->
                 <div class="mb-10 bg-purple-50/50 p-4 sm:p-6 rounded-2xl border-2 border-purple-200">
                     <h3 class="font-extrabold text-purple-800 text-lg sm:text-xl mb-4 flex items-center">
@@ -460,16 +535,16 @@
                     </div>
                 </div>
 
-                <hr class="border-green-200 mb-8 border-2 rounded">
+                <hr class="border-teal-200 mb-8 border-2 rounded">
 
                 <!-- FORMULÁRIO DE CADASTRO/EDIÇÃO DE PLANTAS -->
-                <h3 class="font-extrabold text-green-800 text-lg sm:text-xl mb-4 flex items-center font-extrabold">
-                    <i class="ph-bold ph-leaf mr-2 text-green-600"></i> Cadastrar/Editar Plantas
+                <h3 class="font-extrabold text-teal-900 text-lg sm:text-xl mb-4 flex items-center">
+                    <i class="ph-bold ph-leaf mr-2 text-teal-700"></i> Cadastrar/Editar Plantas
                 </h3>
 
                 <div class="mb-6 bg-blue-50/50 p-4 sm:p-6 rounded-2xl border border-blue-200">
                     <h3 class="font-bold text-blue-800 text-base sm:text-lg mb-3 flex items-center">
-                        <i class="ph-bold ph-pencil-simple mr-2 text-blue-600"></i> Editar Planta Cadastrada
+                        <i class="ph-bold ph-pencil-simple mr-2 text-blue-600"></i> Editá-las
                     </h3>
                     <div class="flex flex-col sm:flex-row gap-3">
                         <select id="select-edit-plant" class="w-full p-3 rounded-xl border-2 border-blue-200 bg-white focus:outline-none focus:border-blue-500 font-bold text-blue-800 cursor-pointer text-sm sm:text-base" onchange="loadPlantForEditing()">
@@ -486,39 +561,39 @@
 
                 <form id="plant-form" class="space-y-6" onsubmit="generateQRCode(event)">
                     
-                    <div class="space-y-4 bg-green-50/50 p-4 sm:p-6 rounded-2xl border-green-100 border">
-                        <h3 class="font-bold text-green-800 text-base sm:text-lg border-b border-green-200 pb-2 mb-4 flex items-center justify-between font-extrabold">
+                    <div class="space-y-4 bg-teal-50/30 p-4 sm:p-6 rounded-2xl border-teal-100 border">
+                        <h3 class="font-bold text-teal-900 text-base sm:text-lg border-b border-teal-200 pb-2 mb-4 flex items-center justify-between">
                             <span>1. Identificação</span>
                         </h3>
                         <div class="flex flex-col sm:flex-row gap-4">
                             <div class="w-full sm:w-1/2">
-                                <label class="block text-sm font-bold text-green-700 mb-2 ml-1">Nome Popular</label>
-                                <input type="text" id="input-name" required class="w-full p-3 sm:p-4 rounded-xl border-2 border-green-200 bg-white focus:outline-none focus:border-green-500 font-bold text-sm sm:text-base">
+                                <label class="block text-sm font-bold text-teal-800 mb-2 ml-1">Nome Popular</label>
+                                <input type="text" id="input-name" required class="w-full p-3 sm:p-4 rounded-xl border-2 border-teal-200 bg-white focus:outline-none focus:border-teal-500 font-bold text-sm sm:text-base">
                             </div>
                             <div class="w-full sm:w-1/2">
-                                <label class="block text-sm font-bold text-green-700 mb-2 ml-1">Nome Científico</label>
-                                <input type="text" id="input-scientific" required class="w-full p-3 sm:p-4 rounded-xl border-2 border-green-200 bg-white focus:outline-none focus:border-green-500 font-bold italic text-sm sm:text-base">
+                                <label class="block text-sm font-bold text-teal-800 mb-2 ml-1">Nome Científico</label>
+                                <input type="text" id="input-scientific" required class="w-full p-3 sm:p-4 rounded-xl border-2 border-teal-200 bg-white focus:outline-none focus:border-teal-500 font-bold italic text-sm sm:text-base">
                             </div>
                         </div>
                     </div>
 
-                    <div class="space-y-4 bg-green-50/50 p-4 sm:p-6 rounded-2xl border border-green-100">
-                        <h3 class="font-bold text-green-800 text-base sm:text-lg border-b border-green-200 pb-2 mb-4 flex items-center justify-between font-extrabold">
+                    <div class="space-y-4 bg-teal-50/30 p-4 sm:p-6 rounded-2xl border border-teal-100">
+                        <h3 class="font-bold text-teal-900 text-base sm:text-lg border-b border-teal-200 pb-2 mb-4 flex items-center justify-between">
                             <span>2. Fotos Reais</span>
                         </h3>
                         <div class="space-y-4">
                             <div>
-                                <label class="block text-sm font-bold text-green-700 mb-1.5 ml-1">Upload (Múltiplas)</label>
-                                <input type="file" id="input-file-plant" accept="image/*" multiple class="w-full p-3 rounded-xl border-2 border-green-200 bg-white text-sm font-semibold">
+                                <label class="block text-sm font-bold text-teal-800 mb-1.5 ml-1">Upload (Múltiplas)</label>
+                                <input type="file" id="input-file-plant" accept="image/*" multiple class="w-full p-3 rounded-xl border-2 border-teal-200 bg-white text-sm font-semibold">
                             </div>
                             
-                            <div class="flex items-center justify-center my-2 text-green-700 font-bold text-sm">
-                                <span class="border-t border-green-200 flex-grow mr-3"></span> OU <span class="border-t border-green-200 flex-grow ml-3"></span>
+                            <div class="flex items-center justify-center my-2 text-teal-800 font-bold text-sm">
+                                <span class="border-t border-teal-200 flex-grow mr-3"></span> OU <span class="border-t border-teal-200 flex-grow ml-3"></span>
                             </div>
 
                             <div>
-                                <label class="block text-sm font-bold text-green-700 mb-1.5 ml-1 font-semibold">Colar um Link de Imagem Externa</label>
-                                <input type="url" id="input-url" placeholder="Ex: https://meusite.com/foto-planta.jpg" class="w-full p-3 sm:p-4 rounded-xl border-2 border-green-200 bg-white focus:outline-none focus:border-green-500 font-medium text-sm sm:text-base">
+                                <label class="block text-sm font-bold text-teal-800 mb-1.5 ml-1 font-semibold">Colar um Link de Imagem Externa</label>
+                                <input type="url" id="input-url" placeholder="Ex: https://meusite.com/foto-planta.jpg" class="w-full p-3 sm:p-4 rounded-xl border-2 border-teal-200 bg-white focus:outline-none focus:border-teal-500 font-medium text-sm sm:text-base">
                             </div>
                         </div>
                     </div>
@@ -532,33 +607,33 @@
                         <div class="space-y-4">
                             <div>
                                 <label class="block text-sm font-bold text-blue-700 mb-1.5 ml-1">Upload do Folheto</label>
-                                <input type="file" id="input-file-info" accept="image/*" class="w-full p-3 rounded-xl border-2 border-green-200 bg-white text-sm font-semibold">
+                                <input type="file" id="input-file-info" accept="image/*" class="w-full p-3 rounded-xl border-2 border-teal-200 bg-white text-sm font-semibold">
                             </div>
                             
-                            <div class="flex items-center justify-center my-2 text-blue-700 font-bold text-sm">
-                                <span class="border-t border-green-200 flex-grow mr-3"></span> OU <span class="border-t border-green-200 flex-grow ml-3"></span>
+                            <div class="flex items-center justify-center my-2 text-teal-800 font-bold text-sm">
+                                <span class="border-t border-teal-200 flex-grow mr-3"></span> OU <span class="border-t border-teal-200 flex-grow ml-3"></span>
                             </div>
 
                             <div>
                                 <label class="block text-sm font-bold text-blue-700 mb-1.5 ml-1 font-semibold">Colar Link do Folheto</label>
-                                <input type="url" id="input-url-info" placeholder="Ex: https://meusite.com/folheto.jpg" class="w-full p-3 sm:p-4 rounded-xl border-2 border-green-200 bg-white focus:outline-none focus:border-green-500 font-medium text-sm sm:text-base">
+                                <input type="url" id="input-url-info" placeholder="Ex: https://meusite.com/folheto.jpg" class="w-full p-3 sm:p-4 rounded-xl border-2 border-teal-200 bg-white focus:outline-none focus:border-teal-500 font-medium text-sm sm:text-base">
                             </div>
                         </div>
                     </div>
 
                     <!-- CADASTRO DE LOCALIZAÇÃO GEOGRÁFICA -->
-                    <div class="space-y-4 bg-green-50/50 p-4 sm:p-6 rounded-2xl border-green-100 border">
-                        <h3 class="font-bold text-green-800 text-base sm:text-lg border-b border-green-200 pb-2 mb-2 flex items-center justify-between font-extrabold">
+                    <div class="space-y-4 bg-teal-50/30 p-4 sm:p-6 rounded-2xl border-teal-100 border">
+                        <h3 class="font-bold text-teal-900 text-base sm:text-lg border-b border-teal-200 pb-2 mb-2 flex items-center justify-between">
                             <span>4. Localização Geográfica (Mapa)</span>
                         </h3>
                         <div class="flex flex-col sm:flex-row gap-4 mt-2">
                             <div class="w-full sm:w-1/2">
-                                <label class="block text-sm font-bold text-green-700 mb-1.5 ml-1">Latitude</label>
-                                <input type="number" step="any" id="input-latitude" class="w-full p-3 sm:p-4 rounded-xl border-2 border-green-200 bg-white text-sm font-semibold">
+                                <label class="block text-sm font-bold text-teal-800 mb-1.5 ml-1">Latitude</label>
+                                <input type="number" step="any" id="input-latitude" class="w-full p-3 sm:p-4 rounded-xl border-2 border-teal-200 bg-white text-sm font-semibold">
                             </div>
                             <div class="w-full sm:w-1/2">
-                                <label class="block text-sm font-bold text-green-700 mb-1.5 ml-1">Longitude</label>
-                                <input type="number" step="any" id="input-longitude" class="w-full p-3 sm:p-4 rounded-xl border-2 border-green-200 bg-white text-sm font-semibold">
+                                <label class="block text-sm font-bold text-teal-800 mb-1.5 ml-1">Longitude</label>
+                                <input type="number" step="any" id="input-longitude" class="w-full p-3 sm:p-4 rounded-xl border-2 border-teal-200 bg-white text-sm font-semibold">
                             </div>
                         </div>
                         <button type="button" onclick="getGPSCoordinates()" class="w-full bg-blue-100 hover:bg-blue-200 text-blue-800 font-bold py-3 px-4 rounded-xl transition flex justify-center items-center text-sm mt-2">
@@ -568,20 +643,20 @@
 
                     <!-- CADASTRO DE QUESTÕES -->
                     <div class="space-y-6">
-                        <h3 class="font-bold text-green-800 text-base sm:text-lg border-b border-green-200 pb-2 flex items-center justify-between font-extrabold">
+                        <h3 class="font-bold text-teal-900 text-base sm:text-lg border-b border-teal-200 pb-2 flex items-center justify-between">
                             <span>5. Cadastro de Questões</span>
                         </h3>
                         <div id="questions-builder-container" class="space-y-6"></div>
                     </div>
                     
-                    <button id="btn-generate" type="submit" class="w-full mt-8 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-4 sm:py-5 px-4 rounded-2xl shadow-xl transition flex justify-center items-center text-base sm:text-lg font-extrabold">
+                    <button id="btn-generate" type="submit" class="w-full mt-8 bg-teal-600 hover:bg-teal-700 text-white font-extrabold py-4 sm:py-5 px-4 rounded-2xl shadow-xl transition flex justify-center items-center text-base sm:text-lg">
                         <i class="ph-bold ph-floppy-disk mr-2 text-2xl font-bold"></i> Salvar Planta
                     </button>
                 </form>
 
-                <div id="generated-qr-section" class="hidden mt-8 pt-6 border-t-2 border-dashed border-green-300 flex flex-col items-center fade-in bg-green-50 p-4 sm:p-8 rounded-3xl">
-                    <h3 class="text-lg sm:text-xl font-bold text-green-800 mb-4 text-center">QR Code Pronto!</h3>
-                    <div id="qrcode-display" class="bg-white p-4 shadow-md rounded-2xl border-4 border-green-200 max-w-full overflow-hidden flex justify-center"></div>
+                <div id="generated-qr-section" class="hidden mt-8 pt-6 border-t-2 border-dashed border-teal-300 flex flex-col items-center fade-in bg-teal-50 p-4 sm:p-8 rounded-3xl">
+                    <h3 class="text-lg sm:text-xl font-bold text-teal-900 mb-4 text-center">QR Code Pronto!</h3>
+                    <div id="qrcode-display" class="bg-white p-4 shadow-md rounded-2xl border-4 border-teal-200 max-w-full overflow-hidden flex justify-center"></div>
                 </div>
             </div>
         </div>
@@ -662,11 +737,11 @@
         </div>
     </div>
 
-    <footer class="bg-green-900 text-green-100 py-6 sm:py-8 px-4 mt-auto border-t-4 border-green-700 pb-safe">
+    <footer class="bg-teal-950 text-teal-100 py-6 sm:py-8 px-4 mt-auto border-t-4 border-teal-850 pb-safe">
         <div class="max-w-3xl mx-auto text-center space-y-3">
-            <i class="ph-fill ph-graduation-cap text-3xl sm:text-4xl text-green-400 mb-2 block mx-auto"></i>
+            <i class="ph-fill ph-graduation-cap text-3xl sm:text-4xl text-teal-400 mb-2 block mx-auto"></i>
             <p class="text-xs sm:text-sm font-semibold leading-relaxed px-2">
-                Aplicativo desenvolvido na escola EEEP Aderson Borges de Carvalho pelo aluno Luiz Emanuel Miranda Silveira sob orientação do professor mestre Lucas Sebastião Barbosa Silva.
+                FitoScan Cariri — Desenvolvido na escola EEEP Aderson Borges de Carvalho pelo aluno Luiz Emanuel Miranda Silveira sob orientação do professor mestre Lucas Sebastião Barbosa Silva.
             </p>
         </div>
     </footer>
@@ -729,13 +804,21 @@
                     }
                 };
 
+                // SINCRONIZAR AVALIAÇÕES DO APLICATIVO
+                window.syncAppReviews = async function() {
+                    const { data } = await window.supabase.from('app_reviews').select('*').order('created_at', { ascending: false });
+                    if (data && typeof window.renderAppReviews === 'function') window.renderAppReviews(data);
+                };
+
                 syncCloudPlants();
                 window.syncGuardians();
                 window.syncQuizResults();
                 window.syncChallenges();
+                window.syncAppReviews();
                 
                 window.supabase.channel('public:quiz_results').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'quiz_results' }, payload => { window.syncQuizResults(); showToast(`Novo quiz respondido por ${payload.new.student_name}!`, false); }).subscribe();
                 window.supabase.channel('public:challenge_teams').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'challenge_teams' }, payload => { showToast(`Desafio concluído pela equipa: ${payload.new.group_name}!`, false); }).subscribe();
+                window.supabase.channel('public:app_reviews').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'app_reviews' }, payload => { window.syncAppReviews(); showToast(`Nova avaliação de ${payload.new.rating} estrelas por ${payload.new.student_name}!`, false); }).subscribe();
                 
                 const { data: { session } } = await window.supabase.auth.getSession();
                 if (session && typeof window.showCreateSection === 'function') window.showCreateSection();
@@ -754,7 +837,7 @@
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
             container.innerHTML = '';
-            toast.className = `p-4 rounded-xl shadow-2xl text-sm font-bold text-white transition-all duration-300 transform translate-y-[-20px] opacity-0 flex items-center ${isError ? 'bg-red-600' : 'bg-emerald-600'} z-[999]`;
+            toast.className = `p-4 rounded-xl shadow-2xl text-sm font-bold text-white transition-all duration-300 transform translate-y-[-20px] opacity-0 flex items-center ${isError ? 'bg-red-600' : 'bg-teal-600'} z-[999]`;
             toast.innerHTML = `<i class="ph-bold ${isError ? 'ph-warning-circle' : 'ph-check-circle'} text-xl mr-2"></i> <span>${msg}</span>`;
             container.appendChild(toast);
             requestAnimationFrame(() => toast.classList.remove('translate-y-[-20px]', 'opacity-0'));
@@ -860,11 +943,11 @@
                         const isBusy = !!busyPlants[p.cientifico];
                         const marker = L.marker([p.latitude, p.longitude], { icon: isBusy ? redIcon : greenIcon }).bindPopup(`
                             <div class="text-center p-1 font-sans">
-                                <h4 class="font-extrabold text-green-800 text-sm mb-0.5">${p.nome}</h4>
+                                <h4 class="font-extrabold text-teal-900 text-sm mb-0.5">${p.nome}</h4>
                                 <p class="text-xs italic text-emerald-600 mb-1">${p.cientifico}</p>
                                 ${isBusy ? `<p class="text-[10px] text-red-600 font-bold mb-2 flex items-center justify-center"><i class="ph-bold ph-shield-warning mr-1"></i> Guardião: ${busyPlants[p.cientifico].name}</p>` : `<p class="text-[10px] text-emerald-600 font-bold mb-2 flex items-center justify-center"><i class="ph-bold ph-hands-clapping mr-1"></i> Livre!</p>`}
                                 <div class="flex flex-col gap-1.5 w-full">
-                                    <button onclick="window.loadStudentViewFromMap('${p.cientifico}')" class="bg-emerald-600 text-white font-bold text-[10px] py-2 px-3 rounded-full hover:bg-emerald-700 transition w-full shadow-sm">Ver Detalhes</button>
+                                    <button onclick="window.loadStudentViewFromMap('${p.cientifico}')" class="bg-teal-600 text-white font-bold text-[10px] py-2 px-3 rounded-full hover:bg-teal-700 transition w-full shadow-sm">Ver Detalhes</button>
                                     <a href="https://www.google.com/maps/search/?api=1&query=${p.latitude},${p.longitude}" target="_blank" class="btn-map-nav bg-blue-600 text-white font-bold text-[10px] py-2 px-3 rounded-full hover:bg-blue-700 transition inline-block text-center no-underline w-full shadow-sm" style="color: white !important; text-decoration: none !important;">Como Chegar</a>
                                 </div>
                             </div>
@@ -903,7 +986,7 @@
                         <p class="text-xs text-amber-700 font-bold mb-1"><i class="ph-bold ph-clock mr-1"></i> Termina: ${new Date(c.deadline).toLocaleString('pt-BR')}</p>
                         <p class="text-xs text-gray-500 font-medium">Missão: Localizar ${c.plants.length} planta(s)</p>
                     </div>
-                    <button onclick="prepareChallenge('${c.id}')" class="bg-amber-500 hover:bg-amber-600 text-white font-extrabold py-2.5 px-4 rounded-xl shadow-sm text-sm w-full sm:w-auto transition shrink-0">
+                    <button onclick="prepareChallenge('${c.id}')" class="bg-amber-500 hover:bg-amber-600 text-white font-bold py-2.5 px-4 rounded-xl shadow-sm text-sm w-full sm:w-auto transition shrink-0">
                         Participar
                     </button>
                 </div>
@@ -1005,8 +1088,8 @@
             let imagesToRender = plantData.image_urls && plantData.image_urls.length > 0 ? plantData.image_urls : (plantData.url ? [plantData.url] : []);
             if(imagesToRender.length > 0) {
                 let galleryHTML = `<div class="flex overflow-x-auto w-full gap-4 snap-x p-2">`;
-                imagesToRender.forEach(imgUrl => { galleryHTML += `<div class="shrink-0 w-56 sm:w-64 snap-center flex flex-col items-center bg-white p-2 rounded-3xl border border-emerald-100 shadow-sm"><img src="${imgUrl}" class="w-full h-56 sm:h-64 object-cover rounded-2xl border-2 border-emerald-300"><a href="${imgUrl}" target="_blank" class="mt-3 text-[10px] sm:text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 py-2 px-4 rounded-full flex justify-center shadow-sm" style="text-decoration: none !important;">Ampliar</a></div>`; });
-                plantImageContainer.innerHTML = galleryHTML + `</div>` + (imagesToRender.length > 1 ? `<p class="text-xs text-green-700 font-bold mt-3 animate-pulse">Deslize para ver mais</p>` : '');
+                imagesToRender.forEach(imgUrl => { galleryHTML += `<div class="shrink-0 w-56 sm:w-64 snap-center flex flex-col items-center bg-white p-2 rounded-3xl border border-teal-100 shadow-sm"><img src="${imgUrl}" class="w-full h-56 sm:h-64 object-cover rounded-2xl border-2 border-teal-300"><a href="${imgUrl}" target="_blank" class="mt-3 text-[10px] sm:text-xs font-bold text-white bg-teal-600 hover:bg-teal-700 py-2 px-4 rounded-full flex justify-center shadow-sm" style="text-decoration: none !important;">Ampliar</a></div>`; });
+                plantImageContainer.innerHTML = galleryHTML + `</div>` + (imagesToRender.length > 1 ? `<p class="text-xs text-teal-700 font-bold mt-3 animate-pulse">Deslize para ver mais</p>` : '');
             } else plantImageContainer.innerHTML = '';
 
             const locationCard = document.getElementById('plant-location-card');
@@ -1065,8 +1148,8 @@
                 studentFormSection.classList.remove('hidden');
                 currentQuizData.forEach((item, index) => {
                     let optsHtml = '';
-                    item.opts.forEach((opt, oIdx) => { optsHtml += `<label class="flex items-center p-3 border-2 border-green-100 rounded-xl bg-white cursor-pointer has-[:checked]:bg-emerald-100"><input type="radio" name="question_${index}" value="${oIdx}" class="w-5 h-5 mr-3"><div class="font-medium flex-1">${['A','B','C','D','E'][oIdx]}) ${opt}</div></label>`; });
-                    quizContainer.innerHTML += `<div class="bg-white p-4 rounded-2xl shadow-sm border border-green-100" id="q-block-${index}"><p class="font-extrabold text-green-900 mb-4">${index + 1}. ${item.q}</p><div class="space-y-2 flex flex-col">${optsHtml}</div></div>`;
+                    item.opts.forEach((opt, oIdx) => { optsHtml += `<label class="flex items-center p-3 border-2 border-teal-100 rounded-xl bg-white cursor-pointer has-[:checked]:bg-teal-100"><input type="radio" name="question_${index}" value="${oIdx}" class="w-5 h-5 mr-3"><div class="font-medium flex-1">${['A','B','C','D','E'][oIdx]}) ${opt}</div></label>`; });
+                    quizContainer.innerHTML += `<div class="bg-white p-4 rounded-2xl shadow-sm border border-teal-100" id="q-block-${index}"><p class="font-extrabold text-teal-900 mb-4">${index + 1}. ${item.q}</p><div class="space-y-2 flex flex-col">${optsHtml}</div></div>`;
                 });
             } else {
                 studentFormSection.classList.add('hidden');
@@ -1471,13 +1554,13 @@
         window.approveGuardian = async function(id, btnId) {
             const btn = document.getElementById(btnId);
             if (btn.dataset.confirm !== "true") {
-                btn.dataset.confirm = "true"; btn.dataset.originalHtml = btn.innerHTML; btn.innerHTML = '<i class="ph-bold ph-question mr-1"></i> Confirmar?'; btn.classList.replace('bg-emerald-500', 'bg-emerald-700');
-                setTimeout(() => { if (btn && btn.dataset.confirm === "true") { btn.dataset.confirm = "false"; btn.innerHTML = btn.dataset.originalHtml; btn.classList.replace('bg-emerald-700', 'bg-emerald-500'); } }, 3000); return;
+                btn.dataset.confirm = "true"; btn.dataset.originalHtml = btn.innerHTML; btn.innerHTML = '<i class="ph-bold ph-question mr-1"></i> Confirmar?'; btn.classList.replace('bg-emerald-50500', 'bg-emerald-700');
+                setTimeout(() => { if (btn && btn.dataset.confirm === "true") { btn.dataset.confirm = "false"; btn.innerHTML = btn.dataset.originalHtml; btn.classList.replace('bg-emerald-700', 'bg-emerald-50500'); } }, 3000); return;
             }
             btn.dataset.confirm = "false"; btn.innerHTML = '<i class="ph-bold ph-spinner animate-spin mr-1"></i> Aprovando...'; btn.disabled = true;
             try {
                 await window.supabase.from('guardians').update({status:'aprovado'}).eq('id', id); window.syncGuardians(); showToast("Aprovado!",false);
-            } catch(e) { showToast("Erro.", true); btn.innerHTML = btn.dataset.originalHtml; btn.disabled = false; btn.classList.replace('bg-emerald-700', 'bg-emerald-500'); }
+            } catch(e) { showToast("Erro.", true); btn.innerHTML = btn.dataset.originalHtml; btn.disabled = false; btn.classList.replace('bg-emerald-700', 'bg-emerald-50500'); }
         };
 
         window.approveReport = async function(id, btnId) {
@@ -1593,7 +1676,7 @@
                 showToast("Erro ao excluir.", true); 
                 btn.innerHTML = btn.dataset.originalHtml;
                 btn.disabled = false;
-                btn.classList.replace('bg-red-500', 'bg-red-100');
+                btn.classList.replace('bg-red-50500', 'bg-red-100');
                 btn.classList.replace('text-white', 'text-red-700');
                 btn.classList.replace('hover:bg-red-600', 'hover:bg-red-200');
             }
